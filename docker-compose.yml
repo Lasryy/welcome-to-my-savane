@@ -49,7 +49,7 @@ services:
       DB_NAME: ${POSTGRES_DB}
 
     volumes:
-      - ./back:/app
+      - ./backend:/app
       - /app/node_modules
 
     depends_on:
@@ -75,7 +75,7 @@ services:
       VITE_API_URL: http://localhost:${BACK_PORT}
 
     volumes:
-      - ./front:/app
+      - ./frontend:/app
       - /app/node_modules
 
     depends_on:

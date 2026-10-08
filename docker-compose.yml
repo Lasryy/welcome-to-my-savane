@@ -1,6 +1,4 @@
-
 services:
-
   # BD
 
   postgres:
@@ -21,7 +19,8 @@ services:
       - ./db/job_board_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      test:
+        ["CMD-SHELL", 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -49,7 +48,7 @@ services:
       DB_NAME: ${POSTGRES_DB}
 
     volumes:
-      - ./back:/app
+      - ./backend:/app
       - /app/node_modules
 
     depends_on:
@@ -75,7 +74,7 @@ services:
       VITE_API_URL: http://localhost:${BACK_PORT}
 
     volumes:
-      - ./front:/app
+      - ./frontend:/app
       - /app/node_modules
 
     depends_on:

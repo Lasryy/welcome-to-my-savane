@@ -1,34 +1,50 @@
-# WelcomeToMyJungle
+# Welcome to My Savane
 
 Job board full-stack en cours de développement.
 
 ## Avancement actuel
 
-- Base PostgreSQL : schéma et données de démonstration disponibles dans `db/`.
+- Base PostgreSQL : schéma dans `db/job_board_schema.sql` et seed MVP dans `db/seed_mvp.sql`.
 - Frontend : base React + Vite initialisée, interface métier à développer.
-- Backend : structure Node.js prévue, API et authentification encore à implémenter.
-- Docker Compose : configuration préparée pour PostgreSQL, backend et frontend ; elle devra être ajustée lorsque le backend sera ajouté.
+- Backend : dépendances Node.js installées, mais l’API et l’authentification restent à implémenter.
+- Docker Compose : services configurés ; le backend ne démarre pas encore car `backend/src/app.js` n’existe pas.
 
 ## Technologies
 
 React · Vite · Node.js/Express · PostgreSQL · Docker
 
-## Installation rapide
+## Installation et commandes
 
 Prérequis : Node.js, npm et Docker.
 
 ```bash
-git clone <url-du-repo>
-cd WelcomeToMyJungle
 cp .env.example .env
+docker compose up -d postgres
 ```
 
-### Base de données
-
-Le schéma est chargé automatiquement au premier démarrage de PostgreSQL.
+Le schéma est chargé automatiquement au premier démarrage de PostgreSQL. Pour charger les données de démonstration :
 
 ```bash
-docker compose up -d postgres
+docker cp db/seed_mvp.sql postgres-db:/tmp/seed_mvp.sql
+docker exec -i postgres-db psql -U admin -d WTMS -f /tmp/seed_mvp.sql
+```
+
+Lancer le frontend :
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Application : <http://localhost:5173>
+
+Commandes frontend :
+
+```bash
+npm run build   # build de production
+npm run lint    # vérification ESLint
+npm run preview # prévisualisation du build
 ```
 
 Arrêter les conteneurs :
@@ -37,42 +53,19 @@ Arrêter les conteneurs :
 docker compose down
 ```
 
-Pour charger les données de démonstration :
-
-```bash
-docker cp db/seed_mvp.sql postgres-db:/tmp/seed_mvp.sql
-docker exec -i postgres-db psql -U admin -d welcometomyjungle -f /tmp/seed_mvp.sql
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Application disponible sur <http://localhost:5173>.
-
-Commandes utiles :
-
-```bash
-npm run build   # build de production
-npm run lint    # vérification ESLint
-npm run preview # prévisualisation du build
-```
+Le lancement complet avec `docker compose up --build` attend la création du backend.
 
 ## Structure
 
 ```text
 db/        Schéma et seed PostgreSQL
 frontend/  Application React/Vite
-backend/   API Node.js prévue
+backend/   API Node.js à implémenter
 ```
 
 ## Prochaines étapes
 
-1. Corriger/compléter la configuration Docker et créer l’API Express.
+1. Créer l’API Express dans `backend/src/app.js`.
 2. Ajouter l’inscription, la connexion et les sessions utilisateur.
-3. Implémenter les offres, les candidatures et les profils.
+3. Implémenter les offres, candidatures et profils.
 4. Remplacer l’écran de démonstration Vite par l’interface du job board.

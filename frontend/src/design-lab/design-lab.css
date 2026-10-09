@@ -35,7 +35,7 @@ html:has(.design-lab) {
 }
 .design-lab button,
 .design-lab input,
-.design-lab select {
+.design-lab .custom-select-trigger {
   font: inherit;
   color: inherit;
 }
@@ -63,7 +63,7 @@ html:has(.design-lab) {
 .design-lab button,
 .design-lab a,
 .design-lab input,
-.design-lab select,
+.design-lab .custom-select-trigger,
 .design-lab summary {
   outline-offset: 4px;
 }
@@ -209,7 +209,7 @@ html:has(.design-lab) {
   border-radius: 10px;
   box-shadow: 0 12px 32px #00000020;
 }
-.state-controls select {
+.state-controls .custom-select-trigger {
   display: block;
   margin-top: 8px;
   width: 100%;
@@ -443,7 +443,7 @@ html:has(.design-lab) {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
-.select-field select {
+.select-field .custom-select-trigger {
   display: block;
   width: 100%;
   padding: 11px 30px 11px 12px;
@@ -480,7 +480,7 @@ html:has(.design-lab) {
   gap: 10px;
   padding-block: 22px;
 }
-.filter-bar .select-field select {
+.filter-bar .select-field .custom-select-trigger {
   min-width: 160px;
 }
 .filter-toggle {
@@ -528,7 +528,7 @@ html:has(.design-lab) {
   font-size: 11px;
   color: var(--muted);
 }
-.sort-control select {
+.sort-control .custom-select-trigger {
   background: transparent;
   color: var(--ink);
   border: 0;
@@ -1109,7 +1109,7 @@ html:has(.design-lab) {
 .concept-b .filter-rail {
   padding-top: 6px;
 }
-.concept-b .select-field select {
+.concept-b .select-field .custom-select-trigger {
   border-radius: 6px;
 }
 .concept-b .results-heading h2 {
@@ -1291,7 +1291,7 @@ html:has(.design-lab) {
   padding: 17px 0 24px;
 }
 .concept-c .filter-toggle,
-.concept-c .select-field select {
+.concept-c .select-field .custom-select-trigger {
   border-radius: 5px;
 }
 .concept-c .results-heading {
@@ -1475,11 +1475,11 @@ html:has(.design-lab) {
   background: #e7c19a;
   filter: none;
 }
-.concept-d .select-field select {
+.concept-d .select-field .custom-select-trigger {
   background: #222929;
   border-radius: 3px;
 }
-.concept-d .sort-control select {
+.concept-d .sort-control .custom-select-trigger {
   color-scheme: dark;
 }
 .concept-d .filter-toggle {
@@ -2319,7 +2319,7 @@ html:has(.design-lab) {
   .filter-note {
     display: none;
   }
-  .filter-rail .select-field select {
+  .filter-rail .select-field .custom-select-trigger {
     font-size: 11px;
     padding-inline: 8px;
   }
@@ -2347,7 +2347,7 @@ html:has(.design-lab) {
     padding-top: 8px;
     border-top: 1px solid var(--rule);
   }
-  .sort-control select {
+  .sort-control .custom-select-trigger {
     font-size: 11px;
   }
   .concept-a .job-title-line h3 {
@@ -2481,7 +2481,7 @@ html:has(.design-lab) {
   .filter-bar .select-field {
     flex: 1;
   }
-  .filter-bar .select-field select {
+  .filter-bar .select-field .custom-select-trigger {
     min-width: 0;
     font-size: 11px;
     padding: 10px;
@@ -2816,8 +2816,8 @@ html:has(.design-lab) {
     grid-column: 1 / -1;
     justify-self: start;
   }
-  .concept-c .filter-bar select,
-  .concept-d .filter-bar select {
+  .concept-c .filter-bar .custom-select-trigger,
+  .concept-d .filter-bar .custom-select-trigger {
     padding-right: 18px;
   }
 }

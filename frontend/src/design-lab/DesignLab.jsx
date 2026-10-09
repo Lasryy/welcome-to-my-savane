@@ -9,6 +9,7 @@ import {
   normalize,
 } from "./data.js";
 import Icon from "./Icon.jsx";
+import CustomSelect from "../components/CustomSelect";
 import { Editorial, Recruitment, Playful, Dark } from "./variants.jsx";
 import {
   GrandAirTwo,
@@ -208,7 +209,9 @@ function InfoPanel({ panel, close }) {
       tabIndex={-1}
       ref={ref}
       onKeyDown={(event) => {
-        if (event.key === "Escape") close();
+        if (event.key === "Escape") {
+          close();
+        }
       }}
       aria-label={
         panel === "companies" ? "Entreprises de démonstration" : content.title
@@ -301,7 +304,10 @@ export default function DesignLab() {
   useEffect(() => {
     const onPop = () => {
       const next = window.location.pathname.split("/")[2];
-      if (directions.some((item) => item.id === next)) setDirection(next);
+      const isKnownDirection = directions.some((item) => item.id === next);
+      if (isKnownDirection) {
+        setDirection(next);
+      }
       setCompare(next?.startsWith("compare") || false);
       setArchiveRound(
         next === "compare-1" ||
@@ -318,7 +324,9 @@ export default function DesignLab() {
     setArchiveRound(
       id === "compare-1" || firstDirections.some((item) => item.id === id),
     );
-    if (!id.startsWith("compare")) setDirection(id);
+    if (!id.startsWith("compare")) {
+      setDirection(id);
+    }
     setPanel(null);
     setExpanded(null);
     setApplying(null);
@@ -488,23 +496,19 @@ export default function DesignLab() {
             >
               Comparer <Icon name="external" />
             </button>
-            <select
-              className="lab-archives"
-              aria-label="Autres explorations"
+            <CustomSelect
+              className="archives-select"
+              triggerClassName="lab-archives"
+              ariaLabel="Autres explorations"
               value=""
-              onChange={(event) => changeView(event.target.value)}
-            >
-              <option value="">
-                {archiveRound ? "Nouvelles pistes" : "Archives"}
-              </option>
-              <option value="compare">Exploration 2</option>
-              <option value="compare-1">Exploration 1</option>
-              {firstDirections.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.letter} — {item.name}
-                </option>
-              ))}
-            </select>
+              placeholder={archiveRound ? "Nouvelles pistes" : "Archives"}
+              onChange={changeView}
+              options={[
+                { value: "compare", label: "Exploration 2" },
+                { value: "compare-1", label: "Exploration 1" },
+                ...firstDirections.map((item) => ({ value: item.id, label: `${item.letter} — ${item.name}` })),
+              ]}
+            />
             <details className="state-controls">
               <summary>
                 États <Icon name="chevron" />
@@ -512,19 +516,20 @@ export default function DesignLab() {
               <div>
                 <label>
                   État des offres
-                  <select
-                    aria-label="État des offres"
+                  <CustomSelect
+                    ariaLabel="État des offres"
                     value={state}
-                    onChange={(event) => {
+                    onChange={(value) => {
                       clearTimeout(timer.current);
-                      setState(event.target.value);
+                      setState(value);
                     }}
-                  >
-                    <option value="ready">Offres disponibles</option>
-                    <option value="loading">Chargement</option>
-                    <option value="empty">Aucun résultat</option>
-                    <option value="error">Erreur</option>
-                  </select>
+                    options={[
+                      { value: "ready", label: "Offres disponibles" },
+                      { value: "loading", label: "Chargement" },
+                      { value: "empty", label: "Aucun résultat" },
+                      { value: "error", label: "Erreur" },
+                    ]}
+                  />
                 </label>
               </div>
             </details>

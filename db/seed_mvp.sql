@@ -19,14 +19,14 @@
 -- Descriptions longues : contexte sectoriel, six missions propres au métier,
 -- livrables, apprentissages et attentes adaptées au niveau d’expérience.
 --
--- Convention salary : montant BRUT ANNUEL en EUR pour TOUS les contrats,
--- y compris les stages et alternances (rémunération mensuelle x 12).
--- NULL signifie rémunération non renseignée. Les montants sont fictifs.
--- Contrats : CDI, CDD, INTERNSHIP, APPRENTICESHIP.
--- Temps de travail : FULL_TIME, PART_TIME.
--- Offres : published, draft, closed.
--- Candidatures : sent, in_progress, technical_test, interview,
---                accepted, rejected, withdrawn.
+-- Fourchettes salary_min / salary_max : montants BRUTS en EUR.
+-- salary_period : month pour stages/alternances ; year pour les autres.
+-- Deux bornes NULL signifient rémunération non renseignée.
+-- Les montants sont fictifs et exprimés pour le temps de travail indiqué.
+-- Contrats : permanent, fixed_term, internship, apprenticeship.
+-- Temps de travail : full_time, part_time.
+-- Offres : published (195), closed (45) ; aucun statut draft dans le schéma.
+-- Candidatures : sent, in_progress, technical_test, accepted, rejected.
 --
 -- Connexion de démonstration (hash bcrypt, coût 10) :
 --   alice.martin@example.com / JobBoardDemo2026!
@@ -896,17 +896,22 @@ SELECT j.job_no, v.variant_no, c.id AS company_id, cat.id AS category_id,
        sector.education, sector.learning,
        detail.role_context, detail.detailed_missions, detail.deliverables, detail.optional_skills,
        CASE WHEN j.job_no % 8 = 0 AND v.variant_no < 4 THEN NULL
-            WHEN v.variant_no = 4 THEN CASE WHEN j.job_no % 2 = 0 THEN 21600 ELSE 14400 END
-            ELSE j.base_salary + (v.variant_no - 1) * 10000 END AS salary,
+            WHEN v.variant_no = 4 THEN CASE WHEN j.job_no % 2 = 0 THEN 1800 ELSE 1200 END
+            ELSE j.base_salary + (v.variant_no - 1) * 10000 END AS salary_min,
+       CASE WHEN j.job_no % 8 = 0 AND v.variant_no < 4 THEN NULL
+            WHEN v.variant_no = 4 THEN CASE WHEN j.job_no % 2 = 0 THEN 2100 ELSE 1500 END
+            ELSE j.base_salary + (v.variant_no - 1) * 10000
+                 + 6000 + (v.variant_no - 1) * 2000 END AS salary_max,
+       CASE WHEN v.variant_no = 4 THEN 'month' ELSE 'year' END AS salary_period,
        CASE WHEN v.variant_no = 4 THEN
-                CASE WHEN j.job_no % 2 = 0 THEN 'APPRENTICESHIP' ELSE 'INTERNSHIP' END
-            WHEN v.variant_no = 1 AND j.job_no % 5 = 0 THEN 'CDD'
-            ELSE 'CDI' END AS contract_type,
-       CASE WHEN v.variant_no = 1 AND j.job_no % 7 = 0 THEN 'PART_TIME'
-            ELSE 'FULL_TIME' END AS working_time,
+                CASE WHEN j.job_no % 2 = 0 THEN 'apprenticeship' ELSE 'internship' END
+            WHEN v.variant_no = 1 AND j.job_no % 5 = 0 THEN 'fixed_term'
+            ELSE 'permanent' END AS contract_type,
+       CASE WHEN v.variant_no = 1 AND j.job_no % 7 = 0 THEN 'part_time'
+            ELSE 'full_time' END AS working_time,
        CASE WHEN (v.variant_no = 4 AND j.job_no % 4 = 0)
-                  OR (v.variant_no = 2 AND j.job_no % 4 = 1) THEN 'closed'
-            WHEN v.variant_no = 3 AND j.job_no % 4 = 0 THEN 'draft'
+                  OR (v.variant_no = 2 AND j.job_no % 4 = 1)
+                  OR (v.variant_no = 3 AND j.job_no % 4 = 0) THEN 'closed'
             ELSE 'published' END AS status,
        CASE WHEN j.job_no % 10 = 0 THEN 'Télétravail — France'
             ELSE c.location END AS location,
@@ -923,7 +928,8 @@ JOIN seed_company_map c ON c.name = employers.company_names[1 + ((j.job_no + v.v
 JOIN categories cat ON cat.name = j.category_name;
 
 INSERT INTO ads (company_id, category_id, title, short_description, description,
-                 location, salary, contract_type, working_time, status, created_at)
+                 location, salary_min, salary_max, salary_period,
+                 contract_type, working_time, status, created_at)
 SELECT company_id, category_id, title,
        left(format('%s recrute en %s. %s. %s', company_name, category_name, missions, work_mode), 500),
        format($description$Contexte et enjeux du poste
@@ -1002,24 +1008,25 @@ Le parcours comprend un échange de découverte de 30 minutes, un entretien mét
                WHEN 2 THEN format('Vous disposez d’une formation en %s ou d’une expérience équivalente, avec deux à quatre années de pratique du métier. Vous avez déjà mené un sujet jusqu’à sa restitution et savez organiser les échanges nécessaires à son avancement.', education)
                WHEN 3 THEN format('Votre parcours en %s, acquis en formation ou par une expérience équivalente, vous permet de conduire des sujets complexes. Vous pouvez expliquer vos arbitrages et illustrer une contribution à l’amélioration des méthodes ou à l’accompagnement de collègues.', education)
                ELSE CASE contract_type
-                   WHEN 'INTERNSHIP' THEN format('Vous êtes en formation en %s et recherchez un stage de six mois conventionné. Votre niveau d’études doit être cohérent avec les missions ; un projet de formation peut servir de point de départ pour présenter vos acquis.', education)
+                   WHEN 'internship' THEN format('Vous êtes en formation en %s et recherchez un stage de six mois conventionné. Votre niveau d’études doit être cohérent avec les missions ; un projet de formation peut servir de point de départ pour présenter vos acquis.', education)
                    ELSE format('Vous préparez une formation en %s et recherchez une alternance de douze mois. Le calendrier et le rythme seront définis avec votre école afin d’articuler les apprentissages et les missions confiées.', education) END END,
            category_name, profile, tools, optional_skills,
            CASE WHEN variant_no = 4 THEN 'Une maîtrise approfondie de tous les outils n’est pas demandée à l’entrée : votre capacité à apprendre, à pratiquer avec méthode et à partager vos questions compte dans l’évaluation.'
                 WHEN variant_no = 1 THEN 'Vous n’avez pas besoin de connaître chaque outil de notre environnement. Nous attendons un socle solide et la capacité à progresser avec les retours de l’équipe.'
                 ELSE 'Nous attendons que vous puissiez mobiliser les méthodes essentielles du métier ; les outils propres à notre environnement peuvent être approfondis pendant l’intégration.' END,
            location, work_mode,
-           CASE working_time WHEN 'PART_TIME' THEN 'Temps partiel : 28 heures par semaine.'
+           CASE working_time WHEN 'part_time' THEN 'Temps partiel : 28 heures par semaine.'
                              ELSE 'Temps plein : 35 heures par semaine.' END,
-           CASE contract_type WHEN 'CDD' THEN 'CDD de 12 mois.'
-                              WHEN 'INTERNSHIP' THEN 'Stage de 6 mois avec convention obligatoire.'
-                              WHEN 'APPRENTICESHIP' THEN 'Alternance de 12 mois ; rythme à convenir avec votre école.'
+           CASE contract_type WHEN 'fixed_term' THEN 'CDD de 12 mois.'
+                              WHEN 'internship' THEN 'Stage de 6 mois avec convention obligatoire.'
+                              WHEN 'apprenticeship' THEN 'Alternance de 12 mois ; rythme à convenir avec votre école.'
                               ELSE 'Contrat à durée indéterminée.' END,
-           CASE WHEN salary IS NULL THEN 'Montant à discuter lors du premier échange.'
-                WHEN contract_type IN ('INTERNSHIP', 'APPRENTICESHIP')
-                THEN format('%s EUR bruts par mois, soit %s EUR annualisés à titre indicatif pour cette démonstration.', salary / 12, salary)
-                ELSE format('%s EUR bruts annuels pour le temps de travail indiqué.', salary) END),
-       location, salary, contract_type, working_time, status, created_at
+           CASE WHEN salary_min IS NULL AND salary_max IS NULL THEN 'Montant à discuter lors du premier échange.'
+                WHEN salary_period = 'month'
+                THEN format('De %s à %s EUR bruts par mois pour le temps de travail indiqué.', salary_min, salary_max)
+                ELSE format('De %s à %s EUR bruts annuels pour le temps de travail indiqué.', salary_min, salary_max) END),
+       location, salary_min, salary_max, salary_period,
+       contract_type, working_time, status, created_at
 FROM seed_ad_map
 ORDER BY job_no, variant_no;
 
@@ -1102,16 +1109,16 @@ FROM seed_experience_map
 ORDER BY candidate_no, experience_no;
 
 -- 7. CANDIDATURES : six offres de la spécialité du candidat.
--- Sélection déterministe ; pas de doublon personne/offre ni de candidature
--- sur un brouillon. Les offres fermées conservent leurs candidatures passées.
+-- Sélection déterministe ; pas de doublon personne/offre.
+-- Les offres fermées conservent des candidatures avec un statut final.
 CREATE TEMP TABLE seed_application_map ON COMMIT DROP AS
 SELECT p.id AS person_id, c.candidate_no, chosen.ad_id, chosen.title,
        chosen.company_name, chosen.created_at AS ad_created_at,
        chosen.ad_status, chosen.choice_no::integer,
        CASE WHEN chosen.ad_status = 'closed' THEN
-                  (ARRAY['accepted', 'rejected', 'withdrawn'])[1 + ((c.candidate_no + chosen.choice_no)::integer % 3)]
-            ELSE (ARRAY['sent', 'in_progress', 'technical_test', 'interview', 'accepted', 'rejected', 'withdrawn'])
-                 [1 + ((c.candidate_no + chosen.choice_no)::integer % 7)] END AS status
+                  (ARRAY['accepted', 'rejected'])[1 + ((c.candidate_no + chosen.choice_no)::integer % 2)]
+            ELSE (ARRAY['sent', 'in_progress', 'technical_test', 'accepted', 'rejected'])
+                 [1 + ((c.candidate_no + chosen.choice_no)::integer % 5)] END AS status
 FROM seed_candidates c
 JOIN people p ON p.email = c.email
 JOIN seed_jobs j ON j.job_no = c.job_no
@@ -1155,10 +1162,10 @@ JOIN seed_jobs j ON j.job_no = c.job_no
 ORDER BY m.candidate_no, m.choice_no;
 
 -- 8. PIÈCES JOINTES : un à trois projets/expériences propres au candidat.
--- Le schéma autorise techniquement un lien vers le profil d’un autre
--- candidat ; les jointures ci-dessous garantissent le bon propriétaire.
-INSERT INTO application_projects (application_id, project_id)
-SELECT a.id, p.id
+-- person_id est obligatoire : les clés étrangères composites garantissent
+-- que la candidature et la pièce jointe appartiennent à la même personne.
+INSERT INTO application_projects (application_id, project_id, person_id)
+SELECT a.id, p.id, a.person_id
 FROM seed_application_map m
 JOIN applications a ON a.person_id = m.person_id AND a.ad_id = m.ad_id
 CROSS JOIN LATERAL (
@@ -1169,8 +1176,8 @@ CROSS JOIN LATERAL (
     LIMIT (1 + m.choice_no % 3)
 ) p;
 
-INSERT INTO application_experiences (application_id, experience_id)
-SELECT a.id, e.id
+INSERT INTO application_experiences (application_id, experience_id, person_id)
+SELECT a.id, e.id, a.person_id
 FROM seed_application_map m
 JOIN applications a ON a.person_id = m.person_id AND a.ad_id = m.ad_id
 CROSS JOIN LATERAL (
@@ -1208,24 +1215,26 @@ BEGIN
         SELECT 1 FROM application_projects link
         JOIN applications a ON a.id = link.application_id
         JOIN projects p ON p.id = link.project_id
-        WHERE a.person_id <> p.person_id OR p.created_at > a.created_at
+        WHERE link.person_id <> a.person_id OR link.person_id <> p.person_id
+           OR p.created_at > a.created_at
     ) THEN RAISE EXCEPTION 'Projet joint incohérent : propriétaire ou chronologie'; END IF;
 
     IF EXISTS (
         SELECT 1 FROM application_experiences link
         JOIN applications a ON a.id = link.application_id
         JOIN experiences e ON e.id = link.experience_id
-        WHERE a.person_id <> e.person_id OR e.created_at > a.created_at
+        WHERE link.person_id <> a.person_id OR link.person_id <> e.person_id
+           OR e.created_at > a.created_at
     ) THEN RAISE EXCEPTION 'Expérience jointe incohérente : propriétaire ou chronologie'; END IF;
 
     IF EXISTS (
         SELECT 1 FROM applications a
         JOIN ads ad ON ad.id = a.ad_id
         JOIN people p ON p.id = a.person_id
-        WHERE ad.status = 'draft' OR p.role <> 'USER'
+        WHERE p.role <> 'USER'
            OR a.created_at < ad.created_at OR a.created_at < p.created_at
            OR a.created_at > CURRENT_TIMESTAMP
-           OR (ad.status = 'closed' AND a.status NOT IN ('accepted', 'rejected', 'withdrawn'))
+           OR (ad.status = 'closed' AND a.status NOT IN ('accepted', 'rejected'))
     ) THEN RAISE EXCEPTION 'Candidature incohérente : offre, rôle, statut ou chronologie'; END IF;
 
     IF EXISTS (
@@ -1237,8 +1246,19 @@ BEGIN
         WHERE daterange(e1.start_date, e1.end_date, '[]') && daterange(e2.start_date, e2.end_date, '[]')
     ) THEN RAISE EXCEPTION 'Dates des expériences incohérentes ou périodes en chevauchement'; END IF;
 
-    IF EXISTS (SELECT 1 FROM ads WHERE salary <= 0 OR length(description) < 4500)
+    IF EXISTS (
+        SELECT 1 FROM ads
+        WHERE salary_min <= 0 OR salary_max <= 0 OR salary_min > salary_max
+           OR (salary_min IS NULL) <> (salary_max IS NULL)
+           OR (contract_type IN ('internship', 'apprenticeship') AND salary_period <> 'month')
+           OR (contract_type IN ('permanent', 'fixed_term') AND salary_period <> 'year')
+           OR length(description) < 4500
+    )
     THEN RAISE EXCEPTION 'Offre incomplète ou rémunération invalide'; END IF;
+
+    IF (SELECT count(*) FROM ads WHERE status = 'published') <> 195
+       OR (SELECT count(*) FROM ads WHERE status = 'closed') <> 45
+    THEN RAISE EXCEPTION 'Répartition incorrecte des statuts des offres'; END IF;
 
     IF EXISTS (
         SELECT 1 FROM people p LEFT JOIN applications a ON a.person_id = p.id
@@ -1264,7 +1284,8 @@ SELECT status, count(*) AS total FROM ads GROUP BY status ORDER BY status;
 SELECT status, count(*) AS total FROM applications GROUP BY status ORDER BY status;
 
 -- Exemples pour explorer les données :
--- SELECT a.title, c.name AS company, cat.name AS category, a.location, a.salary
+-- SELECT a.title, c.name AS company, cat.name AS category, a.location,
+--        a.salary_min, a.salary_max, a.salary_period
 -- FROM ads a JOIN companies c ON c.id = a.company_id
 -- JOIN categories cat ON cat.id = a.category_id WHERE a.status = 'published';
 --

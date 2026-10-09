@@ -1,0 +1,166 @@
+@import "../design-lab/fonts/fonts.css";
+@reference "../index.css";
+
+/* The admin styles follow DESIGN.md while keeping the public pages intact. */
+body:has(.admin-app),
+#root:has(.admin-app) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  background: #fff9ee;
+  text-align: left;
+  color-scheme: light;
+}
+
+.admin-app {
+  --admin-ink: #252a46;
+  --admin-paper: #fff9ee;
+  --admin-coral: #f09169;
+  --admin-yellow: #f0e970;
+  --admin-blue: #acbefa;
+  --admin-mint: #bedbc7;
+  --admin-rule: #8e93a4;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  color: var(--admin-ink);
+  font: 14px/1.55 "Bricolage Grotesque", sans-serif;
+  letter-spacing: normal;
+  font-synthesis: none;
+}
+
+.admin-app :is(h1, h2, h3, p) { margin: 0; color: inherit; font-family: inherit; }
+.admin-app h1 { font-size: clamp(48px, 5.4vw, 78px); line-height: .99; font-weight: 800; letter-spacing: -.04em; }
+.admin-app h2 { font-size: 27px; font-weight: 800; line-height: 1.25; letter-spacing: -.025em; }
+.admin-app h2.mb-6 { margin-bottom: 24px; }
+.admin-app h3 { font-size: 30px; font-weight: 750; line-height: 1.13; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.admin-app .icon { @apply inline-block shrink-0 align-middle; }
+.admin-app :is(a, button, input, textarea, select, summary):focus-visible { outline: 2px solid var(--admin-ink); outline-offset: 4px; }
+.admin-app :is(button, input, textarea, select) { font: inherit; }
+.admin-app button { @apply cursor-pointer; }
+.admin-app button:disabled { @apply cursor-wait opacity-60; }
+.admin-app a { color: inherit; text-underline-offset: 5px; }
+.admin-app a:hover { text-decoration: underline; }
+.admin-app [id] { scroll-margin-top: 20px; }
+
+.admin-container { width: min(1280px, calc(100% - 112px)); margin-inline: auto; }
+.admin-cover { background: var(--admin-coral); }
+.admin-header { @apply flex flex-wrap items-center justify-between gap-5; min-height: 80px; padding-block: 16px; border-bottom: 1px solid var(--admin-ink); }
+.admin-app .brand { @apply flex items-center gap-3; text-decoration: none; }
+.admin-app .brand-mark { @apply grid place-items-center; width: 54px; height: 54px; background: var(--admin-ink); border-radius: 0 50% 50% 50%; }
+.admin-app .brand-name { @apply text-xs leading-tight; }
+.admin-app .brand-name strong { font-size: 22px; font-weight: 800; letter-spacing: -.035em; }
+.admin-nav { @apply flex flex-wrap items-center gap-x-6 gap-y-2 py-3; font-size: 13px; }
+.admin-nav a { padding: 10px 0; border-bottom: 1px solid transparent; }
+.admin-nav a[aria-current="page"] { border-color: var(--admin-ink); font-weight: 700; }
+.admin-hero { @apply relative flex items-center justify-between gap-5; padding-block: 28px 40px; }
+.admin-hero > div:first-child { @apply min-w-0; }
+.admin-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; padding-bottom: 12px; }
+.admin-app .admin-intro { margin-top: 20px; max-width: 55ch; line-height: 1.7; }
+.admin-grid { @apply grid items-start; grid-template-columns: 1.1fr 1fr 1fr; gap: 22px; }
+.admin-columns { @apply grid items-start gap-[22px]; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); }
+.admin-panel { border: 1px solid var(--admin-rule); border-radius: 0 18px 0 0; overflow: hidden; background: var(--admin-paper); }
+.admin-panel-title { padding: 20px; background: var(--admin-ink); color: var(--admin-paper); }
+.admin-app .admin-panel-title h2 { font-size: 23px; }
+.admin-form { @apply grid gap-5; padding: 20px; }
+.admin-field { @apply grid min-w-0 gap-2; }
+.admin-field label { @apply text-[13px] font-bold; }
+.admin-field :is(input, textarea, select) { @apply w-full min-w-0 px-3 py-3; border: 1px solid #c8c5b9; border-radius: 3px; background: var(--admin-paper); color: var(--admin-ink); }
+.admin-field textarea { @apply resize-y; }
+.admin-field :is(input, select) { min-height: 44px; }
+.admin-help { font-size: 12px; line-height: 1.5; }
+.admin-actions { @apply flex flex-wrap items-center gap-3; }
+.admin-button { @apply inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold; border: 1px solid var(--admin-ink); border-radius: 0; text-decoration: none; }
+.admin-app .admin-button.primary { background: var(--admin-ink); color: var(--admin-paper); }
+.admin-button.secondary { background: transparent; color: var(--admin-ink); }
+.admin-button.accent { background: var(--admin-yellow); color: var(--admin-ink); border-color: transparent; border-radius: 1px; }
+.admin-button.accent:hover { background: color-mix(in srgb, #f0e970 90%, #252a46); }
+.admin-button.secondary:hover { background: var(--admin-paper); }
+.admin-card { border-radius: 0 18px 0 0; overflow: hidden; min-width: 0; }
+.admin-card.tone-0, .admin-card.tone-4 { background: var(--admin-blue); }
+.admin-card.tone-1, .admin-card.tone-2, .admin-card.tone-5 { background: var(--admin-mint); }
+.admin-card.tone-3 { background: var(--admin-yellow); }
+.admin-card-header { @apply flex items-center gap-3; padding: 16px 22px; background: var(--admin-ink); color: var(--admin-paper); }
+.admin-app .company-mark { @apply grid shrink-0 place-items-center; width: 42px; height: 42px; border: 1px solid #959ab2; font-size: 13px; font-weight: 700; }
+.admin-company-name { @apply block font-bold; overflow-wrap: anywhere; }
+.admin-company-sector { @apply block text-xs; color: #e3e7f4; }
+.admin-card-body { @apply grid gap-4; padding: 22px 23px; }
+.admin-description { @apply whitespace-pre-line; font-size: 13px; line-height: 1.65; max-width: 70ch; overflow-wrap: anywhere; }
+.admin-card-link { @apply inline-flex items-center gap-3 pt-3 font-bold; }
+.admin-card-link:hover .icon { transform: translateX(3px); }
+.admin-meta { @apply flex flex-wrap items-center justify-between gap-3 text-xs; }
+.admin-badge { @apply inline-flex items-center px-2 py-1 text-xs; border: 1px solid #565d78; }
+.admin-card-footer { @apply grid gap-4 pt-5; border-top: 1px solid var(--admin-rule); }
+.admin-salary { @apply font-bold tabular-nums; }
+.admin-app .admin-notice { @apply mb-5 flex items-start gap-3 p-4; }
+.admin-notice.is-error, .admin-delete { background: var(--admin-coral); }
+.admin-notice.is-success { background: var(--admin-mint); }
+.admin-delete { padding: 14px; border: 1px solid var(--admin-ink); }
+.admin-state { @apply p-5; border: 1px solid var(--admin-rule); }
+.admin-toolbar { @apply mb-6 flex flex-wrap items-center justify-between gap-4; }
+.admin-filters { @apply mb-6 grid gap-4 p-5; background: var(--admin-ink); color: var(--admin-paper); }
+.admin-filters .admin-field :is(input, select) { color: var(--admin-ink); }
+.admin-filters-grid { @apply grid gap-4; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.admin-filter-details summary { @apply flex cursor-pointer items-center gap-3 py-3 font-bold; }
+.admin-filter-details[open] summary { margin-bottom: 12px; }
+.admin-footer { @apply py-6 text-xs; border-top: 1px solid var(--admin-rule); }
+.admin-status { @apply inline-flex items-center px-2 py-1 text-xs font-bold; border: 1px solid currentColor; }
+.admin-status.status-published { background: var(--admin-mint); }
+.admin-status.status-closed { background: var(--admin-yellow); }
+.admin-modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: rgb(37 42 70 / 58%); }
+.admin-modal { width: min(100%, 540px); max-height: min(90svh, 760px); overflow: auto; padding: 28px; border: 1px solid var(--admin-ink); border-radius: 0 18px 0 0; background: var(--admin-paper); color: var(--admin-ink); }
+.admin-modal h2 { margin: 0; font-size: 27px; }
+.admin-modal-description { margin-top: 12px !important; max-width: 55ch; }
+.admin-modal-actions { @apply mt-6 flex flex-wrap gap-3; }
+.admin-skip { position: absolute; left: -9999px; }
+.admin-skip:focus { z-index: 10; left: 20px; top: 12px; padding: 12px; background: var(--admin-paper); }
+
+/* Keep the geometric mark from the mockup, including at small sizes. */
+  .admin-app .horizon-sign { position: relative; width: 250px; height: 240px; flex-shrink: 0; transform: scale(.86); transform-origin: right center; }
+.admin-app .horizon-sun { position: absolute; width: 102px; height: 102px; border-radius: 50%; background: var(--admin-yellow); top: 12px; right: 17px; transition: translate .35s cubic-bezier(.16, 1, .3, 1); }
+.admin-cover:focus-within .horizon-sun { translate: 0 -12px; }
+.admin-app .horizon-field { position: absolute; background: var(--admin-ink); }
+.admin-app .field-one { width: 200px; height: 85px; border-radius: 130px 130px 0 0; bottom: 94px; left: 0; transform: rotate(-7deg); }
+.admin-app .field-two { width: 222px; height: 67px; border-radius: 130px 130px 0 0; bottom: 52px; right: 0; transform: rotate(6deg); background: var(--admin-mint); border: 1px solid var(--admin-ink); }
+.admin-app .horizon-line { position: absolute; width: 230px; height: 1px; bottom: 52px; background: var(--admin-ink); }
+.admin-app .horizon-foot { position: absolute; bottom: 13px; left: 0; font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
+.admin-app .horizon-sign::after { content: ""; position: absolute; width: 50px; height: 50px; border: 1px solid currentColor; border-radius: 50%; left: 17px; top: 7px; }
+
+@media (max-width: 1200px) {
+  .admin-container { width: calc(100% - 72px); }
+  .admin-grid { gap: 17px; }
+  .admin-card-body { padding: 20px; }
+}
+@media (max-width: 1000px) {
+  .admin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-columns { grid-template-columns: 1fr; }
+  .admin-app h3 { font-size: 29px; }
+  .admin-app .horizon-sign { transform: scale(.68); }
+}
+@media (max-width: 886px) {
+  .admin-app h1 { font-size: 54px; }
+}
+@media (max-width: 760px) {
+  .admin-container { width: calc(100% - 40px); }
+  .admin-header { gap: 12px; }
+  .admin-header .admin-button { padding: 9px 13px; min-height: 36px; }
+  .admin-hero { padding-block: 22px 30px; }
+  .admin-app h1 { font-size: clamp(36px, 6.7vw, 51px); }
+  .admin-app h2 { font-size: 20px; }
+  .admin-app h3 { font-size: 26px; }
+  .admin-intro { padding-right: 65px; }
+  .admin-app .horizon-sign { position: absolute; bottom: -25px; right: 0; width: 250px; transform: scale(.32); transform-origin: right bottom; }
+  .admin-filters-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .admin-grid, .admin-filters-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-app h3 { font-size: 33px; }
+  .admin-card-body { padding: 23px; }
+  .admin-actions > .admin-button { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-app *, .admin-app *::before, .admin-app *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .admin-cover:focus-within .horizon-sun { translate: none; }
+}

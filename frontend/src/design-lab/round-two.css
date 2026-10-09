@@ -592,7 +592,7 @@
   color: #fff9ee;
   text-decoration: none;
 }
-.concept-pop .select-field select,
+.concept-pop .select-field .custom-select-trigger,
 .concept-pop .filter-toggle {
   border: 2px solid #171b1b !important;
   font-weight: 600;
@@ -1319,7 +1319,7 @@
     gap: 9px;
     padding-block: 18px 23px;
   }
-  .round-offers-controls .filter-bar .select-field select {
+  .round-offers-controls .filter-bar .select-field .custom-select-trigger {
     width: 100%;
     padding: 12px 8px;
     font-size: 11px;

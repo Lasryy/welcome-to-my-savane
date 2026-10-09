@@ -1,10 +1,19 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+async function mountApp() {
+  const isDesignLab = /^\/design-lab(?:\/|$)/.test(window.location.pathname);
+  const { default: App } = isDesignLab
+    ? await import("./design-lab/DesignLab.jsx")
+    : await import("./App.jsx");
+
+  if (!isDesignLab) await import("./index.css");
+
+  createRoot(document.getElementById("root")).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
+
+mountApp();

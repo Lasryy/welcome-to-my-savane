@@ -1,0 +1,128 @@
+/* User-approved homepage mockup: Grand Air 2 layout, Grand Air 1 type, Pop colors. */
+.concept-selected {
+  --surface: #fff9ee;
+  --ink: #252a46;
+  --muted: #252a46;
+  --rule: #8e93a4;
+  --accent: #252a46;
+  font-family: "Bricolage Grotesque", sans-serif;
+  background: #fff9ee;
+}
+.concept-selected .air-cover {
+  background: #f09169;
+}
+.concept-selected .site-header {
+  border-bottom-color: #252a46;
+}
+.concept-selected .brand-mark {
+  background: #252a46;
+}
+.concept-selected .brand-name strong,
+.concept-selected .air-hero h1 {
+  font-weight: 800;
+}
+.concept-selected .air-hero h1 span {
+  color: #f0e970;
+  background: #252a46;
+}
+.concept-selected .hero-intro {
+  color: #252a46;
+}
+.concept-selected .air-hero .horizon-sun {
+  background: #f0e970;
+}
+.concept-selected .horizon-sign {
+  color: #252a46;
+}
+.concept-selected .horizon-field,
+.concept-selected .horizon-line {
+  background: #252a46;
+}
+.concept-selected .air-hero .field-two {
+  background: #bedbc7;
+  border-color: #252a46;
+}
+.concept-selected .register-button.primary {
+  background: #252a46;
+  color: #fff9ee;
+}
+.concept-selected .air-search-band {
+  background: #252a46;
+}
+.concept-selected .air-search-band .search-form {
+  --surface: #fff9ee;
+  --rule: #c8c5b9;
+  background: #fff9ee;
+}
+.concept-selected .search-button.primary {
+  background: #f0e970;
+  color: #252a46;
+}
+.concept-selected .search-button.primary:hover {
+  background: color-mix(in srgb, #f0e970 90%, #252a46);
+}
+.concept-selected .air-opportunity {
+  --rule: #8e93a4;
+}
+.concept-selected .air-opportunity.tone-0 {
+  background: #acbefa;
+}
+.concept-selected .air-opportunity.tone-1 {
+  background: #bedbc7;
+}
+.concept-selected .air-opportunity.tone-2 {
+  background: #bedbc7;
+}
+.concept-selected .air-opportunity.tone-3 {
+  background: #f0e970;
+}
+.concept-selected .air-opportunity.tone-4 {
+  background: #acbefa;
+}
+.concept-selected .air-opportunity.tone-5 {
+  background: #bedbc7;
+}
+.concept-selected .air-opportunity .opportunity-head {
+  background: #252a46;
+  color: #fff9ee;
+}
+.concept-selected .air-opportunity .company-mark {
+  color: #fff9ee;
+  border-color: #959ab2;
+}
+.concept-selected .air-opportunity .company-sector {
+  color: #e3e7f4;
+}
+.concept-selected .air-opportunity .save-button {
+  color: #fff9ee !important;
+}
+.concept-selected .air-opportunity .save-button.is-saved svg {
+  fill: #f0e970;
+}
+.concept-selected .air-opportunity .opportunity-contract > span:first-child {
+  border-color: #565d78;
+}
+.concept-selected .air-opportunity .apply-button {
+  background: #252a46;
+  color: #fff9ee;
+}
+.concept-selected .round-closing {
+  background: #bedbc7;
+}
+.concept-selected .round-closing .horizon-sun {
+  background: #f0e970;
+}
+.dot-selected {
+  background: #f09169;
+  color: #252a46;
+}
+.comparison-choice-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: #252a46 !important;
+  color: #fff9ee !important;
+  font-size: 12px !important;
+}

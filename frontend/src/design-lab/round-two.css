@@ -1,0 +1,2375 @@
+/* Exploration 2: three separate systems, with shared product semantics. */
+.concept-air,
+.concept-pop,
+.concept-creative {
+  --surface: #fbfaf4;
+  --ink: #142440;
+  --muted: #445266;
+  --rule: #a8b2bc;
+  --accent: #142440;
+}
+.round-category-line {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  border-bottom: 1px solid var(--ink);
+  padding-top: 22px;
+}
+.round-category-line button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.round-category-line button[aria-pressed="true"] {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 8px;
+}
+.round-category-line .icon {
+  width: 15px;
+}
+.round-offers-controls {
+  padding-top: 10px;
+}
+.round-offers-controls .results-heading {
+  padding-top: 5px;
+}
+.opportunity {
+  align-self: start;
+  min-width: 0;
+}
+.opportunity-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 22px;
+}
+.opportunity-head > .save-button {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.opportunity-company {
+  min-width: 0;
+}
+.opportunity-content {
+  padding: 22px;
+}
+.opportunity-contract {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+.opportunity-contract > span:first-child {
+  font-weight: 700;
+}
+.opportunity h3 {
+  font-size: 29px;
+  line-height: 1.13;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  margin: 18px 0 16px;
+}
+.opportunity-pay {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.opportunity-pay > span {
+  display: block;
+  font-size: 10px;
+  margin-top: 4px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.opportunity .job-description {
+  min-height: 64px;
+}
+.opportunity-footer {
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+.opportunity-footer > .posted-date {
+  display: block;
+  margin-bottom: 9px;
+}
+.opportunity .job-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+.round-closing {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 50px;
+  padding: 48px 0 0;
+  margin-top: 55px;
+  border-top: 1px solid var(--ink);
+}
+.round-closing h2 {
+  font-size: 45px;
+  line-height: 1.13;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+.round-closing p {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.round-closing .button {
+  background: var(--ink);
+  color: var(--surface);
+  margin-top: 24px;
+  font-size: 12px;
+}
+.horizon-sign {
+  position: relative;
+  width: 250px;
+  height: 240px;
+  flex-shrink: 0;
+}
+.horizon-sun {
+  position: absolute;
+  width: 102px;
+  height: 102px;
+  border-radius: 50%;
+  background: #eee944;
+  top: 12px;
+  right: 17px;
+  transition: translate 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.horizon-field {
+  position: absolute;
+  background: #142440;
+}
+.field-one {
+  width: 200px;
+  height: 85px;
+  border-radius: 130px 130px 0 0;
+  bottom: 94px;
+  left: 0;
+  transform: rotate(-7deg);
+}
+.field-two {
+  width: 222px;
+  height: 67px;
+  border-radius: 130px 130px 0 0;
+  bottom: 52px;
+  right: 0;
+  transform: rotate(6deg);
+}
+.horizon-line {
+  position: absolute;
+  width: 230px;
+  height: 1px;
+  bottom: 52px;
+  background: #142440;
+}
+.horizon-foot {
+  position: absolute;
+  bottom: 13px;
+  left: 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.horizon-sign::after {
+  content: "";
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  left: 17px;
+  top: 7px;
+}
+
+/* Grand Air 2.0 — citron fields, horizon mark, career posters. */
+.concept-air {
+  font-family: "Archivo", sans-serif;
+  --ink: #142440;
+  --muted: #425266;
+  --rule: #9aa8b8;
+  background: #f7f8f2;
+}
+.air-cover {
+  background: #ede944;
+}
+.concept-air .site-header {
+  min-height: 90px;
+  border-bottom: 1px solid #142440;
+}
+.concept-air .brand-mark {
+  background: #142440;
+  border-radius: 0 50% 50% 50%;
+}
+.concept-air .brand-name strong {
+  font-size: 22px;
+  font-weight: 850;
+}
+.concept-air .register-button {
+  border-radius: 3px;
+  background: #142440;
+  color: #ede944;
+}
+.air-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 38px;
+  align-items: center;
+  padding-block: 30px 28px;
+}
+.air-hero h1 {
+  font-size: clamp(48px, 6.2vw, 88px);
+  line-height: 0.99;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+.air-hero h1 span {
+  display: inline-block;
+  color: #ede944;
+  background: #142440;
+  padding: 0 15px 7px 5px;
+  transform: rotate(-2deg);
+  margin-top: 9px;
+}
+.air-hero .hero-intro {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #2c3b40;
+  max-width: 55ch;
+}
+.air-hero .horizon-sign {
+  width: 255px;
+  height: 250px;
+  margin-right: 18px;
+}
+.air-hero .horizon-sun {
+  background: #b3ccd9;
+  width: 110px;
+  height: 110px;
+}
+.air-hero .field-one {
+  background: #142440;
+}
+.air-hero .field-two {
+  background: #bfd2b4;
+  border: 1px solid #142440;
+}
+.air-hero .horizon-foot {
+  font-size: 24px;
+}
+.air-cover:focus-within .horizon-sun {
+  translate: 0 -12px;
+}
+.air-search-band {
+  background: #142440;
+  padding-block: 19px 12px;
+}
+.air-search-band .search-form {
+  --surface: #fffdf3;
+  --rule: #b9c2c9;
+  background: #fffdf3;
+  border: none;
+  border-radius: 3px;
+  min-height: 63px;
+}
+.air-search-band .search-button {
+  background: #ede944;
+  color: #142440;
+  font-weight: 750;
+  border-radius: 1px;
+}
+.air-search-band .search-button:hover {
+  background: #d3d131;
+  filter: none;
+}
+.air-search-band .page-wrap > span {
+  color: #d9e4ea;
+  font-size: 10px;
+  display: block;
+  margin-top: 9px;
+}
+.concept-air .results-heading h2 {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.air-offer-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 22px;
+}
+.air-opportunity {
+  --rule: #8799ad;
+  background: #d8e5f4;
+  border-radius: 0 18px 0 0;
+  overflow: hidden;
+}
+.air-opportunity .opportunity-head {
+  color: #eef4ff;
+  background: #142440;
+}
+.air-opportunity .company-mark {
+  background: transparent;
+  color: #eef4ff;
+  border: 1px solid #7389a5;
+  width: 37px;
+  height: 37px;
+  border-radius: 0;
+  font-size: 14px;
+}
+.air-opportunity .company-sector {
+  color: #cad7e4;
+  font-size: 10px;
+}
+.air-opportunity .save-button {
+  color: #edf2f8 !important;
+}
+.air-opportunity .save-button.is-saved svg {
+  fill: #aabecc;
+}
+.air-opportunity .company-name {
+  font-size: 12px;
+}
+.air-opportunity .opportunity-contract span:first-child {
+  padding: 4px 8px;
+  border: 1px solid #516780;
+  font-size: 10px;
+}
+.air-opportunity .opportunity-content {
+  padding: 22px 23px;
+}
+.air-opportunity h3 {
+  min-height: 66px;
+  font-size: 30px;
+}
+.air-opportunity .apply-button {
+  background: #142440;
+  color: #fffdf3;
+  border: none !important;
+  font-weight: 700;
+  padding: 10px 13px;
+  min-height: 39px;
+}
+.air-opportunity .apply-button .icon {
+  width: 17px;
+}
+.air-opportunity.tone-1 {
+  background: #dfd8ef;
+}
+.air-opportunity.tone-2 {
+  background: #cbd8bd;
+}
+.air-opportunity.tone-3 {
+  background: #efd3d6;
+}
+.air-opportunity.tone-4 {
+  background: #ede7ac;
+}
+.air-opportunity.tone-5 {
+  background: #d6e5de;
+}
+.air-opportunity.tone-1 .opportunity-head {
+  background: #352c54;
+}
+.air-opportunity.tone-2 .opportunity-head,
+.air-opportunity.tone-5 .opportunity-head {
+  background: #213f39;
+}
+.concept-air .round-closing {
+  background: #ede944;
+  border: 0;
+  padding: 40px;
+  border-radius: 0 36px 0 0;
+}
+.concept-air .round-closing h2 {
+  font-size: 45px;
+}
+.concept-air .round-closing .horizon-sun {
+  background: #bcc8e7;
+}
+.concept-air .footer-top > p {
+  font-weight: 800;
+  font-size: 31px;
+  letter-spacing: -0.04em;
+}
+
+/* Savane Pop — honest neo-brutalism, real people and deliberate hard shadows. */
+.concept-pop {
+  --surface: #fff9ee;
+  --ink: #171b1b;
+  --muted: #44483e;
+  --rule: #171b1b;
+  --accent: #171b1b;
+  font-family: "Chivo", sans-serif;
+  background: #fff9ee;
+}
+.pop-cover {
+  background: #f97755;
+  border-bottom: 3px solid #171b1b;
+}
+.concept-pop .site-header {
+  min-height: 86px;
+  border-bottom: 2px solid #171b1b;
+}
+.concept-pop .brand-mark {
+  background: #171b1b;
+  border-radius: 0;
+  width: 42px;
+  height: 42px;
+  transform: rotate(-5deg);
+}
+.concept-pop .brand-name strong {
+  font-size: 22px;
+  font-weight: 800;
+}
+.concept-pop .register-button {
+  background: #f8e550;
+  color: #171b1b;
+  border: 2px solid #171b1b;
+  box-shadow: 3px 3px 0 #171b1b;
+  padding: 10px 15px;
+  font-weight: 700;
+}
+.pop-hero {
+  display: grid;
+  grid-template-columns: 1fr 355px;
+  gap: 25px;
+  align-items: center;
+  padding: 26px 0 19px;
+}
+.pop-hero h1 {
+  font-size: clamp(47px, 5.8vw, 82px);
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+.pop-hero h1 span {
+  display: inline-block;
+  background: #f8e550;
+  padding: 0 8px 7px;
+  transform: rotate(-2deg);
+  border: 2px solid #171b1b;
+  box-shadow: 4px 4px 0 #171b1b;
+  margin-top: 7px;
+}
+.pop-hero .hero-intro {
+  color: #282e25;
+  font-size: 14px;
+  max-width: 52ch;
+  margin-top: 22px;
+}
+.pop-portrait {
+  position: relative;
+  height: 293px;
+  margin: 0;
+  align-self: end;
+}
+.portrait-mint {
+  position: absolute;
+  width: 245px;
+  height: 235px;
+  right: 25px;
+  bottom: 20px;
+  background: #c5e5c9;
+  border: 2px solid #171b1b;
+  transform: rotate(6deg);
+  box-shadow: 6px 6px 0 #171b1b;
+}
+.pop-portrait > img {
+  position: absolute;
+  width: 245px;
+  height: 310px;
+  object-fit: contain;
+  right: 36px;
+  bottom: 9px;
+  z-index: 1;
+}
+.pop-portrait figcaption {
+  position: absolute;
+  bottom: -3px;
+  right: 24px;
+  font-size: 8px;
+  color: #282e25;
+}
+.pop-sticker {
+  position: absolute;
+  z-index: 2;
+  top: 54px;
+  left: -23px;
+  width: 124px;
+  height: 106px;
+  padding: 17px 13px;
+  border: 2px solid #171b1b;
+  background: #f8e550;
+  box-shadow: 4px 4px 0 #171b1b;
+  transform: rotate(-9deg);
+  font-size: 18px;
+  line-height: 1.12;
+  font-weight: 750;
+}
+.pop-sticker .icon {
+  position: absolute;
+  right: 12px;
+  bottom: 9px;
+  transform: rotate(-35deg);
+  width: 22px;
+}
+.concept-pop .search-form {
+  background: #fff9ee;
+  border: 2px solid #171b1b;
+  box-shadow: 5px 5px 0 #171b1b;
+  min-height: 65px;
+}
+.concept-pop .search-form .location-field {
+  border-left: 2px solid #171b1b;
+}
+.concept-pop .search-button {
+  border: 2px solid #171b1b;
+  background: #f8e550;
+  color: #171b1b;
+  font-weight: 750;
+  margin: 7px;
+  box-shadow: 2px 2px 0 #171b1b;
+}
+.concept-pop .search-button:hover {
+  filter: none;
+  background: #f2dc38;
+}
+.concept-pop .button {
+  transition:
+    transform 0.16s,
+    box-shadow 0.16s,
+    background 0.16s;
+}
+.concept-pop .button:hover {
+  transform: translate(-1px, -1px);
+}
+.concept-pop .button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none !important;
+}
+.pop-cover-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 0 16px;
+  font-size: 10px;
+}
+.pop-cover-foot > span {
+  font-weight: 600;
+}
+.pop-cover-foot a {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+.pop-cover-foot .icon {
+  width: 16px;
+}
+.concept-pop .round-category-line {
+  gap: 0;
+  border-bottom: 2px solid #171b1b;
+  padding-top: 24px;
+  justify-content: space-between;
+}
+.concept-pop .round-category-line button {
+  padding: 9px 14px;
+  margin-bottom: 13px;
+  border: 2px solid transparent;
+}
+.concept-pop .round-category-line button[aria-pressed="true"] {
+  background: #171b1b;
+  color: #fff9ee;
+  text-decoration: none;
+}
+.concept-pop .select-field select,
+.concept-pop .filter-toggle {
+  border: 2px solid #171b1b !important;
+  font-weight: 600;
+  padding: 10px 12px;
+}
+.concept-pop .results-heading h2 {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.pop-offer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px;
+}
+.pop-opportunity {
+  border: 3px solid #171b1b;
+  box-shadow: 6px 6px 0 #171b1b;
+  background: #c8def4;
+}
+.pop-opportunity .opportunity-head {
+  padding: 15px 24px;
+  border-bottom: 2px solid #171b1b;
+}
+.pop-opportunity .company-mark {
+  background: #fff9ee;
+  border: 2px solid #171b1b;
+  color: #171b1b;
+  width: 38px;
+  height: 38px;
+  border-radius: 0;
+  transform: rotate(-5deg);
+  font-size: 15px;
+}
+.pop-opportunity .company-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+.pop-opportunity .opportunity-content {
+  padding: 23px 25px;
+}
+.pop-opportunity .opportunity-contract {
+  font-size: 13px;
+}
+.pop-opportunity .opportunity-contract > span:first-child {
+  text-transform: uppercase;
+  font-size: 11px;
+  padding: 4px 9px;
+  background: #171b1b;
+  color: #fff9ee;
+}
+.pop-opportunity h3 {
+  font-size: 32px;
+  font-weight: 800;
+  max-width: 24ch;
+  min-height: 70px;
+}
+.pop-opportunity .job-description {
+  max-width: 62ch;
+  min-height: 45px;
+}
+.pop-opportunity .opportunity-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+  margin-top: 18px;
+  padding-top: 17px;
+  border-top-width: 2px;
+}
+.pop-opportunity .opportunity-footer > .posted-date {
+  margin: 0;
+  font-size: 10px;
+}
+.pop-opportunity .job-actions {
+  flex: 1;
+  justify-content: flex-end;
+  gap: 24px;
+}
+.pop-opportunity .apply-button {
+  border: 2px solid #171b1b !important;
+  background: #fff9ee;
+  color: #171b1b;
+  box-shadow: 3px 3px 0 #171b1b;
+  min-height: 38px;
+  font-weight: 750;
+  padding: 8px 14px;
+}
+.pop-opportunity.tone-1 {
+  background: #edc7dd;
+}
+.pop-opportunity.tone-2 {
+  background: #c5e5c9;
+}
+.pop-opportunity.tone-3 {
+  background: #f4e498;
+}
+.pop-opportunity.tone-4 {
+  background: #f4c1ae;
+}
+.pop-opportunity.tone-5 {
+  background: #d9cef3;
+}
+.concept-pop .round-closing {
+  background: #c5e5c9;
+  border: 3px solid #171b1b;
+  padding: 35px;
+  box-shadow: 7px 7px 0 #171b1b;
+}
+.concept-pop .round-closing h2 {
+  font-size: 43px;
+}
+.concept-pop .round-closing .button {
+  background: #f8e550;
+  color: #171b1b;
+  border: 2px solid #171b1b;
+  box-shadow: 4px 4px 0 #171b1b;
+}
+.concept-pop .horizon-sign {
+  color: #171b1b;
+}
+.concept-pop .horizon-field,
+.concept-pop .horizon-line {
+  background: #171b1b;
+}
+.concept-pop .site-footer {
+  border-top: 2px solid #171b1b;
+}
+.concept-pop .footer-top > p {
+  font-weight: 750;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+}
+
+/* Creative Editorial Savanna — a human magazine, not a gray list. */
+.concept-creative {
+  --surface: #f5eedf;
+  --ink: #24473d;
+  --muted: #4d6256;
+  --rule: #a6b0a0;
+  --accent: #24473d;
+  font-family: "Manrope", sans-serif;
+  background: #f5eedf;
+}
+.concept-creative .site-header {
+  border-bottom: 1px solid #24473d;
+  min-height: 90px;
+}
+.concept-creative .brand-mark {
+  background: #24473d;
+  border-radius: 50% 50% 0 0;
+}
+.concept-creative .brand-name strong {
+  font-size: 21px;
+}
+.concept-creative .register-button {
+  background: #b14f2c;
+  color: #fff6e7;
+  border-radius: 0;
+}
+.creative-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 455px;
+  gap: 48px;
+  padding: 30px 0 26px;
+  align-items: center;
+}
+.creative-hero h1 {
+  font-family: "Literata", serif;
+  font-size: clamp(46px, 5.2vw, 74px);
+  line-height: 1.08;
+  font-weight: 550;
+  letter-spacing: -0.04em;
+}
+.creative-hero h1 > span {
+  display: inline-block;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.66em;
+  line-height: 1.22;
+  font-weight: 750;
+  margin-top: 10px;
+  color: #a34425;
+}
+.creative-hero .hero-intro {
+  font-size: 13px;
+  max-width: 46ch;
+  margin-top: 19px;
+}
+.creative-hero-rule {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 24px;
+  border-top: 1px solid #a6b0a0;
+  padding-top: 12px;
+  font-size: 9px;
+}
+.creative-cover {
+  position: relative;
+  height: 280px;
+  margin: 0;
+}
+.cover-team {
+  position: absolute;
+  width: 322px;
+  height: 205px;
+  object-fit: cover;
+  object-position: center 42%;
+  left: 0;
+  top: 33px;
+  border-radius: 80px 0 0 0;
+}
+.cover-portrait {
+  position: absolute;
+  width: 160px;
+  height: 188px;
+  object-fit: cover;
+  object-position: center;
+  right: 0;
+  top: 1px;
+  border: 9px solid #c9dbcb;
+  transform: rotate(7deg);
+}
+.cover-sun {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: #e6b658;
+  border-radius: 50%;
+  top: -5px;
+  left: 42px;
+}
+.cover-caption {
+  position: absolute;
+  background: #ead0cf;
+  border: 1px solid #24473d;
+  padding: 12px 22px;
+  right: 7px;
+  bottom: 17px;
+  font-size: 14px;
+  line-height: 1.4;
+  transform: rotate(-4deg);
+}
+.cover-caption strong {
+  font-family: "Literata", serif;
+  font-size: 20px;
+  font-weight: 550;
+}
+.creative-cover figcaption {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  font-size: 8px;
+  color: #4d6256;
+}
+.concept-creative .search-form {
+  --surface: #fffaf0;
+  background: #fffaf0;
+  border: 1px solid #24473d;
+  min-height: 63px;
+}
+.concept-creative .search-button {
+  background: #24473d;
+  color: #fff6e7;
+}
+.concept-creative .round-category-line {
+  padding-top: 22px;
+  border-bottom: 1px solid #24473d;
+}
+.concept-creative .results-heading h2 {
+  font-family: "Literata", serif;
+  font-size: 27px;
+  font-weight: 500;
+}
+.creative-offer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+.creative-opportunity {
+  --muted: #4a5c50;
+  --rule: #9aa59c;
+  background: #d9e7df;
+  border-top: 3px solid #24473d;
+}
+.creative-opportunity .opportunity-head {
+  padding: 19px 19px 0;
+}
+.creative-opportunity .company-mark {
+  border-radius: 50% 50% 0 0;
+  width: 33px;
+  height: 33px;
+  color: #f5eedf;
+  background: #24473d;
+  font-size: 12px;
+}
+.creative-opportunity .company-name {
+  font-size: 11px;
+}
+.creative-opportunity .company-sector {
+  font-size: 9px;
+}
+.creative-opportunity .opportunity-content {
+  padding: 18px 20px 21px;
+}
+.creative-opportunity .opportunity-contract {
+  font-size: 10px;
+}
+.creative-opportunity h3 {
+  font-family: "Literata", serif;
+  font-size: 24px;
+  font-weight: 550;
+  letter-spacing: -0.03em;
+  min-height: 78px;
+}
+.creative-opportunity .opportunity-pay {
+  font-size: 11px;
+}
+.creative-opportunity .job-description {
+  font-size: 12px;
+  min-height: 96px;
+}
+.creative-opportunity .job-actions {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.creative-opportunity .text-button {
+  gap: 6px;
+  font-size: 11px !important;
+}
+.creative-opportunity .apply-button {
+  background: #24473d;
+  color: #fff6e7;
+  border: 0 !important;
+  gap: 7px;
+  font-size: 11px !important;
+}
+.creative-opportunity .opportunity-footer {
+  margin-top: 20px;
+  padding-top: 17px;
+}
+.creative-opportunity .posted-date {
+  font-size: 9px;
+}
+.creative-opportunity.tone-1 {
+  background: #ecd2cc;
+  border-top-color: #a44d2e;
+}
+.creative-opportunity.tone-2 {
+  background: #dbdfbf;
+}
+.creative-opportunity.tone-3 {
+  background: #eadfae;
+  border-top-color: #876823;
+}
+.creative-opportunity.tone-4 {
+  background: #c7e0df;
+}
+.creative-opportunity.tone-5 {
+  background: #e8d7ca;
+  border-top-color: #a44d2e;
+}
+.creative-opportunity:first-child,
+.creative-opportunity:last-child {
+  grid-column: span 2;
+}
+.creative-opportunity:first-child h3,
+.creative-opportunity:last-child h3 {
+  font-size: 40px;
+  max-width: 20ch;
+  min-height: 90px;
+}
+.creative-opportunity:first-child .opportunity-head,
+.creative-opportunity:last-child .opportunity-head {
+  padding-inline: 27px;
+}
+.creative-opportunity:first-child .opportunity-content,
+.creative-opportunity:last-child .opportunity-content {
+  padding: 19px 28px 24px;
+}
+.creative-opportunity:first-child .job-description,
+.creative-opportunity:last-child .job-description {
+  min-height: 64px;
+  max-width: 58ch;
+}
+.creative-opportunity:first-child .opportunity-contract,
+.creative-opportunity:last-child .opportunity-contract {
+  font-size: 12px;
+}
+.creative-opportunity:first-child .opportunity-pay,
+.creative-opportunity:last-child .opportunity-pay {
+  font-size: 13px;
+}
+.closing-editorial {
+  align-items: stretch;
+}
+.closing-editorial > div {
+  flex: 1;
+}
+.closing-editorial h2 {
+  font-family: "Literata", serif;
+  font-size: 40px;
+  line-height: 1.2;
+  font-weight: 550;
+  letter-spacing: -0.03em;
+}
+.closing-editorial h2 span {
+  color: #a34425;
+}
+.closing-editorial figure {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+.closing-editorial img {
+  width: 100%;
+  height: 270px;
+  object-fit: cover;
+  border-radius: 0 90px 0 0;
+}
+.closing-editorial figcaption {
+  font-size: 8px;
+  color: #4d6256;
+  margin-top: 6px;
+}
+.concept-creative .footer-top > p {
+  font-family: "Literata", serif;
+  font-size: 30px;
+  font-weight: 500;
+}
+
+.dot-air {
+  background: #ede944;
+  color: #142440;
+}
+.dot-pop {
+  background: #f97755;
+  color: #171b1b;
+}
+.dot-editorial {
+  background: #e6b658;
+  color: #24473d;
+}
+.swatch-air {
+  background: #ede944;
+  color: #142440;
+}
+.swatch-pop {
+  background: #f97755;
+  color: #171b1b;
+}
+.swatch-editorial {
+  background: #24473d;
+  color: #f5eedf;
+}
+.lab-archives {
+  max-width: 130px;
+  color: #f6f3ed !important;
+  background: #353b3c;
+  border: 1px solid #5e6666;
+  border-radius: 5px;
+  padding: 8px;
+  font-size: 11px !important;
+  cursor: pointer;
+}
+.lab-archives option {
+  background: #242728;
+}
+@media (max-width: 1200px) {
+  .air-hero h1 {
+    font-size: 68px;
+  }
+  .air-hero .horizon-sign {
+    width: 220px;
+    transform: scale(0.85);
+    transform-origin: right center;
+    margin-right: 0;
+  }
+  .pop-hero h1 {
+    font-size: 68px;
+  }
+  .pop-hero {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+  .pop-portrait {
+    height: 272px;
+  }
+  .pop-portrait > img {
+    width: 228px;
+    right: 20px;
+    height: 284px;
+  }
+  .portrait-mint {
+    right: 15px;
+    width: 220px;
+    height: 215px;
+  }
+  .pop-sticker {
+    left: -25px;
+    width: 105px;
+    height: 93px;
+    font-size: 16px;
+  }
+  .air-offer-grid {
+    gap: 17px;
+  }
+  .air-opportunity .opportunity-content {
+    padding: 20px;
+  }
+  .air-opportunity h3 {
+    font-size: 26px;
+  }
+  .air-opportunity .job-actions {
+    gap: 6px;
+  }
+  .air-opportunity .text-button {
+    font-size: 11px !important;
+    gap: 5px;
+  }
+  .creative-hero {
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 30px;
+  }
+  .creative-hero h1 {
+    font-size: 59px;
+  }
+  .cover-team {
+    width: 290px;
+  }
+  .cover-portrait {
+    width: 145px;
+  }
+  .creative-offer-grid {
+    gap: 18px;
+  }
+  .creative-opportunity h3 {
+    font-size: 23px;
+  }
+  .creative-opportunity .opportunity-head {
+    gap: 9px;
+    padding-inline: 16px;
+  }
+  .creative-opportunity .opportunity-content {
+    padding-inline: 16px;
+  }
+  .creative-opportunity .company-sector {
+    display: none;
+  }
+  .creative-opportunity .job-actions {
+    gap: 6px;
+  }
+  .creative-opportunity .apply-button .icon {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .air-hero h1 {
+    font-size: 58px;
+  }
+  .air-hero .horizon-sign {
+    width: 160px;
+    transform: scale(0.7);
+  }
+  .air-offer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .air-opportunity h3 {
+    font-size: 29px;
+  }
+  .air-hero {
+    gap: 20px;
+  }
+  .air-hero .hero-intro {
+    font-size: 13px;
+  }
+  .pop-hero h1 {
+    font-size: 53px;
+  }
+  .pop-hero {
+    grid-template-columns: minmax(0, 1fr) 255px;
+    gap: 20px;
+  }
+  .pop-portrait {
+    height: 257px;
+  }
+  .portrait-mint {
+    width: 190px;
+    height: 210px;
+  }
+  .pop-portrait > img {
+    width: 208px;
+    height: 268px;
+    right: 10px;
+  }
+  .pop-sticker {
+    left: -5px;
+    top: 35px;
+    width: 88px;
+    height: 86px;
+    padding: 13px 8px;
+    font-size: 14px;
+  }
+  .pop-opportunity h3 {
+    font-size: 27px;
+  }
+  .pop-opportunity .opportunity-head,
+  .pop-opportunity .opportunity-content {
+    padding-inline: 20px;
+  }
+  .pop-opportunity .opportunity-footer {
+    display: block;
+  }
+  .pop-opportunity .posted-date {
+    padding-bottom: 13px;
+  }
+  .pop-opportunity .job-actions {
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .creative-hero {
+    grid-template-columns: minmax(0, 1fr) 310px;
+    gap: 24px;
+  }
+  .creative-hero h1 {
+    font-size: 49px;
+  }
+  .creative-cover {
+    height: 255px;
+  }
+  .cover-team {
+    width: 250px;
+    height: 175px;
+    top: 39px;
+  }
+  .cover-portrait {
+    width: 123px;
+    height: 150px;
+  }
+  .cover-caption {
+    right: -2px;
+    padding: 11px 15px;
+    font-size: 12px;
+  }
+  .cover-caption strong {
+    font-size: 17px;
+  }
+  .cover-sun {
+    width: 75px;
+    height: 75px;
+  }
+  .creative-hero-rule {
+    display: none;
+  }
+  .creative-offer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .creative-opportunity:first-child,
+  .creative-opportunity:last-child {
+    grid-column: auto;
+  }
+  .creative-opportunity h3,
+  .creative-opportunity:first-child h3,
+  .creative-opportunity:last-child h3 {
+    font-size: 29px;
+    min-height: 70px;
+  }
+  .creative-opportunity .job-description,
+  .creative-opportunity:first-child .job-description,
+  .creative-opportunity:last-child .job-description {
+    min-height: 64px;
+  }
+  .creative-opportunity:first-child .opportunity-content,
+  .creative-opportunity:last-child .opportunity-content,
+  .creative-opportunity .opportunity-content {
+    padding: 21px;
+  }
+  .creative-opportunity:first-child .opportunity-head,
+  .creative-opportunity:last-child .opportunity-head,
+  .creative-opportunity .opportunity-head {
+    padding-inline: 21px;
+  }
+  .creative-opportunity .company-name {
+    font-size: 12px;
+  }
+  .round-category-line {
+    gap: 24px;
+  }
+  .round-closing h2 {
+    font-size: 37px !important;
+  }
+  .round-closing .horizon-sign {
+    transform: scale(0.8);
+    transform-origin: right center;
+    width: 200px;
+  }
+  .closing-editorial {
+    gap: 30px;
+  }
+  .closing-editorial img {
+    height: 240px;
+  }
+}
+@media (max-width: 760px) {
+  .round-category-line {
+    gap: 22px;
+    overflow-x: auto;
+    padding-top: 15px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule) transparent;
+  }
+  .round-category-line button {
+    font-size: 12px;
+    padding-block: 13px;
+  }
+  .round-category-line .icon {
+    display: none;
+  }
+  .round-offers-controls {
+    padding-top: 0;
+  }
+  .round-offers-controls .filter-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    padding-block: 18px 23px;
+  }
+  .round-offers-controls .filter-bar .select-field select {
+    width: 100%;
+    padding: 12px 8px;
+    font-size: 11px;
+    min-width: 0;
+  }
+  .round-offers-controls .filter-toggle {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .round-offers-controls .reset-button {
+    grid-column: 1 / -1;
+  }
+  .round-offers-controls .results-heading {
+    padding-top: 0;
+  }
+  .air-hero {
+    position: relative;
+    padding: 25px 0 23px;
+    display: block;
+  }
+  .air-hero h1 {
+    font-size: clamp(40px, 7.5vw, 57px);
+    max-width: 620px;
+  }
+  .air-hero h1 > span {
+    margin-top: 7px;
+    padding: 0 10px 5px 3px;
+  }
+  .air-hero .hero-intro {
+    font-size: 12px;
+    margin-top: 21px;
+    max-width: 40ch;
+  }
+  .air-hero .horizon-sign {
+    display: none;
+  }
+  .air-hero::after {
+    content: "";
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background: #142440;
+    border-radius: 50% 50% 0 0;
+    bottom: 25px;
+    right: 0;
+  }
+  .air-search-band {
+    padding-block: 14px 11px;
+  }
+  .air-search-band .page-wrap > span {
+    font-size: 8px;
+  }
+  .air-search-band .search-form .search-button {
+    font-size: 12px;
+  }
+  .air-offer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 17px;
+  }
+  .air-opportunity h3 {
+    font-size: 26px;
+    min-height: 60px;
+  }
+  .air-opportunity .opportunity-head {
+    padding: 16px 19px;
+  }
+  .air-opportunity .company-mark {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+  .air-opportunity .company-name {
+    font-size: 11px;
+  }
+  .air-opportunity .company-sector {
+    font-size: 9px;
+  }
+  .air-opportunity .opportunity-content {
+    padding: 20px;
+  }
+  .pop-hero {
+    display: block;
+    position: relative;
+    padding: 25px 0 22px;
+    min-height: 264px;
+  }
+  .pop-hero h1 {
+    font-size: clamp(36px, 7.3vw, 55px);
+    max-width: 68%;
+    position: relative;
+    z-index: 2;
+  }
+  .pop-hero h1 span {
+    padding: 1px 5px 4px;
+    margin-top: 7px;
+  }
+  .pop-hero .hero-intro {
+    position: relative;
+    z-index: 2;
+    font-size: 12px;
+    max-width: 65%;
+    margin-top: 21px;
+  }
+  .pop-portrait {
+    position: absolute;
+    right: -2px;
+    width: 190px;
+    height: 220px;
+    bottom: 20px;
+  }
+  .pop-portrait > img {
+    width: 170px;
+    height: 220px;
+    right: 0;
+    bottom: 10px;
+  }
+  .portrait-mint {
+    width: 135px;
+    height: 172px;
+    right: 12px;
+    bottom: 15px;
+    box-shadow: 4px 4px 0 #171b1b;
+  }
+  .pop-sticker {
+    width: 76px;
+    height: 71px;
+    font-size: 11px;
+    top: 45px;
+    left: 6px;
+    padding: 12px 7px;
+    box-shadow: 3px 3px 0 #171b1b;
+  }
+  .pop-sticker .icon {
+    width: 14px;
+    right: 7px;
+    bottom: 4px;
+  }
+  .pop-portrait figcaption {
+    display: none;
+  }
+  .concept-pop .search-form .location-field {
+    border-left: 0;
+  }
+  .concept-pop .search-field {
+    border-bottom: 2px solid #171b1b;
+  }
+  .concept-pop .search-button {
+    font-size: 11px;
+    padding-inline: 10px;
+  }
+  .pop-cover-foot {
+    font-size: 9px;
+    padding-top: 17px;
+  }
+  .pop-cover-foot > a {
+    display: none;
+  }
+  .concept-pop .round-category-line {
+    gap: 12px;
+    justify-content: flex-start;
+  }
+  .concept-pop .round-category-line button {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+  }
+  .pop-offer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .pop-opportunity .opportunity-head {
+    gap: 9px;
+    padding-inline: 17px;
+  }
+  .pop-opportunity .opportunity-content {
+    padding: 19px;
+  }
+  .pop-opportunity h3 {
+    font-size: 26px;
+  }
+  .pop-opportunity .company-name {
+    font-size: 12px;
+  }
+  .pop-opportunity .company-sector {
+    font-size: 9px;
+  }
+  .pop-opportunity .opportunity-contract {
+    font-size: 11px;
+  }
+  .pop-opportunity .save-button {
+    width: 30px;
+    min-width: 30px;
+  }
+  .pop-opportunity .job-description {
+    min-height: 66px;
+  }
+  .creative-hero {
+    display: block;
+    position: relative;
+    padding: 24px 0;
+  }
+  .creative-hero h1 {
+    font-size: clamp(41px, 7.9vw, 57px);
+    max-width: 78%;
+  }
+  .creative-hero h1 > span {
+    font-size: 0.64em;
+    margin-top: 7px;
+  }
+  .creative-hero .hero-intro {
+    max-width: 72%;
+    font-size: 12px;
+    margin-top: 16px;
+  }
+  .creative-cover {
+    position: absolute;
+    right: 0;
+    top: 50px;
+    width: 160px;
+    height: 169px;
+    z-index: 0;
+  }
+  .cover-team {
+    width: 145px;
+    height: 135px;
+    top: 10px;
+    left: 0;
+    border-radius: 40px 0 0 0;
+  }
+  .cover-portrait {
+    width: 67px;
+    height: 91px;
+    right: -3px;
+    top: -13px;
+    border-width: 4px;
+  }
+  .cover-caption {
+    display: none;
+  }
+  .cover-sun {
+    width: 40px;
+    height: 40px;
+    top: -19px;
+    left: 5px;
+  }
+  .creative-cover figcaption {
+    font-size: 6px;
+    bottom: 2px;
+  }
+  .creative-hero-copy {
+    position: relative;
+    z-index: 1;
+  }
+  .creative-hero h1 {
+    max-width: 64%;
+  }
+  .creative-hero .hero-intro {
+    max-width: 62%;
+  }
+  .creative-opportunity h3,
+  .creative-opportunity:first-child h3,
+  .creative-opportunity:last-child h3 {
+    font-size: 27px;
+    min-height: 63px;
+  }
+  .creative-opportunity .opportunity-head {
+    gap: 10px;
+  }
+  .creative-opportunity .opportunity-contract {
+    font-size: 11px;
+  }
+  .creative-opportunity .job-actions {
+    gap: 14px;
+  }
+  .creative-opportunity .opportunity-pay {
+    font-size: 12px;
+  }
+  .round-closing {
+    padding: 25px !important;
+    gap: 20px;
+    margin-top: 40px;
+  }
+  .round-closing .horizon-sign {
+    display: none;
+  }
+  .round-closing h2 {
+    font-size: 29px !important;
+  }
+  .round-closing p {
+    font-size: 12px;
+  }
+  .closing-editorial {
+    display: block;
+  }
+  .closing-editorial figure {
+    margin-top: 25px;
+  }
+  .closing-editorial img {
+    height: 200px;
+  }
+  .concept-air .footer-top > p,
+  .concept-pop .footer-top > p,
+  .concept-creative .footer-top > p {
+    font-size: 24px;
+  }
+  .lab-archives {
+    max-width: 96px;
+    padding: 6px;
+    font-size: 10px !important;
+  }
+  .lab-toolbar {
+    gap: 8px;
+  }
+  .lab-toolbar nav {
+    gap: 3px;
+  }
+}
+@media (max-width: 480px) {
+  .air-hero h1 {
+    font-size: 41px;
+  }
+  .air-hero::after {
+    width: 21px;
+    height: 21px;
+    bottom: 22px;
+  }
+  .air-hero .hero-intro {
+    padding-right: 24px;
+  }
+  .air-offer-grid,
+  .pop-offer-grid,
+  .creative-offer-grid {
+    grid-template-columns: 1fr;
+  }
+  .air-opportunity h3 {
+    font-size: 33px;
+    min-height: 0;
+  }
+  .air-opportunity .opportunity-content {
+    padding: 23px;
+  }
+  .air-opportunity .company-name {
+    font-size: 13px;
+  }
+  .air-opportunity .company-sector {
+    font-size: 10px;
+  }
+  .air-opportunity .opportunity-contract {
+    font-size: 12px;
+  }
+  .air-opportunity .job-description {
+    font-size: 13px;
+    min-height: 0;
+  }
+  .air-opportunity .text-button {
+    font-size: 12px !important;
+  }
+  .air-opportunity .apply-button {
+    padding: 10px 14px;
+    font-size: 12px !important;
+  }
+  .pop-hero {
+    min-height: 290px;
+  }
+  .pop-hero h1 {
+    max-width: 78%;
+    font-size: 41px;
+  }
+  .pop-hero h1 > span {
+    max-width: 270px;
+  }
+  .pop-hero .hero-intro {
+    max-width: 60%;
+    font-size: 11px;
+    margin-top: 17px;
+  }
+  .pop-portrait {
+    width: 125px;
+    height: 170px;
+    right: -4px;
+    bottom: 13px;
+  }
+  .pop-portrait > img {
+    width: 128px;
+    height: 185px;
+    right: -4px;
+    bottom: 5px;
+  }
+  .portrait-mint {
+    width: 107px;
+    height: 146px;
+    right: 2px;
+    bottom: 12px;
+    transform: rotate(4deg);
+  }
+  .pop-sticker {
+    width: 62px;
+    height: 59px;
+    left: -13px;
+    top: -2px;
+    font-size: 9px;
+    padding: 9px 6px;
+  }
+  .pop-sticker .icon {
+    width: 13px;
+  }
+  .pop-opportunity h3 {
+    font-size: 31px;
+    min-height: 0;
+  }
+  .pop-opportunity .opportunity-head {
+    padding: 15px 19px;
+  }
+  .pop-opportunity .opportunity-content {
+    padding: 22px;
+  }
+  .pop-opportunity .job-description {
+    min-height: 0;
+    font-size: 13px;
+  }
+  .pop-opportunity .opportunity-footer {
+    padding-top: 16px;
+  }
+  .pop-opportunity .posted-date {
+    font-size: 10px;
+  }
+  .pop-opportunity .text-button,
+  .pop-opportunity .apply-button {
+    font-size: 12px !important;
+  }
+  .creative-hero {
+    padding-top: 23px;
+    padding-bottom: 25px;
+    min-height: 280px;
+  }
+  .creative-hero h1 {
+    font-size: 43px;
+    max-width: 68%;
+  }
+  .creative-hero h1 > span {
+    font-size: 0.62em;
+    line-height: 1.22;
+  }
+  .creative-hero .hero-intro {
+    font-size: 11px;
+    margin-top: 16px;
+    max-width: 62%;
+  }
+  .creative-cover {
+    top: 52px;
+    width: 120px;
+    height: 180px;
+    right: -3px;
+  }
+  .cover-team {
+    width: 100px;
+    height: 147px;
+    top: 13px;
+    object-position: 62% center;
+  }
+  .cover-portrait {
+    width: 66px;
+    height: 85px;
+    right: 0;
+    top: -7px;
+  }
+  .cover-sun {
+    width: 36px;
+    height: 36px;
+    left: -6px;
+    top: -7px;
+  }
+  .creative-cover figcaption {
+    font-size: 5px;
+    bottom: 0;
+  }
+  .creative-opportunity h3,
+  .creative-opportunity:first-child h3,
+  .creative-opportunity:last-child h3 {
+    font-size: 32px;
+    min-height: 0;
+  }
+  .creative-opportunity .job-description,
+  .creative-opportunity:first-child .job-description,
+  .creative-opportunity:last-child .job-description {
+    min-height: 0;
+    font-size: 13px;
+  }
+  .creative-opportunity .company-name {
+    font-size: 13px;
+  }
+  .creative-opportunity .company-sector {
+    display: block;
+    font-size: 10px;
+  }
+  .creative-opportunity .opportunity-contract,
+  .creative-opportunity:first-child .opportunity-contract,
+  .creative-opportunity:last-child .opportunity-contract {
+    font-size: 12px;
+  }
+  .creative-opportunity .opportunity-pay {
+    font-size: 13px;
+  }
+  .creative-opportunity .text-button,
+  .creative-opportunity .apply-button {
+    font-size: 12px !important;
+  }
+  .creative-opportunity .apply-button .icon {
+    display: inline-block;
+  }
+  .creative-opportunity .posted-date {
+    font-size: 10px;
+  }
+  .lab-toolbar .lab-wordmark {
+    flex-basis: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 9px;
+  }
+  .lab-toolbar .lab-wordmark > span {
+    display: inline-block;
+    font-size: 9px;
+  }
+  .lab-toolbar {
+    justify-content: space-between;
+    min-height: 77px;
+  }
+  .lab-toolbar nav button > span:last-child {
+    display: none;
+  }
+  .lab-toolbar nav {
+    margin-right: auto;
+  }
+  .lab-archives {
+    max-width: 87px;
+  }
+  .lab-toolbar .state-controls {
+    margin-left: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .concept-pop .button:hover,
+  .concept-pop .button:active {
+    transform: none;
+  }
+  .air-cover:focus-within .horizon-sun {
+    translate: none;
+  }
+}
+
+/* Primary controls explicitly inherit their candidate's own palette. */
+.concept-air .register-button.primary {
+  background: #142440;
+  color: #ede944;
+}
+.concept-air .search-button.primary {
+  background: #ede944;
+  color: #142440;
+}
+.concept-air .search-button.primary:hover {
+  background: #d3d131;
+  filter: none;
+}
+.concept-pop .button.primary {
+  background: #f8e550;
+  color: #171b1b;
+}
+.concept-pop .button.primary:hover {
+  background: #f2dc38;
+  filter: none;
+}
+.concept-creative .register-button.primary {
+  background: #b14f2c;
+  color: #fff6e7;
+}
+.round-mobile-filters {
+  display: none;
+}
+@media (max-width: 760px) {
+  .round-desktop-filters {
+    display: none;
+  }
+  .round-mobile-filters {
+    display: block;
+    margin-block: 12px 18px;
+  }
+  .round-mobile-filters summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-block: 11px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 12px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .round-mobile-filters summary::-webkit-details-marker {
+    display: none;
+  }
+  .round-mobile-filters summary > .icon:last-child {
+    margin-left: auto;
+    width: 14px;
+  }
+  .round-mobile-filters summary > span {
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .round-mobile-filters[open] summary > .icon:last-child {
+    transform: rotate(180deg);
+  }
+  .concept-air .results-heading h2,
+  .concept-pop .results-heading h2,
+  .concept-creative .results-heading h2 {
+    font-size: 20px;
+  }
+  .round-offers-controls .results-heading p {
+    display: none;
+  }
+  .round-offers-controls .sort-control {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .round-offers-controls .results-heading {
+    gap: 8px;
+  }
+  .pop-hero {
+    min-height: 240px;
+  }
+  .creative-hero {
+    min-height: 244px;
+  }
+}
+@media (max-width: 480px) {
+  .pop-hero {
+    min-height: 244px;
+    padding-block: 21px 20px;
+  }
+  .pop-hero h1 {
+    font-size: 39px;
+  }
+  .pop-hero .hero-intro {
+    margin-top: 14px;
+  }
+  .pop-portrait {
+    bottom: 10px;
+  }
+  .creative-hero {
+    min-height: 244px;
+    padding-bottom: 20px;
+  }
+  .creative-cover {
+    top: 43px;
+  }
+}
+
+@media (min-width: 1201px) {
+  .comparison-grid-three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .comparison-grid-three .comparison-card {
+    padding: 22px;
+  }
+  .comparison-grid-three .comparison-card-heading {
+    min-height: 76px;
+    gap: 12px;
+  }
+  .comparison-grid-three .comparison-card-heading h2 {
+    font-size: 23px;
+  }
+  .comparison-grid-three .direction-letter {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  .comparison-grid-three .comparison-description {
+    font-size: 15px;
+    min-height: 70px;
+  }
+  .comparison-grid-three .palette-line {
+    flex-wrap: wrap;
+    row-gap: 9px;
+  }
+  .comparison-grid-three .palette-line > span:last-child {
+    font-size: 10px;
+  }
+  .comparison-grid-three .direction-scores {
+    gap: 6px;
+  }
+}
+
+/* Review corrections: spend the opening viewport on both brand and jobs. */
+.concept-air .site-header,
+.concept-pop .site-header,
+.concept-creative .site-header {
+  min-height: 80px;
+}
+.air-hero {
+  padding-block: 22px 20px;
+}
+.air-hero h1 {
+  font-size: clamp(48px, 5.4vw, 78px);
+}
+.air-hero .hero-intro {
+  margin-top: 16px;
+}
+.air-hero .horizon-sign {
+  width: 220px;
+  height: 190px;
+  transform: scale(0.86);
+  transform-origin: right center;
+}
+.horizon-line {
+  left: 0;
+  width: 100%;
+}
+.air-search-band {
+  padding-block: 14px;
+}
+.air-search-band .page-wrap > span {
+  display: none;
+}
+.pop-hero {
+  padding-block: 20px 14px;
+}
+.pop-hero h1 {
+  font-size: clamp(47px, 5.2vw, 74px);
+}
+.pop-hero .hero-intro {
+  margin-top: 17px;
+}
+.pop-portrait {
+  height: 250px;
+}
+.pop-portrait > img {
+  height: 274px;
+  width: 216px;
+}
+.portrait-mint {
+  width: 220px;
+  height: 215px;
+}
+.pop-sticker {
+  top: 37px;
+}
+.pop-cover-foot {
+  padding-block: 12px;
+}
+.creative-hero {
+  padding-block: 22px 18px;
+}
+.creative-hero h1 {
+  font-size: clamp(46px, 4.5vw, 64px);
+}
+.creative-cover {
+  height: 228px;
+}
+.cover-team {
+  width: 300px;
+  height: 174px;
+  top: 29px;
+}
+.cover-portrait {
+  width: 145px;
+  height: 165px;
+}
+.cover-caption {
+  bottom: 12px;
+}
+.round-category-line {
+  padding-top: 12px;
+}
+.round-category-line button {
+  padding-block: 12px;
+}
+.round-offers-controls {
+  padding-top: 0;
+}
+.round-offers-controls .filter-bar {
+  padding-block: 14px 12px;
+}
+.round-offers-controls .results-heading {
+  padding-top: 0;
+  padding-bottom: 16px;
+}
+@media (max-width: 1000px) and (min-width: 761px) {
+  .air-hero h1 {
+    font-size: 54px;
+  }
+  .air-hero .horizon-sign {
+    width: 160px;
+    height: 195px;
+    transform: scale(0.68);
+  }
+  .pop-hero h1 {
+    font-size: 51px;
+  }
+  .pop-portrait {
+    height: 236px;
+  }
+  .pop-portrait > img {
+    width: 196px;
+    height: 248px;
+    right: 10px;
+  }
+  .portrait-mint {
+    width: 188px;
+    height: 194px;
+  }
+  .creative-hero h1 {
+    font-size: 49px;
+  }
+  .creative-cover {
+    height: 222px;
+  }
+  .cover-team {
+    width: 240px;
+    height: 166px;
+  }
+  .cover-portrait {
+    width: 121px;
+    height: 148px;
+  }
+}
+@media (max-width: 760px) {
+  .concept-air .site-header,
+  .concept-pop .site-header,
+  .concept-creative .site-header {
+    padding-block: 14px 8px;
+  }
+  .air-hero {
+    padding-block: 20px 18px;
+  }
+  .air-hero h1 {
+    font-size: clamp(36px, 6.7vw, 51px);
+  }
+  .air-hero::after {
+    display: none;
+  }
+  .air-hero .horizon-sign {
+    display: block;
+    position: absolute;
+    width: 250px;
+    height: 240px;
+    right: 0;
+    bottom: 12px;
+    transform: scale(0.32);
+    transform-origin: right bottom;
+  }
+  .air-hero .hero-intro {
+    max-width: calc(100% - 88px);
+    margin-top: 15px;
+    padding-right: 0;
+  }
+  .air-search-band {
+    padding-block: 10px;
+  }
+  .concept-air .search-field,
+  .concept-pop .search-field,
+  .concept-creative .search-field {
+    padding: 12px 16px;
+  }
+  .concept-air .location-field,
+  .concept-pop .location-field,
+  .concept-creative .location-field {
+    padding: 11px 12px;
+  }
+  .pop-hero {
+    min-height: 210px;
+    padding-block: 20px 16px;
+  }
+  .pop-hero h1 {
+    font-size: clamp(36px, 6.9vw, 49px);
+  }
+  .pop-hero .hero-intro {
+    margin-top: 13px;
+  }
+  .pop-portrait {
+    width: 130px;
+    height: 174px;
+    right: -3px;
+    bottom: 9px;
+  }
+  .pop-portrait > img {
+    width: 132px;
+    height: 182px;
+    right: -2px;
+    bottom: 5px;
+  }
+  .portrait-mint {
+    width: 108px;
+    height: 145px;
+    right: 3px;
+    bottom: 12px;
+  }
+  .pop-sticker {
+    width: 62px;
+    height: 58px;
+    left: -12px;
+    top: -1px;
+    padding: 9px 6px;
+    font-size: 9px;
+  }
+  .pop-sticker .icon {
+    width: 13px;
+    right: 7px;
+    bottom: 4px;
+  }
+  .creative-hero {
+    min-height: 224px;
+    padding-block: 20px;
+  }
+  .creative-hero h1 {
+    font-size: clamp(40px, 7vw, 53px);
+  }
+  .creative-cover {
+    width: 120px;
+    height: 176px;
+    top: 41px;
+    right: -3px;
+  }
+  .cover-team {
+    width: 100px;
+    height: 145px;
+    top: 13px;
+  }
+  .cover-portrait {
+    width: 66px;
+    height: 85px;
+    right: 0;
+    top: -7px;
+  }
+  .cover-sun {
+    width: 36px;
+    height: 36px;
+    left: -6px;
+    top: -7px;
+  }
+  .cover-caption {
+    display: none;
+  }
+  .round-category-line {
+    display: none;
+  }
+  .round-mobile-filters {
+    margin-block: 6px 12px;
+  }
+  .round-mobile-filters summary {
+    padding-block: 8px;
+  }
+  .round-offers-controls .results-heading {
+    gap: 6px;
+    padding-bottom: 12px;
+  }
+}
+@media (max-width: 480px) {
+  .lab-toolbar {
+    min-height: 59px;
+  }
+  .lab-toolbar .lab-wordmark {
+    display: none;
+  }
+}
+
+/* Verdict pass: Pop keeps its poster, but makes room for the first role. */
+.pop-hero {
+  padding-block: 18px 12px;
+}
+.pop-hero h1 {
+  font-size: clamp(43px, 4.8vw, 69px);
+}
+.pop-hero .hero-intro {
+  margin-top: 13px;
+}
+.pop-portrait {
+  height: 205px;
+}
+.pop-portrait > img {
+  width: 190px;
+  height: 235px;
+}
+.portrait-mint {
+  width: 203px;
+  height: 178px;
+}
+.pop-sticker {
+  top: 23px;
+}
+.pop-cover-foot {
+  display: none;
+}
+.pop-cover > .page-wrap {
+  padding-bottom: 10px;
+}
+.pop-opportunity .opportunity-head {
+  padding-block: 8px;
+}
+.pop-opportunity .opportunity-content {
+  padding-top: 14px;
+}
+.pop-opportunity h3 {
+  margin-top: 13px;
+}
+@media (max-width: 1000px) and (min-width: 761px) {
+  .pop-hero h1 {
+    font-size: 46px;
+  }
+  .pop-portrait {
+    height: 195px;
+  }
+  .pop-portrait > img {
+    width: 178px;
+    height: 217px;
+    right: 10px;
+  }
+  .portrait-mint {
+    width: 178px;
+    height: 170px;
+  }
+}
+@media (max-width: 760px) {
+  .pop-hero {
+    min-height: 196px;
+    padding-block: 18px 12px;
+  }
+  .pop-hero h1 {
+    font-size: clamp(36px, 6.7vw, 48px);
+  }
+  .pop-hero .hero-intro {
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+  .pop-portrait {
+    width: 130px;
+    height: 165px;
+    bottom: 9px;
+  }
+  .pop-portrait > img {
+    width: 128px;
+    height: 174px;
+    right: -2px;
+  }
+  .portrait-mint {
+    width: 106px;
+    height: 139px;
+  }
+  .pop-sticker {
+    top: -1px;
+  }
+  .pop-cover > .page-wrap {
+    padding-bottom: 12px;
+  }
+}

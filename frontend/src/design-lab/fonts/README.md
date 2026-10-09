@@ -1,0 +1,1 @@
+Polices Google Fonts hébergées localement, sous licence SIL Open Font License. Sous-ensemble latin incluant les caractères français. Sources : fonts.googleapis.com, fonts.gstatic.com et google/fonts (OFL).

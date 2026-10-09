@@ -1,29 +1,46 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import JobCard from "../components/jobCard";
 
 function JobBoardPage() {
   const [ads, setAds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch("/api/ads")
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Erreur lors du chargement des annonces");
+        }
+
+        return response.json();
+      })
       .then((data) => {
         setAds(data);
       })
       .catch((error) => {
-        console.error("Erreur :", error);
+        console.error(error);
+        setError(error.message);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
+
+  if (loading) {
+    return <p>Chargement...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   return (
     <div>
       <h1>Les offres</h1>
 
       {ads.map((ad) => (
-        <div key={ad.id}>
-          <h2>{ad.title}</h2>
-          <p>{ad.company_name}</p>
-          <p>{ad.location}</p>
-        </div>
+        <JobCard key={ad.id} ad={ad} />
       ))}
     </div>
   );

@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 
 async function mountApp() {
   const isDesignLab = /^\/design-lab(?:\/|$)/.test(window.location.pathname);
@@ -11,7 +12,13 @@ async function mountApp() {
 
   createRoot(document.getElementById("root")).render(
     <StrictMode>
-      <App />
+      {isDesignLab ? (
+        <App />
+      ) : (
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      )}
     </StrictMode>,
   );
 }

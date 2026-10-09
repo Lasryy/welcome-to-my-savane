@@ -17,6 +17,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db/job_board_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seed_mvp.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
 
     healthcheck:
       test:
@@ -71,7 +72,7 @@ services:
       - "127.0.0.1:${FRONT_PORT}:5173"
 
     environment:
-      VITE_API_URL: http://localhost:${BACK_PORT}
+      API_TARGET: http://backend:3000
 
     volumes:
       - ./frontend:/app

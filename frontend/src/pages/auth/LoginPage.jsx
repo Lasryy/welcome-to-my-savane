@@ -1,19 +1,18 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
 
 function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
 
     setError("");
-    setSuccess("");
     setIsLoading(true);
 
     try {
@@ -33,7 +32,7 @@ function LoginPage() {
         return;
       }
 
-      setSuccess(`Content de vous revoir, ${data.first_name}.`);
+      navigate("/profile", { replace: true });
     } catch (error) {
       console.error("Error while logging in:", error);
       setError("Le serveur ne répond pas. Réessayez dans un instant.");
@@ -82,12 +81,6 @@ function LoginPage() {
         {error && (
           <p className="auth-message auth-message-error" role="alert">
             {error}
-          </p>
-        )}
-
-        {success && (
-          <p className="auth-message auth-message-success" role="status">
-            {success}
           </p>
         )}
 

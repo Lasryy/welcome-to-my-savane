@@ -1,4 +1,13 @@
 const pool = require("../db/pool");
+const { isRecord, parseId } = require("./admin_validation");
+
+const APPLICATION_STATUSES = new Set([
+  "sent",
+  "in_progress",
+  "technical_test",
+  "accepted",
+  "rejected",
+]);
 
 // Saves an application for the logged-in person.
 async function createApplication(req, res) {
@@ -70,4 +79,92 @@ async function createApplication(req, res) {
   }
 }
 
-module.exports = { createApplication };
+// Returns only the applications owned by the account in the current session.
+async function getMyApplications(req, res) {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: "Connecte-toi pour voir tes candidatures." });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT applications.id, applications.ad_id, ads.title,
+              companies.name AS company_name, ads.location,
+              applications.status, applications.created_at
+       FROM applications
+       JOIN ads ON ads.id = applications.ad_id
+       JOIN companies ON companies.id = ads.company_id
+       WHERE applications.person_id = $1
+       ORDER BY applications.created_at DESC, applications.id DESC`,
+      [req.session.userId],
+    );
+
+    return res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Error while fetching personal applications:", error);
+    return res.status(500).json({ error: "Impossible de charger tes candidatures." });
+  }
+}
+
+// Lists applications for the admin page, including the candidate's name.
+async function getAdminApplications(req, res) {
+  try {
+    const result = await pool.query(
+      `SELECT applications.id, applications.ad_id, ads.title,
+              companies.name AS company_name,
+              people.first_name, people.last_name, people.email,
+              applications.status, applications.created_at
+       FROM applications
+       JOIN people ON people.id = applications.person_id
+       JOIN ads ON ads.id = applications.ad_id
+       JOIN companies ON companies.id = ads.company_id
+       ORDER BY applications.created_at DESC, applications.id DESC`,
+    );
+
+    return res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Error while fetching admin applications:", error);
+    return res.status(500).json({ message: "Impossible de charger les candidatures." });
+  }
+}
+
+// Changes an application status after checking its ID and allowed values.
+async function updateApplicationStatus(req, res) {
+  const id = parseId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ message: "L’identifiant de la candidature est invalide." });
+  }
+
+  if (!isRecord(req.body) || Object.keys(req.body).length !== 1) {
+    return res.status(400).json({ message: "Indique uniquement le nouveau statut." });
+  }
+
+  const { status } = req.body;
+  if (!APPLICATION_STATUSES.has(status)) {
+    return res.status(400).json({ message: "Le statut demandé n’est pas autorisé." });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE applications
+       SET status = $1
+       WHERE id = $2
+       RETURNING id, status`,
+      [status, id],
+    );
+    if (!result.rowCount) {
+      return res.status(404).json({ message: "Candidature introuvable." });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error while updating application status:", error);
+    return res.status(500).json({ message: "Impossible de modifier le statut." });
+  }
+}
+
+module.exports = {
+  createApplication,
+  getMyApplications,
+  getAdminApplications,
+  updateApplicationStatus,
+};

@@ -8,6 +8,8 @@ const adsRoutes = require("./routes/ads_routes");
 const authRoutes = require("./routes/auth_routes");
 const applicationsRoutes = require("./routes/applications_routes");
 const adminAdsRoutes = require("./routes/admin_ads_routes");
+const adminApplicationsRoutes = require("./routes/admin_applications_routes");
+const adminUsersRoutes = require("./routes/admin_users_routes");
 const companiesRoutes = require("./routes/companies_routes");
 const categoriesRoutes = require("./routes/categories_routes");
 const sessionMiddleware = require("./middleware/session_middleware");
@@ -24,6 +26,8 @@ app.use("/api/applications", applicationsRoutes);
 
 // Both URL forms use the same admin check and the same catalogue controllers.
 app.use("/api/admin/ads", requireAdmin, adminAdsRoutes);
+app.use("/api/admin/applications", requireAdmin, adminApplicationsRoutes);
+app.use("/api/admin/users", requireAdmin, adminUsersRoutes);
 app.use("/api/companies", requireAdmin, companiesRoutes);
 app.use("/api/admin/companies", requireAdmin, companiesRoutes);
 app.use("/api/categories", requireAdmin, categoriesRoutes);

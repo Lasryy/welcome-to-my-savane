@@ -12,6 +12,7 @@ export default function PublicLayout() {
           <Brand tailwind />
           <nav className="flex flex-wrap items-center gap-6 text-sm max-[760px]:gap-3 max-[760px]:text-xs" aria-label="Navigation principale">
             <NavLink className="border-b border-transparent py-2.5 hover:underline hover:underline-offset-4 [&[aria-current=page]]:border-ink [&[aria-current=page]]:font-bold" to="/" end>Les offres</NavLink>
+            <NavLink className="border-b border-transparent py-2.5 hover:underline hover:underline-offset-4 [&[aria-current=page]]:border-ink [&[aria-current=page]]:font-bold" to="/applications">Mes candidatures</NavLink>
             <NavLink className="py-2.5 hover:underline hover:underline-offset-4" to="/profile">Mon compte</NavLink>
             <Link className="py-2.5 hover:underline hover:underline-offset-4" to="/admin">Administration</Link>
           </nav>

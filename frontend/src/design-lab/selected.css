@@ -1,0 +1,51 @@
+@reference "../index.css";
+/* User-approved homepage mockup: Grand Air 2 layout, Grand Air 1 type, Pop colors. */
+.concept-selected {
+  --surface: #fff9ee;
+  --ink: #252a46;
+  --muted: #252a46;
+  --rule: #8e93a4;
+  --accent: #252a46;
+  @apply [font-family:"Bricolage_Grotesque",_sans-serif] bg-paper;
+}
+.concept-selected .air-cover { @apply bg-coral; }
+.concept-selected .site-header { @apply [border-bottom-color:#252a46]; }
+.concept-selected .brand-mark { @apply bg-ink; }
+.concept-selected .brand-name strong,
+.concept-selected .air-hero h1 { @apply font-extrabold; }
+.concept-selected .air-hero h1 span { @apply text-sun bg-ink; }
+.concept-selected .hero-intro { @apply text-ink; }
+.concept-selected .air-hero .horizon-sun { @apply bg-sun; }
+.concept-selected .horizon-sign { @apply text-ink; }
+.concept-selected .horizon-field,
+.concept-selected .horizon-line { @apply bg-ink; }
+.concept-selected .air-hero .field-two { @apply bg-mint border-ink; }
+.concept-selected .register-button.primary { @apply bg-ink text-paper; }
+.concept-selected .air-search-band { @apply bg-ink; }
+.concept-selected .air-search-band .search-form {
+  --surface: #fff9ee;
+  --rule: #c8c5b9;
+  @apply bg-paper;
+}
+.concept-selected .search-button.primary { @apply bg-sun text-ink; }
+.concept-selected .search-button.primary:hover { @apply [background:color-mix(in_srgb,_#f0e970_90%,_#252a46)]; }
+.concept-selected .air-opportunity {
+  --rule: #8e93a4;
+}
+.concept-selected .air-opportunity.tone-0 { @apply bg-lavender; }
+.concept-selected .air-opportunity.tone-1 { @apply bg-mint; }
+.concept-selected .air-opportunity.tone-2 { @apply bg-mint; }
+.concept-selected .air-opportunity.tone-3 { @apply bg-sun; }
+.concept-selected .air-opportunity.tone-4 { @apply bg-lavender; }
+.concept-selected .air-opportunity.tone-5 { @apply bg-mint; }
+.concept-selected .air-opportunity .opportunity-head { @apply bg-ink text-paper; }
+.concept-selected .air-opportunity .company-mark { @apply text-paper border-[#959ab2]; }
+.concept-selected .air-opportunity .company-sector { @apply text-[#e3e7f4]; }
+.concept-selected .air-opportunity .save-button { @apply text-paper!; }
+.concept-selected .air-opportunity .save-button.is-saved svg { @apply fill-sun; }
+.concept-selected .air-opportunity .opportunity-contract > span:first-child { @apply border-[#565d78]; }
+.concept-selected .air-opportunity .apply-button { @apply bg-ink text-paper; }
+.concept-selected .round-closing { @apply bg-mint; }
+.concept-selected .round-closing .horizon-sun { @apply bg-sun; }
+.dot-selected { @apply bg-coral text-ink; }
+.comparison-choice-link { @apply inline-flex items-center gap-[10px] mt-[16px] p-[10px_14px] bg-ink! text-paper! text-[12px]!; }

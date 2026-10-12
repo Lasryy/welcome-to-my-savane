@@ -1,0 +1,88 @@
+services:
+  # BD
+
+  postgres:
+    image: postgres:17
+    container_name: postgres-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT}:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/job_board_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seed_mvp.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # BACKEND
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: app-back
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:${BACK_PORT}:3000"
+
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      SESSION_SECRET: ${SESSION_SECRET}
+
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    command: npm run dev
+
+  # FRONTEND
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: app-front
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:${FRONT_PORT}:5173"
+
+    environment:
+      API_TARGET: http://backend:3000
+
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+    depends_on:
+      - backend
+
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  postgres_data:

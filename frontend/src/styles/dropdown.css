@@ -1,164 +1,34 @@
-.custom-select-wrap {
-  position: relative;
-  display: block;
-  width: 100%;
-  min-width: 0;
-}
-
-.custom-select-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  min-height: 46px;
-  padding: 11px 13px;
-  border: 1px solid #c8c5b9;
-  border-radius: 3px;
-  background: #fff9ee;
-  color: #252a46;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.custom-select-trigger:hover:not(:disabled),
-.custom-select-trigger[aria-expanded="true"] {
-  border-color: #252a46;
-  background: #fffdf7;
-}
-
-.custom-select-trigger:focus-visible {
-  outline: 2px solid #252a46;
-  outline-offset: 3px;
-}
-
-.custom-select-trigger:disabled {
-  cursor: wait;
-  opacity: 0.6;
-}
-
-.custom-select-placeholder {
-  color: #6b6c70;
-}
-
-.custom-select-arrow {
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
-  transition: transform 0.15s ease;
-}
-
-.custom-select-trigger[aria-expanded="true"] .custom-select-arrow {
-  transform: rotate(180deg);
-}
-
-.custom-select-menu {
-  position: absolute;
-  z-index: 50;
-  top: calc(100% + 5px);
-  left: 0;
-  width: 100%;
-  max-height: 260px;
-  overflow-y: auto;
-  padding: 5px;
-  border: 1px solid #c8c5b9;
-  border-radius: 4px;
-  background: #fff9ee;
-  color: #252a46;
-  box-shadow: 0 12px 28px rgb(37 42 70 / 16%);
-}
-
-.custom-select-option {
-  display: block;
-  width: 100%;
-  padding: 9px 10px;
-  border: 0;
-  border-radius: 3px;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
+@reference "./tailwind.css";
 
 .custom-select-option:hover,
 .custom-select-option.is-active {
-  background: #f0e970;
+  @apply bg-sun;
 }
 
+/* Keep selected options above the shared admin and design-lab font resets. */
 .custom-select-option.is-selected {
-  font-weight: 700;
+  @apply font-bold;
 }
 
-.custom-select-option:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
+.select-field .custom-select-trigger { @apply p-[11px_12px] border-[var(--rule)] rounded-none [background:var(--surface)] text-[12px]; }
 
-.select-field .custom-select-trigger {
-  padding: 11px 12px;
-  border-color: var(--rule);
-  border-radius: 0;
-  background: var(--surface);
-  font-size: 12px;
-}
+.filter-bar .custom-select-wrap { @apply min-w-[160px]; }
 
-.filter-bar .custom-select-wrap {
-  min-width: 160px;
-}
-
-.sort-control .custom-select-trigger {
-  min-height: 0;
-  padding: 3px 18px 3px 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font-size: 12px;
-}
+.sort-control .custom-select-trigger { @apply min-h-[0] p-[3px_18px_3px_0] border-0 [background:transparent] text-[var(--ink)] text-[12px]; }
 
 .sort-control .custom-select-trigger:hover:not(:disabled),
-.sort-control .custom-select-trigger[aria-expanded="true"] {
-  background: transparent;
-}
+.sort-control .custom-select-trigger[aria-expanded="true"] { @apply [background:transparent]; }
 
-.lab-archives {
-  max-width: 130px;
-  min-height: 0;
-  padding: 8px;
-  border: 1px solid #5e6666;
-  border-radius: 5px;
-  background: #353b3c;
-  color: #f6f3ed;
-  font-size: 11px;
-}
+.lab-archives { @apply max-w-[130px] min-h-[0] p-[8px] [border:1px_solid_#5e6666] rounded-[5px] [background:#353b3c] text-[#f6f3ed] text-[11px]; }
 
 .lab-archives:hover:not(:disabled),
-.lab-archives[aria-expanded="true"] {
-  border-color: #909999;
-  background: #353b3c;
-}
+.lab-archives[aria-expanded="true"] { @apply border-[#909999] [background:#353b3c]; }
 
-.lab-archives .custom-select-arrow {
-  flex-basis: 14px;
-  width: 14px;
-  height: 14px;
-}
+.lab-archives .custom-select-arrow { @apply [flex-basis:14px] w-[14px] h-[14px]; }
 
-.archives-select .custom-select-menu {
-  left: auto;
-  right: 0;
-  width: max-content;
-  min-width: 180px;
-  border-color: #5e6666;
-  background: #242728;
-  color: #f6f3ed;
-}
+.archives-select .custom-select-menu { @apply left-[auto] right-[0] w-[max-content] min-w-[180px] border-[#5e6666] [background:#242728] text-[#f6f3ed]; }
 
 .archives-select .custom-select-option:hover,
-.archives-select .custom-select-option.is-active {
-  background: #454d4d;
-}
+.archives-select .custom-select-option.is-active { @apply [background:#454d4d]; }
 
-.admin-app .custom-select-trigger {
-  min-height: 46px;
-}
+.admin-app .custom-select-trigger { @apply min-h-[46px]; }

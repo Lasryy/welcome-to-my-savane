@@ -103,12 +103,16 @@ export default function CustomSelect({
   }
 
   return (
-    <span ref={rootRef} className={`custom-select-wrap ${className}`}>
+    <span ref={rootRef} className={`custom-select-wrap relative block w-full min-w-0 ${className}`}>
       <button
         ref={triggerRef}
         id={id}
         type="button"
-        className={`custom-select-trigger ${triggerClassName}`}
+        className={`custom-select-trigger flex min-h-[46px] w-full cursor-pointer items-center justify-between gap-3
+          rounded-[3px] border border-[#c8c5b9] bg-paper px-[13px] py-[11px] text-left text-[inherit] leading-[inherit] text-ink
+          [transition:border-color_0.15s_ease,background-color_0.15s_ease]
+          hover:not-disabled:border-ink hover:not-disabled:bg-[#fffdf7] aria-expanded:border-ink aria-expanded:bg-[#fffdf7]
+          focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ink disabled:cursor-wait disabled:opacity-60 ${triggerClassName}`}
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -125,15 +129,15 @@ export default function CustomSelect({
         }}
         onKeyDown={handleKeyDown}
       >
-        <span className={!selectedOption ? "custom-select-placeholder" : ""}>
+        <span className={!selectedOption ? "custom-select-placeholder text-[#6b6c70]" : ""}>
           {displayedValue}
         </span>
-        <svg aria-hidden="true" viewBox="0 0 16 16" className="custom-select-arrow">
+        <svg aria-hidden="true" viewBox="0 0 16 16" className={`custom-select-arrow h-4 w-4 [flex:0_0_16px] [transition:transform_0.15s_ease] ${isOpen ? "[transform:rotate(180deg)]" : ""}`}>
           <path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
       {isOpen && (
-        <div id={menuId} className="custom-select-menu" role="listbox" aria-label={ariaLabel}>
+        <div id={menuId} className="custom-select-menu absolute top-[calc(100%_+_5px)] left-0 z-50 max-h-[260px] w-full overflow-y-auto rounded-[4px] border border-[#c8c5b9] bg-paper p-[5px] text-ink [box-shadow:0_12px_28px_rgb(37_42_70_/_16%)]" role="listbox" aria-label={ariaLabel}>
           {options.map((option, index) => {
             const optionValue = option.value ?? option.label;
             const isSelected = index === selectedIndex;
@@ -144,7 +148,7 @@ export default function CustomSelect({
                 key={optionValue}
                 id={`${menuId}-option-${index}`}
                 type="button"
-                className={`custom-select-option${isSelected ? " is-selected" : ""}${isActive ? " is-active" : ""}`}
+                className={`custom-select-option block w-full cursor-pointer rounded-[3px] [border:0] bg-transparent px-2.5 py-[9px] text-left text-[inherit] leading-[inherit] disabled:cursor-not-allowed disabled:opacity-55 ${isSelected ? "is-selected" : ""} ${isActive ? "is-active" : ""}`}
                 role="option"
                 aria-selected={isSelected}
                 disabled={option.disabled}

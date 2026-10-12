@@ -3,25 +3,39 @@ import Icon from "./Icon.jsx";
 import CustomSelect from "../components/CustomSelect";
 import { categories, contracts, copy, jobs, salary } from "./data.js";
 
-export function Brand({ footer = false }) {
+export function Brand({ footer = false, tailwind = false }) {
+  const brandClass = tailwind
+    ? "inline-flex items-center gap-3 font-brand text-ink no-underline"
+    : `brand ${footer ? "brand-footer" : ""}`;
+  const markClass = tailwind
+    ? "grid h-[54px] w-[54px] place-items-center rounded-[0_50%_50%_50%] bg-ink max-[760px]:h-[46px] max-[760px]:w-[46px]"
+    : "brand-mark";
+  const imageClass = tailwind
+    ? "h-[42px] w-[42px] max-[760px]:h-9 max-[760px]:w-9"
+    : "";
+  const nameClass = tailwind
+    ? "text-xs leading-tight"
+    : "brand-name";
+
   return (
     <a
-      className={`brand ${footer ? "brand-footer" : ""}`}
+      className={`${brandClass}${footer ? " brand-footer" : ""}`}
       href="#top"
       aria-label="Welcome To My Savane, retour en haut"
     >
-      <span className="brand-mark">
+      <span className={markClass}>
         <img
           src="/logo-welcome-to-my-savane.svg"
           alt=""
           width="42"
           height="42"
+          className={imageClass}
         />
       </span>
-      <span className="brand-name">
+      <span className={nameClass}>
         welcome to
         <br />
-        <strong>my savane.</strong>
+        <strong className={tailwind ? "text-[22px] font-extrabold tracking-[-.035em] max-[760px]:text-[19px]" : ""}>my savane.</strong>
       </span>
     </a>
   );

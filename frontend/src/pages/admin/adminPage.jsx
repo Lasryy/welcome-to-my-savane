@@ -4,7 +4,7 @@ function AdminPage() {
   return (
     <section aria-labelledby="admin-sections-title">
       <h2 id="admin-sections-title" className="mb-6">Choisissez votre terrain.</h2>
-      <div className="admin-grid">
+      <div className="admin-grid grid items-start [grid-template-columns:1.1fr_1fr_1fr] gap-[22px] admin-max-1200:gap-[17px] admin-max-1000:[grid-template-columns:repeat(2,_minmax(0,_1fr))] admin-max-480:[grid-template-columns:minmax(0,_1fr)]">
         <AdminCard
           title="Gérer les offres"
           description="Accédez à la gestion des offres d’emploi."

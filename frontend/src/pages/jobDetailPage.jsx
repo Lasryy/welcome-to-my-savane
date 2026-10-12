@@ -11,65 +11,65 @@ function JobDetail({ id }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/ads/${encodeURIComponent(id)}`, { signal: controller.signal })
-      .then(async (response) => {
+    async function loadAd() {
+      try {
+        const response = await fetch(`/api/ads/${encodeURIComponent(id)}`, {
+          signal: controller.signal,
+        });
         if (response.status === 404) {
           setNotFound(true);
-          return null;
+          return;
         }
         if (!response.ok) {
           throw new Error("Le détail de cette offre est momentanément inaccessible.");
         }
 
         const data = await response.json();
-        const hasValidAd = data && typeof data === "object" && data.id;
-        if (!hasValidAd) {
+        if (!data || typeof data !== "object" || !data.id) {
           throw new Error("La réponse du serveur ne contient pas d’offre valide.");
         }
 
-        return data;
-      })
-      .then((data) => {
-        if (data && !controller.signal.aborted) {
+        if (!controller.signal.aborted) {
           setAd(data);
         }
-      })
-      .catch((requestError) => {
+      } catch (requestError) {
         if (requestError.name !== "AbortError") {
           setError(requestError.message);
         }
-      })
-      .finally(() => {
+      } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
         }
-      });
+      }
+    }
+
+    loadAd();
     return () => controller.abort();
   }, [id, retryKey]);
 
   if (loading) {
     return (
-      <div className="site-container public-state job-detail" role="status">
-        <h2>Chargement de l’offre…</h2>
+      <div className="mx-auto my-6 w-[calc(100%_-_112px)] max-w-[900px] border border-rule bg-paper p-6 pt-8 pb-3 max-xl:w-[calc(100%_-_72px)] max-[760px]:w-[calc(100%_-_40px)] max-[760px]:pt-[22px]" role="status">
+        <h2 className="mb-2 text-[22px] font-extrabold">Chargement de l’offre…</h2>
       </div>
     );
   }
   if (notFound) {
     return (
-      <section className="site-container public-state job-detail" role="status">
-        <h2>Cette offre n’est plus disponible.</h2>
+      <section className="mx-auto my-6 w-[calc(100%_-_112px)] max-w-[900px] border border-rule bg-paper p-6 pt-8 pb-3 max-xl:w-[calc(100%_-_72px)] max-[760px]:w-[calc(100%_-_40px)] max-[760px]:pt-[22px]" role="status">
+        <h2 className="mb-2 text-[22px] font-extrabold">Cette offre n’est plus disponible.</h2>
         <p>Elle a peut-être été fermée ou retirée.</p>
-        <Link className="site-button mt-5" to="/">Revenir aux offres</Link>
+        <Link className="mt-5 inline-flex min-h-11 items-center justify-center border border-ink bg-ink px-[18px] py-2.5 text-[13px] font-bold text-paper" to="/">Revenir aux offres</Link>
       </section>
     );
   }
   if (error) {
     return (
-      <section className="site-container public-state job-detail" role="alert">
-        <h2>Impossible d’ouvrir cette offre.</h2>
+      <section className="mx-auto my-6 w-[calc(100%_-_112px)] max-w-[900px] border border-rule bg-paper p-6 pt-8 pb-3 max-xl:w-[calc(100%_-_72px)] max-[760px]:w-[calc(100%_-_40px)] max-[760px]:pt-[22px]" role="alert">
+        <h2 className="mb-2 text-[22px] font-extrabold">Impossible d’ouvrir cette offre.</h2>
         <p>{error}</p>
         <button
-          className="site-button mt-5"
+          className="mt-5 inline-flex min-h-11 items-center justify-center border border-ink bg-ink px-[18px] py-2.5 text-[13px] font-bold text-paper"
           type="button"
           onClick={() => {
             setLoading(true);
@@ -79,7 +79,7 @@ function JobDetail({ id }) {
         >
           Réessayer
         </button>
-        <Link className="job-back" to="/">← Retour aux offres</Link>
+        <Link className="mb-[18px] inline-block text-[13px] font-bold underline-offset-4" to="/">← Retour aux offres</Link>
       </section>
     );
   }
@@ -88,28 +88,28 @@ function JobDetail({ id }) {
   }
 
   return (
-    <article className="site-container job-detail">
-      <Link className="job-back" to="/">← Toutes les offres</Link>
-      <section className="job-detail-panel" aria-labelledby="job-detail-title">
-        <header className="job-detail-heading">
-          <p className="public-eyebrow">{ad.category_name || "OFFRE D’EMPLOI"}</p>
-          <h1 id="job-detail-title">{ad.title}</h1>
-          <p className="job-detail-company">{ad.company_name}</p>
-          <div className="job-detail-metadata" aria-label="Informations sur le poste">
+    <article className="mx-auto w-[calc(100%_-_112px)] max-w-[900px] pt-8 pb-3 max-xl:w-[calc(100%_-_72px)] max-[760px]:w-[calc(100%_-_40px)] max-[760px]:pt-[22px]">
+      <Link className="mb-[18px] inline-block text-[13px] font-bold underline-offset-4" to="/">← Toutes les offres</Link>
+      <section className="overflow-hidden rounded-tr-[18px] border border-rule bg-paper" aria-labelledby="job-detail-title">
+        <header className="bg-lavender p-7 max-[760px]:p-[22px]">
+          <p className="mb-3 text-xs font-bold tracking-[.08em]">{ad.category_name || "OFFRE D’EMPLOI"}</p>
+          <h1 id="job-detail-title" className="my-2 max-w-full break-words text-[clamp(34px,4vw,50px)] font-extrabold leading-[1.06] tracking-[-.04em]">{ad.title}</h1>
+          <p className="text-[17px] font-bold">{ad.company_name}</p>
+          <div className="mt-[18px] flex flex-wrap gap-x-[18px] gap-y-2.5 text-[13px]" aria-label="Informations sur le poste">
             <span>{ad.location || "Localisation à préciser"}</span>
             <span>{contractLabels[ad.contract_type] || "Contrat à préciser"}</span>
             <span>{workingTimeLabels[ad.working_time] || "Temps à préciser"}</span>
             <span>{formatDate(ad.created_at)}</span>
           </div>
         </header>
-        <div className="job-detail-body">
-          <p className="job-poster-salary">{formatSalary(ad)}</p>
+        <div className="p-7 max-[760px]:p-[22px]">
+          <p className="mb-[13px] text-[13px] font-bold tabular-nums">{formatSalary(ad)}</p>
           {ad.short_description && <p className="mb-6 max-w-[70ch] leading-relaxed">{ad.short_description}</p>}
-          <h2>Description du poste</h2>
-          <div className="job-detail-copy">{ad.description}</div>
-          <div className="job-detail-apply">
-            <button className="site-button" type="button" disabled aria-describedby="apply-note">Postuler à cette offre</button>
-            <p id="apply-note">Les candidatures en ligne ne sont pas encore disponibles sur le site.</p>
+          <h2 className="mb-3.5 text-2xl font-extrabold">Description du poste</h2>
+          <div className="max-w-[70ch] whitespace-pre-line break-words leading-[1.75]">{ad.description}</div>
+          <div className="mt-7 flex flex-wrap items-center gap-4 border-t border-rule pt-[22px]">
+            <button className="inline-flex min-h-11 items-center justify-center gap-2 border border-ink bg-ink px-[18px] py-2.5 text-[13px] font-bold text-paper disabled:cursor-not-allowed disabled:opacity-60" type="button" disabled aria-describedby="apply-note">Postuler à cette offre</button>
+            <p id="apply-note" className="max-w-[50ch] text-xs">Les candidatures en ligne ne sont pas encore disponibles sur le site.</p>
           </div>
         </div>
       </section>

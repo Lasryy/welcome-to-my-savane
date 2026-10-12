@@ -37,10 +37,7 @@ export function formatSalary(ad) {
     amount = `${format(min)} – ${format(max)}`;
   }
 
-  let periodLabel = "an";
-  if (period === "month") {
-    periodLabel = "mois";
-  }
+  const periodLabel = period === "month" ? "mois" : "an";
 
   return `${amount} € bruts / ${periodLabel}`;
 }

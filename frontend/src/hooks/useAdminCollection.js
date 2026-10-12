@@ -18,20 +18,25 @@ export default function useAdminCollection(endpoint) {
 
   useEffect(() => {
     const controller = new AbortController();
-    getItems(endpoint, controller.signal).then((data) => {
-      if (!controller.signal.aborted) {
-        setItems(data);
-        setError("");
+    async function loadItems() {
+      try {
+        const data = await getItems(endpoint, controller.signal);
+        if (!controller.signal.aborted) {
+          setItems(data);
+          setError("");
+        }
+      } catch (requestError) {
+        if (!controller.signal.aborted) {
+          setError(requestError.message);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
-    }).catch((requestError) => {
-      if (!controller.signal.aborted) {
-        setError(requestError.message);
-      }
-    }).finally(() => {
-      if (!controller.signal.aborted) {
-        setLoading(false);
-      }
-    });
+    }
+
+    loadItems();
     return () => controller.abort();
   }, [endpoint]);
 

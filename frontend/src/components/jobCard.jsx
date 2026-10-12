@@ -2,28 +2,49 @@ import { Link } from "react-router-dom";
 import { contractLabels, formatDate, formatSalary, workingTimeLabels } from "../utils/adminUtils";
 
 function companyInitials(name = "") {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toLocaleUpperCase("fr") || "?";
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const initials = words.slice(0, 2).map((word) => word[0]).join("");
+  return initials.toLocaleUpperCase("fr") || "?";
 }
 
 function JobCard({ ad, index = 0 }) {
   const description = ad.short_description || ad.description || "Consultez l’offre pour découvrir le poste et ses missions.";
+  const cardColors = ["bg-lavender", "bg-mint", "bg-mint", "bg-sun", "bg-lavender", "bg-mint"];
+
   return (
-    <article className={`job-poster tone-${index % 6}`} aria-labelledby={`job-title-${ad.id}`}>
-      <header className="job-poster-head">
-        <span className="job-company-mark" aria-hidden="true">{companyInitials(ad.company_name)}</span>
-        <p className="job-company-name">{ad.company_name || "Entreprise"}<span className="job-company-sector">{ad.category_name || "Toutes les équipes"}</span></p>
+    <article className={`flex min-h-full min-w-0 flex-col overflow-hidden rounded-tr-[18px] border border-rule ${cardColors[index % cardColors.length]}`} aria-labelledby={`job-title-${ad.id}`}>
+      <header className="flex min-h-[74px] items-center gap-3 bg-ink px-[18px] py-3.5 text-paper">
+        <span className="grid h-[42px] w-[42px] shrink-0 place-items-center border border-[#959ab2] text-[13px] font-bold" aria-hidden="true">
+          {companyInitials(ad.company_name)}
+        </span>
+        <p className="min-w-0 break-words font-bold">
+          {ad.company_name || "Entreprise"}
+          <span className="block text-[11px] font-normal text-[#e3e7f4]">
+            {ad.category_name || "Toutes les équipes"}
+          </span>
+        </p>
       </header>
-      <div className="job-poster-body">
-        <div className="job-poster-meta">
-          <span className="job-contract">{contractLabels[ad.contract_type] || "Contrat non renseigné"}</span>
+      <div className="flex flex-1 flex-col p-[20px_22px] max-[1200px]:p-[18px] max-[480px]:p-[23px]">
+        <div className="flex items-center justify-between gap-3 text-xs">
+          <span className="whitespace-nowrap border border-[#565d78] px-2 py-1">
+            {contractLabels[ad.contract_type] || "Contrat non renseigné"}
+          </span>
           <span>{ad.location || "Lieu à préciser"}</span>
         </div>
-        <h3 id={`job-title-${ad.id}`}>{ad.title}</h3>
-        <p className="job-poster-salary">{formatSalary(ad)}</p>
-        <p className="job-poster-desc" title={description}>{description}</p>
-        <div className="job-poster-footer">
-          <span className="job-posted">{workingTimeLabels[ad.working_time] || "Temps à préciser"} · {formatDate(ad.created_at)}</span>
-          <Link className="job-open-link" to={`/jobs/${ad.id}`}>Découvrir l’offre <span aria-hidden="true">→</span></Link>
+        <h3 id={`job-title-${ad.id}`} className="my-3.5 line-clamp-2 min-h-[2.26em] break-words text-[26px] font-[750] leading-[1.13] tracking-[-.035em] max-[480px]:text-[30px]">
+          {ad.title}
+        </h3>
+        <p className="mb-3 text-[13px] font-bold tabular-nums">{formatSalary(ad)}</p>
+        <p className="line-clamp-3 min-h-[4.65em] break-words text-[13px] leading-[1.55]" title={description}>
+          {description}
+        </p>
+        <div className="mt-auto flex items-center justify-between gap-2.5 pt-[18px]">
+          <span className="text-[11px]">
+            {workingTimeLabels[ad.working_time] || "Temps à préciser"} · {formatDate(ad.created_at)}
+          </span>
+          <Link className="whitespace-nowrap text-[13px] font-bold underline-offset-4 hover:underline" to={`/jobs/${ad.id}`}>
+            Découvrir l’offre <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </div>
     </article>

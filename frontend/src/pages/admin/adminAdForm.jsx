@@ -16,7 +16,11 @@ function emptyAd() {
 }
 
 function formFromAd(ad) {
-  return Object.fromEntries(Object.keys(emptyAd()).map((field) => [field, ad[field] ?? ""]));
+  const form = emptyAd();
+  for (const field of Object.keys(form)) {
+    form[field] = ad[field] ?? "";
+  }
+  return form;
 }
 
 function AdForm({ adId }) {
@@ -221,24 +225,24 @@ function AdForm({ adId }) {
   }
 
   if (loading) {
-    return <p className="admin-state" role="status">Chargement des données…</p>;
+    return <p className="admin-state p-5 [border:1px_solid_var(--admin-rule)]" role="status">Chargement des données…</p>;
   }
   if (error) {
     return (
-      <div className="admin-state" role="alert">
+      <div className="admin-state p-5 [border:1px_solid_var(--admin-rule)]" role="alert">
         <p>{error}</p>
-        <button className="admin-button secondary mt-4" type="button" onClick={() => window.location.reload()}>Réessayer</button>
+        <button className="admin-button secondary mt-4 inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" onClick={() => window.location.reload()}>Réessayer</button>
       </div>
     );
   }
 
   return (
     <>
-      <Link to="/admin/ads" className="admin-card-link mb-6">← Retour aux offres</Link>
+      <Link to="/admin/ads" className="admin-card-link mb-6 inline-flex items-center gap-3 pt-3 font-bold">← Retour aux offres</Link>
       <AdminFeedback feedback={feedback} />
-      <section className="admin-panel" aria-labelledby="ad-form-title">
-        <div className="admin-panel-title"><h2 id="ad-form-title">{formTitle}</h2></div>
-        <form className="admin-form" onSubmit={handleFormSubmit}>
+      <section className="admin-panel [border:1px_solid_var(--admin-rule)] rounded-[0_18px_0_0] overflow-hidden [background:var(--admin-paper)]" aria-labelledby="ad-form-title">
+        <div className="admin-panel-title p-[20px] [background:var(--admin-ink)] text-[var(--admin-paper)]"><h2 id="ad-form-title">{formTitle}</h2></div>
+        <form className="admin-form grid gap-5 p-[20px]" onSubmit={handleFormSubmit}>
           <fieldset disabled={pending || created} className="contents">
             <AdminField label="Titre du poste *" name="ad-title"><input id="ad-title" name="title" required maxLength={200} value={form.title} onChange={update} /></AdminField>
             <div className="grid gap-5 md:grid-cols-2">
@@ -270,10 +274,10 @@ function AdForm({ adId }) {
                 <CustomSelect id="ad-salary-period" required value={form.salary_period} onChange={(value) => updateSelect("salary_period", value)} options={[{ value: "year", label: "Annuel" }, { value: "month", label: "Mensuel" }]} />
               </AdminField>
             </div>
-            <p className="admin-help">Laissez les montants vides si le salaire n’est pas renseigné.</p>
-            <div className="admin-actions">
-              <button type="submit" className="admin-button accent">{submitLabel}</button>
-              <Link to="/admin/ads" className="admin-button secondary" aria-disabled={pending || created} onClick={handleCancelClick}>Annuler</Link>
+            <p className="admin-help text-[12px] leading-[1.5]">Laissez les montants vides si le salaire n’est pas renseigné.</p>
+            <div className="admin-actions flex flex-wrap items-center gap-3">
+              <button type="submit" className="admin-button accent inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline">{submitLabel}</button>
+              <Link to="/admin/ads" className="admin-button secondary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" aria-disabled={pending || created} onClick={handleCancelClick}>Annuler</Link>
             </div>
           </fieldset>
         </form>
@@ -281,19 +285,19 @@ function AdForm({ adId }) {
 
       {isEditing && showSaveChoices && (
         <AdminModal title="Comment souhaitez-vous continuer ?" description="Vos modifications seront enregistrées avant de continuer." onClose={closeSaveChoices}>
-          <div className="admin-modal-actions">
-            <button className="admin-button accent" type="button" disabled={pending} onClick={() => saveAd(false)}>{pending ? "Enregistrement…" : "Enregistrer et rester"}</button>
-            <button className="admin-button primary" type="button" disabled={pending} onClick={() => saveAd(true)}>{pending ? "Enregistrement…" : "Enregistrer et quitter"}</button>
-            <button className="admin-button secondary" type="button" disabled={pending} onClick={closeSaveChoices}>Annuler</button>
+          <div className="admin-modal-actions mt-6 flex flex-wrap gap-3">
+            <button className="admin-button accent inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" disabled={pending} onClick={() => saveAd(false)}>{pending ? "Enregistrement…" : "Enregistrer et rester"}</button>
+            <button className="admin-button primary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" disabled={pending} onClick={() => saveAd(true)}>{pending ? "Enregistrement…" : "Enregistrer et quitter"}</button>
+            <button className="admin-button secondary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" disabled={pending} onClick={closeSaveChoices}>Annuler</button>
           </div>
         </AdminModal>
       )}
 
       {blocker.state === "blocked" && (
         <AdminModal title="Modifications non enregistrées" description="Si vous quittez cette page, vos changements seront perdus." onClose={() => blocker.reset()}>
-          <div className="admin-modal-actions">
-            <button className="admin-button primary" type="button" onClick={() => blocker.proceed()}>Quitter sans enregistrer</button>
-            <button className="admin-button secondary" type="button" onClick={() => blocker.reset()}>Continuer à modifier</button>
+          <div className="admin-modal-actions mt-6 flex flex-wrap gap-3">
+            <button className="admin-button primary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" onClick={() => blocker.proceed()}>Quitter sans enregistrer</button>
+            <button className="admin-button secondary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" onClick={() => blocker.reset()}>Continuer à modifier</button>
           </div>
         </AdminModal>
       )}

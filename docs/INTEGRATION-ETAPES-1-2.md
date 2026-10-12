@@ -64,7 +64,7 @@ npm --prefix backend test
 docker stop wtms-integration-test-db
 ```
 
-La base temporaire disparaît à l’arrêt du conteneur. Les dix scénarios doivent réussir (Node affiche onze tests en comptant le test parent).
+La base temporaire disparaît à l’arrêt du conteneur. Les douze scénarios doivent réussir (Node affiche treize tests en comptant le test parent), y compris les vérifications de modification et de suppression contrôlée ajoutées pour l’étape 3 de Denis.
 
 Le contrôle dans le navigateur couvre également la recherche publique, l’inscription, la connexion avec retour à l’offre, le préremplissage, l’envoi, le profil, la déconnexion, le refus admin pour un `USER`, les listes admin et l’avertissement des modifications non enregistrées.
 
@@ -72,4 +72,4 @@ Le contrôle dans le navigateur couvre également la recherche publique, l’ins
 
 Pour Lasry : historique des candidatures, statuts et CRUD utilisateurs admin à l’étape 3.
 
-Pour Denis : terminer l’étape 3, notamment la suppression contrôlée des offres. La recherche publique actuellement présente est un filtre frontend ; la recherche, les filtres et le tri côté API restent prévus à l’étape 4.
+L’étape 3 de Denis est terminée : les formulaires de création/modification déjà présents sont conservés, la liste admin propose la fermeture/réouverture et la suppression contrôlée refuse les offres avec candidatures liées. La recherche publique actuellement présente est un filtre frontend ; la recherche, les filtres et le tri côté API restent prévus à l’étape 4.

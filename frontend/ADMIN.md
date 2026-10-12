@@ -18,6 +18,8 @@ Les pages `/admin`, `/admin/companies`, `/admin/categories`, `/admin/ads`, `/adm
 | POST | `/api/admin/ads` | Création d’une offre |
 | GET | `/api/admin/ads/:id` | Offre à éditer, y compris lorsqu’elle est fermée |
 | PUT | `/api/admin/ads/:id` | Enregistrement de l’offre |
+| PATCH | `/api/admin/ads/:id` | Fermeture/réouverture avec `{ "status": "closed" }` ou `{ "status": "published" }` |
+| DELETE | `/api/admin/ads/:id` | Suppression sans candidature liée (`204`), sinon refus explicite (`409`) |
 
 Les listes répondent avec un tableau JSON d’objets. Le détail d’une offre répond avec un objet JSON. Les requêtes d’écriture envoient du JSON ; une réponse `200`/`201` avec JSON ou `204` sans contenu est acceptée. Après création, modification ou suppression d’une entreprise ou d’une catégorie, le frontend recharge la liste depuis le serveur. Une erreur utilise un statut HTTP non réussi avec `{ "message": "…" }`.
 
@@ -38,6 +40,8 @@ La page publique charge `/api/ads` et le détail `/api/ads/:id` sans connexion. 
 `App.jsx` utilise un seul `createBrowserRouter` et `RouterProvider`. `AdminRoute` vérifie le rôle avant de rendre `AdminLayout`. Ce routeur permet de conserver l’avertissement `useBlocker` des formulaires d’offres quand des modifications n’ont pas été enregistrées. `main.jsx` monte l’application sans ajouter de second routeur.
 
 Le schéma PostgreSQL n’a pas besoin de migration pour ces opérations.
+
+Sur `/admin/ads`, chaque offre dispose de boutons « Fermer l’offre » / « Rouvrir l’offre » et « Supprimer ». La suppression demande une confirmation et affiche le refus du serveur si des candidatures sont liées, même lorsque l’offre est fermée. La contrainte SQL `ON DELETE RESTRICT` conserve les candidatures et leurs relations. Après succès, le statut ou la liste est mis à jour à partir de la réponse du serveur ; les actions sont désactivées pendant la requête et un retour de succès ou d’erreur est affiché.
 
 ## Fichiers de cette implémentation
 

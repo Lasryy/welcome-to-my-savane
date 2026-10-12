@@ -205,6 +205,63 @@ test("Lasry and Denis integration", {
     assert.equal((await request(`/api/ads/${publishedId}`)).status, 200);
   });
 
+  await t.test("editing an offer persists its content and validates status changes", async () => {
+    const updated = await request(`/api/admin/ads/${publishedId}`, {
+      method: "PATCH", cookie: adminCookie,
+      body: { title: "Updated Integration Offer", description: "Updated SQL description." },
+    });
+    assert.equal(updated.status, 200);
+    const saved = await pool.query("SELECT title, description, status FROM ads WHERE id = $1", [publishedId]);
+    assert.deepEqual(saved.rows[0], {
+      title: "Updated Integration Offer", description: "Updated SQL description.", status: "published",
+    });
+    assert.equal((await request(`/api/ads/${publishedId}`)).data.title, saved.rows[0].title);
+    for (const body of [{}, { status: "draft" }]) {
+      assert.equal((await request(`/api/admin/ads/${publishedId}`, {
+        method: "PATCH", cookie: adminCookie, body,
+      })).status, 400);
+    }
+  });
+
+  await t.test("offer deletion refuses linked applications and preserves SQL relations", async () => {
+    const applicationsBefore = await pool.query("SELECT * FROM applications WHERE ad_id = $1", [publishedId]);
+    assert.ok(applicationsBefore.rowCount > 0);
+    for (const status of ["published", "closed"]) {
+      assert.equal((await request(`/api/admin/ads/${publishedId}`, {
+        method: "PATCH", cookie: adminCookie, body: { status },
+      })).status, 200);
+      const refused = await request(`/api/admin/ads/${publishedId}`, { method: "DELETE", cookie: adminCookie });
+      assert.equal(refused.status, 409);
+      assert.match(refused.data.message, /candidatures/);
+      assert.equal((await request(`/api/admin/ads/${publishedId}`, { cookie: adminCookie })).status, 200);
+      const applicationsAfter = await pool.query("SELECT * FROM applications WHERE ad_id = $1", [publishedId]);
+      assert.deepEqual(applicationsAfter.rows, applicationsBefore.rows);
+    }
+    assert.equal((await request(`/api/admin/ads/${publishedId}`, {
+      method: "PATCH", cookie: adminCookie, body: { status: "published" },
+    })).status, 200);
+    assert.equal((await request("/api/admin/ads/invalid", { method: "DELETE", cookie: adminCookie })).status, 400);
+    assert.equal((await request("/api/admin/ads/2147483647", { method: "DELETE", cookie: adminCookie })).status, 404);
+
+    const removed = await request(`/api/admin/ads/${closedId}`, { method: "DELETE", cookie: adminCookie });
+    assert.equal(removed.status, 204);
+    assert.equal(removed.data, null);
+    assert.equal((await pool.query("SELECT id FROM ads WHERE id = $1", [closedId])).rowCount, 0);
+    assert.equal((await request(`/api/admin/ads/${closedId}`, { cookie: adminCookie })).status, 404);
+    assert.equal((await request(`/api/admin/ads/${closedId}`, { method: "DELETE", cookie: adminCookie })).status, 404);
+
+    const unused = await request("/api/admin/ads", {
+      method: "POST", cookie: adminCookie,
+      body: { title: "Unused Published Offer", description: "No applications.", company_id: companyId, salary_period: "year", status: "published" },
+    });
+    assert.equal(unused.status, 201);
+    assert.equal((await request(`/api/admin/ads/${unused.data.id}`, { method: "DELETE", cookie: adminCookie })).status, 204);
+    assert.equal((await request(`/api/ads/${unused.data.id}`)).status, 404);
+    const adminList = await request("/api/admin/ads", { cookie: adminCookie });
+    assert.equal(adminList.status, 200);
+    assert.ok(adminList.data.every((ad) => ad.id !== closedId && ad.id !== unused.data.id));
+  });
+
   await t.test("catalogue deletions respect linked data", async () => {
     assert.equal((await request(`/api/companies/${companyId}`, { method: "DELETE", cookie: adminCookie })).status, 409);
     assert.equal((await request(`/api/categories/${categoryId}`, { method: "DELETE", cookie: adminCookie })).status, 204);

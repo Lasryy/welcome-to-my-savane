@@ -12,6 +12,8 @@ const adminApplicationsRoutes = require("./routes/admin_applications_routes");
 const adminUsersRoutes = require("./routes/admin_users_routes");
 const companiesRoutes = require("./routes/companies_routes");
 const categoriesRoutes = require("./routes/categories_routes");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
 const sessionMiddleware = require("./middleware/session_middleware");
 const requireAdmin = require("./middleware/require_admin");
 
@@ -19,6 +21,11 @@ const app = express();
 
 app.use(express.json());
 app.use(sessionMiddleware);
+
+app.get("/api-docs/openapi.json", (req, res) => {
+  res.json(swaggerSpec);
+});
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/ads", adsRoutes);

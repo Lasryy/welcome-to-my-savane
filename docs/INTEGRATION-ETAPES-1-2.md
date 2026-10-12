@@ -1,6 +1,6 @@
 # Intégration Lasry + Denis : étapes 1 et 2
 
-Branche : `codex/integration-etapes-1-2`.
+Branche : `integration/etapes-1-2`.
 
 Sources : `feature/lasry-etape-2` au commit `6bb7bd7` et `denis` au commit `e40c49d`. Le périmètre suit les étapes 1 et 2 de la Roadmap Job Board V2. Les fonctions supplémentaires déjà présentes chez Denis sont conservées.
 

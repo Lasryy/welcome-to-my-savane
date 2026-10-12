@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import PublicLayout from "./components/PublicLayout";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ProfilePage from "./pages/auth/ProfilePage";
@@ -13,13 +14,15 @@ import AdminCategoriesPage from "./pages/admin/adminCategoriesPage";
 function App() {
   return (
     <Routes>
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<JobBoardPage />} />
+        <Route path="/jobs/:id" element={<JobDetailPage />} />
+      </Route>
+
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
       <Route path="/profile" element={<ProfilePage />} />
-
-      <Route path="/" element={<JobBoardPage />} />
-      <Route path="/jobs/:id" element={<JobDetailPage />} />
 
       <Route element={<AdminRoute />}>
         <Route path="/admin" element={<AdminPage />} />

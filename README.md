@@ -57,6 +57,8 @@ npm run dev
 
 Application : <http://localhost:5173>
 
+Documentation interactive de l’API : <http://localhost:3000/api-docs> (ou le port défini par `BACK_PORT` dans `.env`). Le document OpenAPI JSON est disponible sur `/api-docs/openapi.json`.
+
 Commandes frontend :
 
 ```bash

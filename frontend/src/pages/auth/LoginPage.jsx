@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -32,7 +33,13 @@ function LoginPage() {
         return;
       }
 
-      navigate("/profile", { replace: true });
+      // After login, return to the screen the user requested before opening /login.
+      const returnPath = location.state?.from || "/profile";
+      const returnState = location.state?.continueApplication
+        ? { continueApplication: true }
+        : null;
+
+      navigate(returnPath, { replace: true, state: returnState });
     } catch (error) {
       console.error("Error while logging in:", error);
       setError("Le serveur ne répond pas. Réessayez dans un instant.");
@@ -47,15 +54,16 @@ function LoginPage() {
       description="Connectez-vous pour retrouver votre parcours."
       footer={
         <>
-          Pas encore de compte ? <Link to="/register">Créer un compte</Link>
+          Pas encore de compte ?{" "}
+          <Link to="/register" state={location.state}>Créer un compte</Link>
         </>
       }
     >
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <label className="auth-field">
+      <form className="form-stack" onSubmit={handleSubmit}>
+        <label className="form-field">
           Adresse e-mail
           <input
-            className="auth-input"
+            className="form-input"
             type="email"
             name="email"
             autoComplete="email"
@@ -65,10 +73,10 @@ function LoginPage() {
           />
         </label>
 
-        <label className="auth-field">
+        <label className="form-field">
           Mot de passe
           <input
-            className="auth-input"
+            className="form-input"
             type="password"
             name="password"
             autoComplete="current-password"
@@ -79,12 +87,12 @@ function LoginPage() {
         </label>
 
         {error && (
-          <p className="auth-message auth-message-error" role="alert">
+          <p className="form-error" role="alert">
             {error}
           </p>
         )}
 
-        <button className="auth-submit" type="submit" disabled={isLoading}>
+        <button className="primary-button mt-1" type="submit" disabled={isLoading}>
           {isLoading ? "Connexion…" : "Se connecter"}
         </button>
       </form>

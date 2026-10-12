@@ -1,0 +1,190 @@
+@layer components {
+  /* Shared page layout for login, registration, and profile screens. */
+  .auth-page {
+    @apply flex min-h-[100svh] flex-col bg-paper font-brand text-ink [color-scheme:light];
+  }
+
+  .auth-header {
+    @apply mx-auto flex min-h-[76px] w-[calc(100%_-_48px)] max-w-[1120px] items-center justify-between border-b border-rule;
+  }
+
+  .auth-brand {
+    @apply flex h-[68px] w-max items-center gap-[10px] text-ink no-underline;
+  }
+
+  .auth-logo {
+    @apply h-[60px] w-[60px] shrink-0 object-contain;
+  }
+
+  .auth-brand-name {
+    @apply text-[18px] font-extrabold leading-none tracking-[-.035em];
+  }
+
+  .auth-back-link {
+    @apply text-sm text-ink underline-offset-4 hover:underline;
+  }
+
+  .auth-content {
+    @apply grid flex-1 place-items-center px-6 py-10 pb-14;
+  }
+
+  .auth-panel {
+    @apply w-full max-w-[440px] rounded-tl-xl rounded-tr-[36px] border border-rule bg-white p-9;
+  }
+
+  .auth-title {
+    @apply m-0 text-[clamp(32px,_5vw,_44px)] font-extrabold leading-[1.05] tracking-[-.03em];
+  }
+
+  .auth-description {
+    @apply mt-3 mb-0 text-[15px] leading-[1.55];
+  }
+
+  .auth-form-content {
+    @apply mt-7 text-left;
+  }
+
+  .auth-footer {
+    @apply mt-6 border-t border-rule pt-5 text-sm;
+  }
+
+  .auth-footer a {
+    @apply font-bold text-ink underline-offset-[3px] hover:underline;
+  }
+
+  /* Reusable controls for authentication and application forms. */
+  .form-stack {
+    @apply grid gap-[18px];
+  }
+
+  .form-field {
+    @apply grid gap-2 text-sm font-bold text-ink;
+  }
+
+  .form-input {
+    @apply min-h-12 w-full rounded-[3px] border border-rule bg-paper px-[13px] py-[11px] font-normal text-ink;
+  }
+
+  .form-error {
+    @apply m-0 rounded-[3px] border border-coral bg-coral/10 px-3 py-3 text-sm leading-6 text-ink;
+  }
+
+  .form-success {
+    @apply m-0 rounded-[3px] border border-mint bg-mint/30 px-3 py-3 text-sm leading-6 text-ink;
+  }
+
+  .primary-button {
+    @apply min-h-12 w-full rounded-[2px] bg-ink px-5 py-3 font-bold text-paper transition-colors hover:bg-ink/90 disabled:cursor-wait disabled:opacity-65;
+  }
+
+  .secondary-button {
+    @apply min-h-12 rounded-[3px] border border-ink px-5 py-3 font-semibold text-ink hover:bg-paper disabled:cursor-wait disabled:opacity-65;
+  }
+
+  .profile-content {
+    @apply grid gap-5;
+  }
+
+  .profile-data {
+    @apply grid gap-4 rounded-xl bg-paper p-4;
+  }
+
+  .profile-data dt {
+    @apply text-sm font-semibold text-ink/70;
+  }
+
+  .profile-data dd {
+    @apply mt-1 font-bold;
+  }
+
+  /* These classes keep the application form in the same visual system. */
+  .application-card {
+    @apply mt-8 rounded-tl-xl rounded-tr-[36px] border border-rule bg-white p-6 sm:p-8;
+  }
+
+  .application-title {
+    @apply text-2xl font-extrabold text-ink;
+  }
+
+  .application-description {
+    @apply mt-2 text-ink/75;
+  }
+
+  .application-error {
+    @apply mt-6 rounded-xl border border-coral bg-coral/10 p-4;
+  }
+
+  .application-links {
+    @apply mt-3 flex flex-wrap gap-4 font-bold underline underline-offset-4;
+  }
+
+  .application-form {
+    @apply mt-6 space-y-5;
+  }
+
+  .application-info {
+    @apply grid gap-4 rounded-xl bg-paper p-4 sm:grid-cols-2;
+  }
+
+  .application-info dt {
+    @apply text-sm font-semibold text-ink/70;
+  }
+
+  .application-info dd {
+    @apply mt-1 font-bold;
+  }
+
+  .application-info-email {
+    @apply sm:col-span-2;
+  }
+
+  .application-message {
+    @apply mt-2 min-h-36 w-full rounded-[3px] border border-rule bg-paper p-3 font-normal text-ink focus-visible:border-ink;
+  }
+
+  .application-counter {
+    @apply -mt-3 text-sm text-ink/65;
+  }
+
+  .application-actions {
+    @apply flex flex-wrap gap-3;
+  }
+
+  .application-actions .primary-button {
+    @apply w-auto;
+  }
+
+  .application-success {
+    @apply mt-6 rounded-xl border border-mint bg-mint/30 p-4 font-semibold text-ink;
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-header {
+    @apply min-h-[72px] w-[calc(100%_-_32px)];
+  }
+
+  .auth-brand {
+    @apply gap-2;
+  }
+
+  .auth-logo {
+    @apply h-[52px] w-[52px];
+  }
+
+  .auth-brand-name {
+    @apply text-[15px];
+  }
+
+  .auth-back-link {
+    @apply text-[13px];
+  }
+
+  .auth-content {
+    @apply px-4 py-7 pb-10;
+  }
+
+  .auth-panel {
+    @apply p-[28px_24px];
+  }
+}

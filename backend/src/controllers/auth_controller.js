@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const pool = require("../db/pool");
 
-// Creates a new account. The database gives it the USER role by default.
+// Creates an account. The database assigns the USER role by default.
 async function register(req, res) {
   const body = req.body ?? {};
 
@@ -42,8 +42,10 @@ async function register(req, res) {
   }
 
   try {
+    // Never store the password as plain text: bcrypt creates a password hash.
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // Sending values separately prevents SQL injection.
     const result = await pool.query(
       `INSERT INTO people (first_name, last_name, email, phone, password_hash)
        VALUES ($1, $2, $3, $4, $5)
@@ -53,7 +55,7 @@ async function register(req, res) {
 
     return res.status(201).json(result.rows[0]);
   } catch (error) {
-    // PostgreSQL code 23505 means a unique value already exists.
+    // PostgreSQL uses error code 23505 when a unique value already exists.
     if (error.code === "23505") {
       return res.status(409).json({ error: "Cette adresse e-mail est déjà utilisée." });
     }
@@ -63,7 +65,7 @@ async function register(req, res) {
   }
 }
 
-// Checks the password and starts a session for the matching account.
+// Checks the password and starts a session for the account.
 async function login(req, res) {
   const body = req.body ?? {};
   const email =
@@ -92,13 +94,14 @@ async function login(req, res) {
       return res.status(500).json({ error: "Session serveur non configurée." });
     }
 
-    // Give the logged-in user a fresh session.
+    // A fresh session avoids reusing the previous session ID.
     return req.session.regenerate((error) => {
       if (error) {
         console.error("Error while creating session:", error);
         return res.status(500).json({ error: "Internal server error" });
       }
 
+      // Future requests use this ID to find the logged-in account.
       req.session.userId = user.id;
 
       return res.status(200).json({
@@ -116,7 +119,7 @@ async function login(req, res) {
   }
 }
 
-// Returns the account linked to the current session.
+// Returns the account linked to the current session, without its password hash.
 async function getMe(req, res) {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: "Connexion requise." });
@@ -141,7 +144,7 @@ async function getMe(req, res) {
   }
 }
 
-// Ends the current session.
+// Ends the session and removes its cookie from the browser.
 function logout(req, res) {
   if (!req.session) {
     return res.status(500).json({ error: "Session serveur non configurée." });

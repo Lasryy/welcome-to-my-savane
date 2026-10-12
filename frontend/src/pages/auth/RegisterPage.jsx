@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
 
 function RegisterPage() {
+  const location = useLocation();
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -58,15 +59,16 @@ function RegisterPage() {
       description="Quelques informations pour commencer ton parcours."
       footer={
         <>
-          Tu as déjà un compte ? <Link to="/login">Se connecter</Link>
+          Tu as déjà un compte ?{" "}
+          <Link to="/login" state={location.state}>Se connecter</Link>
         </>
       }
     >
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <label className="auth-field">
+      <form className="form-stack" onSubmit={handleSubmit}>
+        <label className="form-field">
           Prénom
           <input
-            className="auth-input"
+            className="form-input"
             type="text"
             name="first_name"
             autoComplete="given-name"
@@ -76,10 +78,10 @@ function RegisterPage() {
           />
         </label>
 
-        <label className="auth-field">
+        <label className="form-field">
           Nom
           <input
-            className="auth-input"
+            className="form-input"
             type="text"
             name="last_name"
             autoComplete="family-name"
@@ -89,10 +91,10 @@ function RegisterPage() {
           />
         </label>
 
-        <label className="auth-field">
+        <label className="form-field">
           Adresse e-mail
           <input
-            className="auth-input"
+            className="form-input"
             type="email"
             name="email"
             autoComplete="email"
@@ -102,10 +104,10 @@ function RegisterPage() {
           />
         </label>
 
-        <label className="auth-field">
-          Téléphone <span>(facultatif)</span>
+        <label className="form-field">
+          Téléphone (facultatif)
           <input
-            className="auth-input"
+            className="form-input"
             type="tel"
             name="phone"
             autoComplete="tel"
@@ -114,10 +116,10 @@ function RegisterPage() {
           />
         </label>
 
-        <label className="auth-field">
+        <label className="form-field">
           Mot de passe
           <input
-            className="auth-input"
+            className="form-input"
             type="password"
             name="password"
             autoComplete="new-password"
@@ -129,18 +131,18 @@ function RegisterPage() {
         </label>
 
         {error && (
-          <p className="auth-message auth-message-error" role="alert">
+          <p className="form-error" role="alert">
             {error}
           </p>
         )}
 
         {success && (
-          <p className="auth-message auth-message-success" role="status">
+          <p className="form-success" role="status">
             {success}
           </p>
         )}
 
-        <button className="auth-submit" type="submit" disabled={isLoading}>
+        <button className="primary-button mt-1" type="submit" disabled={isLoading}>
           {isLoading ? "Création…" : "Créer mon compte"}
         </button>
       </form>

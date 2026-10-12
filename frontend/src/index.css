@@ -1,27 +1,54 @@
-@import "tailwindcss";
+@import "./styles/tailwind.css";
+@import "./styles/components.css";
 
-:root {
-  font-family: "Bricolage Grotesque", sans-serif;
-  color: #252a46;
-  background: #fff9ee;
-  color-scheme: light;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
+@layer base {
+  :root {
+    @apply font-brand text-ink bg-paper [color-scheme:light] [font-synthesis:none] [text-rendering:optimizeLegibility] [-webkit-font-smoothing:antialiased];
+  }
 
-* { box-sizing: border-box; }
-html { min-width: 320px; scroll-behavior: smooth; }
-body { min-width: 320px; min-height: 100svh; margin: 0; }
-button, input, textarea, select { font: inherit; }
-button { color: inherit; }
-a { color: inherit; }
-button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-  outline: 2px solid #252a46;
-  outline-offset: 4px;
-}
-#root { min-height: 100svh; }
+  *,
+  *::before,
+  *::after {
+    @apply box-border;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  html {
+    @apply min-w-[320px] [scroll-behavior:smooth];
+  }
+
+  body {
+    @apply min-w-[320px] min-h-[100svh] m-0;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    @apply [font:inherit];
+  }
+
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    @apply focus-visible:outline-2 focus-visible:outline-ink focus-visible:[outline-offset:4px];
+  }
+
+  button,
+  a {
+    @apply text-inherit;
+  }
+
+  #root {
+    @apply min-h-[100svh];
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      @apply [scroll-behavior:auto!important] [animation-duration:0.01ms!important] [transition-duration:0.01ms!important];
+    }
+  }
 }

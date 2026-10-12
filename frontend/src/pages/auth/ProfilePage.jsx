@@ -69,29 +69,34 @@ function ProfilePage() {
       title={user ? `Bonjour ${user.first_name}.` : "Mon profil."}
       description="Retrouve les informations de ton compte."
     >
-      <div className="auth-form">
-        {isLoading && <p role="status">Chargement du profil…</p>}
+      <div className="profile-content">
+        {isLoading && <p className="m-0" role="status">Chargement du profil…</p>}
 
         {error && (
-          <p className="auth-message auth-message-error" role="alert">
+          <p className="form-error" role="alert">
             {error}
           </p>
         )}
 
         {user && (
           <>
-            <p>
-              <strong>Nom :</strong> {user.first_name} {user.last_name}
-            </p>
-            <p>
-              <strong>E-mail :</strong> {user.email}
-            </p>
-            <p>
-              <strong>Rôle :</strong> {user.role}
-            </p>
+            <dl className="profile-data">
+              <div>
+                <dt>Nom</dt>
+                <dd>{user.first_name} {user.last_name}</dd>
+              </div>
+              <div>
+                <dt>E-mail</dt>
+                <dd>{user.email}</dd>
+              </div>
+              <div>
+                <dt>Rôle</dt>
+                <dd>{user.role}</dd>
+              </div>
+            </dl>
 
             <button
-              className="auth-submit"
+              className="primary-button"
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}

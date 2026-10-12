@@ -1,5 +1,3 @@
-import "./auth.css";
-
 /** Shared layout for the login and registration pages. */
 export default function AuthLayout({
   title,
@@ -16,7 +14,8 @@ export default function AuthLayout({
           aria-label="Welcome To My Savane — Retour aux offres"
         >
           <img
-            src="/logo-welcome-to-my-savane.svg"
+            src="/logo-welcome-to-my-savane-ink.svg"
+            className="auth-logo"
             alt=""
             aria-hidden="true"
           />
@@ -34,12 +33,18 @@ export default function AuthLayout({
 
       <div className="auth-content">
         <section className="auth-panel" aria-labelledby="auth-title">
-          <h1 id="auth-title">{title}</h1>
+          <h1 id="auth-title" className="auth-title">
+            {title}
+          </h1>
           <p className="auth-description">{description}</p>
 
           <div className="auth-form-content">{children}</div>
 
-          {footer && <div className="auth-footer">{footer}</div>}
+          {footer && (
+            <div className="auth-footer">
+              {footer}
+            </div>
+          )}
         </section>
       </div>
     </main>

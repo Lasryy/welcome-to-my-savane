@@ -1,13 +1,26 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { contractLabels, formatDate, formatSalary, workingTimeLabels } from "../utils/adminUtils";
+import ApplicationForm from "./applications/ApplicationForm";
 
 function JobDetail({ id }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [ad, setAd] = useState(null);
+  // After login, return here and reopen the application form.
+  const [showApplicationForm, setShowApplicationForm] = useState(() =>
+    Boolean(location.state?.continueApplication),
+  );
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+
+  useEffect(() => {
+    if (location.state?.continueApplication) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -108,9 +121,22 @@ function JobDetail({ id }) {
           <h2>Description du poste</h2>
           <div className="job-detail-copy">{ad.description}</div>
           <div className="job-detail-apply">
-            <button className="site-button" type="button" disabled aria-describedby="apply-note">Postuler à cette offre</button>
-            <p id="apply-note">Les candidatures en ligne ne sont pas encore disponibles sur le site.</p>
+            {!showApplicationForm && (
+              <button
+                className="site-button"
+                type="button"
+                onClick={() => setShowApplicationForm(true)}
+              >
+                Postuler à cette offre
+              </button>
+            )}
           </div>
+          {showApplicationForm && (
+            <ApplicationForm
+              adId={ad.id}
+              onCancel={() => setShowApplicationForm(false)}
+            />
+          )}
         </div>
       </section>
     </article>

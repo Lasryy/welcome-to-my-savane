@@ -10,8 +10,10 @@ const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   cookie: {
+    // JavaScript in the browser cannot read this cookie.
     httpOnly: true,
     sameSite: "lax",
+    // In production, the cookie is sent only over HTTPS.
     secure: process.env.NODE_ENV === "production",
     maxAge: 24 * 60 * 60 * 1000,
   },

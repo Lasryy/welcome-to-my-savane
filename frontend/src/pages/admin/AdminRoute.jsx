@@ -7,6 +7,7 @@ function AdminRoute() {
   useEffect(() => {
     async function checkAccess() {
       try {
+        // /me checks the session and returns the logged-in user's role.
         const response = await fetch("/api/auth/me", {
           credentials: "same-origin",
         });

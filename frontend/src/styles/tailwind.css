@@ -1,0 +1,38 @@
+@import "tailwindcss";
+@import "../design-lab/fonts/fonts.css";
+
+@theme {
+  --color-ink: #252a46;
+  --color-paper: #fff9ee;
+  --color-coral: #f09169;
+  --color-sun: #f0e970;
+  --color-mint: #bedbc7;
+  --color-lavender: #acbefa;
+  --color-rule: #8e93a4;
+  --font-brand: "Bricolage Grotesque", sans-serif;
+}
+
+/* Keep the admin's original inclusive breakpoints and their cascade order. */
+@custom-variant admin-max-1200 {
+  @media (max-width: 1200px) {
+    @slot;
+  }
+}
+
+@custom-variant admin-max-1000 {
+  @media (max-width: 1000px) {
+    @slot;
+  }
+}
+
+@custom-variant admin-max-760 {
+  @media (max-width: 760px) {
+    @slot;
+  }
+}
+
+@custom-variant admin-max-480 {
+  @media (max-width: 480px) {
+    @slot;
+  }
+}

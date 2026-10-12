@@ -1,26 +1,41 @@
 import { useEffect, useState } from "react";
 import Icon from "./Icon.jsx";
+import CustomSelect from "../components/CustomSelect";
 import { categories, contracts, copy, jobs, salary } from "./data.js";
 
-export function Brand({ footer = false }) {
+export function Brand({ footer = false, tailwind = false }) {
+  const brandClass = tailwind
+    ? "inline-flex items-center gap-3 font-brand text-ink no-underline"
+    : `brand ${footer ? "brand-footer" : ""}`;
+  const markClass = tailwind
+    ? "grid h-[54px] w-[54px] place-items-center rounded-[0_50%_50%_50%] bg-ink max-[760px]:h-[46px] max-[760px]:w-[46px]"
+    : "brand-mark";
+  const imageClass = tailwind
+    ? "h-[42px] w-[42px] max-[760px]:h-9 max-[760px]:w-9"
+    : "";
+  const nameClass = tailwind
+    ? "text-xs leading-tight"
+    : "brand-name";
+
   return (
     <a
-      className={`brand ${footer ? "brand-footer" : ""}`}
+      className={`${brandClass}${footer ? " brand-footer" : ""}`}
       href="#top"
       aria-label="Welcome To My Savane, retour en haut"
     >
-      <span className="brand-mark">
+      <span className={markClass}>
         <img
           src="/logo-welcome-to-my-savane.svg"
           alt=""
           width="42"
           height="42"
+          className={imageClass}
         />
       </span>
-      <span className="brand-name">
+      <span className={nameClass}>
         welcome to
         <br />
-        <strong>my savane.</strong>
+        <strong className={tailwind ? "text-[22px] font-extrabold tracking-[-.035em] max-[760px]:text-[19px]" : ""}>my savane.</strong>
       </span>
     </a>
   );
@@ -109,7 +124,9 @@ export function ResponsiveFilters({ lab }) {
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
-  if (!mobile) return <FilterRail lab={lab} />;
+  if (!mobile) {
+    return <FilterRail lab={lab} />;
+  }
   return (
     <details
       className="filter-disclosure"
@@ -153,15 +170,13 @@ export function FilterRail({ lab }) {
         <legend>Domaine</legend>
         <label className="select-field">
           <span className="sr-only">Domaine</span>
-          <select
+          <CustomSelect
+            ariaLabel="Domaine"
             value={lab.category}
-            onChange={(event) => lab.setCategory(event.target.value)}
-          >
-            <option value="">Tous les domaines</option>
-            {categories.map((category) => (
-              <option key={category}>{category}</option>
-            ))}
-          </select>
+            placeholder="Tous les domaines"
+            onChange={lab.setCategory}
+            options={categories.map((category) => ({ value: category, label: category }))}
+          />
         </label>
       </fieldset>
       <fieldset>
@@ -192,34 +207,26 @@ export function FilterBar({ lab }) {
     <div className="filter-bar" aria-label="Filtrer les offres">
       <label className="select-field">
         <span className="sr-only">Type de contrat</span>
-        <select
+        <CustomSelect
+          ariaLabel="Type de contrat"
           value={lab.contracts.length > 1 ? "multiple" : lab.contracts[0] || ""}
-          onChange={(event) =>
-            lab.setContracts(event.target.value ? [event.target.value] : [])
-          }
-        >
-          <option value="">Tous les contrats</option>
-          {lab.contracts.length > 1 && (
-            <option value="multiple" disabled>
-              {lab.contracts.length} contrats sélectionnés
-            </option>
-          )}
-          {contracts.map((contract) => (
-            <option key={contract}>{contract}</option>
-          ))}
-        </select>
+          placeholder="Tous les contrats"
+          onChange={(value) => lab.setContracts(value ? [value] : [])}
+          options={[
+            ...(lab.contracts.length > 1 ? [{ value: "multiple", label: `${lab.contracts.length} contrats sélectionnés`, disabled: true }] : []),
+            ...contracts.map((contract) => ({ value: contract, label: contract })),
+          ]}
+        />
       </label>
       <label className="select-field">
         <span className="sr-only">Domaine</span>
-        <select
+        <CustomSelect
+          ariaLabel="Domaine"
           value={lab.category}
-          onChange={(event) => lab.setCategory(event.target.value)}
-        >
-          <option value="">Tous les domaines</option>
-          {categories.map((category) => (
-            <option key={category}>{category}</option>
-          ))}
-        </select>
+          placeholder="Tous les domaines"
+          onChange={lab.setCategory}
+          options={categories.map((category) => ({ value: category, label: category }))}
+        />
       </label>
       <button
         className="filter-toggle"
@@ -261,14 +268,16 @@ export function ResultsHeading({ lab }) {
       </div>
       <label className="sort-control">
         <span>Trier par</span>
-        <select
+        <CustomSelect
+          ariaLabel="Trier les offres"
           value={lab.sort}
-          onChange={(event) => lab.setSort(event.target.value)}
-        >
-          <option value="recent">Plus récentes</option>
-          <option value="salary">Salaire annualisé ↓</option>
-          <option value="company">Entreprise A–Z</option>
-        </select>
+          onChange={lab.setSort}
+          options={[
+            { value: "recent", label: "Plus récentes" },
+            { value: "salary", label: "Salaire annualisé ↓" },
+            { value: "company", label: "Entreprise A–Z" },
+          ]}
+        />
       </label>
     </div>
   );
@@ -335,7 +344,9 @@ export function JobActions({ job, lab, onDetails }) {
 }
 
 export function ApplicationNote({ job, lab }) {
-  if (lab.applying !== job.id) return null;
+  if (lab.applying !== job.id) {
+    return null;
+  }
   return (
     <div className="application-note" role="status">
       <strong>Envie de rejoindre {job.company} ?</strong>

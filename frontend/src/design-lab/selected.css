@@ -1,3 +1,4 @@
+@reference "../index.css";
 /* User-approved homepage mockup: Grand Air 2 layout, Grand Air 1 type, Pop colors. */
 .concept-selected {
   --surface: #fff9ee;
@@ -5,124 +6,46 @@
   --muted: #252a46;
   --rule: #8e93a4;
   --accent: #252a46;
-  font-family: "Bricolage Grotesque", sans-serif;
-  background: #fff9ee;
+  @apply [font-family:"Bricolage_Grotesque",_sans-serif] bg-paper;
 }
-.concept-selected .air-cover {
-  background: #f09169;
-}
-.concept-selected .site-header {
-  border-bottom-color: #252a46;
-}
-.concept-selected .brand-mark {
-  background: #252a46;
-}
+.concept-selected .air-cover { @apply bg-coral; }
+.concept-selected .site-header { @apply [border-bottom-color:#252a46]; }
+.concept-selected .brand-mark { @apply bg-ink; }
 .concept-selected .brand-name strong,
-.concept-selected .air-hero h1 {
-  font-weight: 800;
-}
-.concept-selected .air-hero h1 span {
-  color: #f0e970;
-  background: #252a46;
-}
-.concept-selected .hero-intro {
-  color: #252a46;
-}
-.concept-selected .air-hero .horizon-sun {
-  background: #f0e970;
-}
-.concept-selected .horizon-sign {
-  color: #252a46;
-}
+.concept-selected .air-hero h1 { @apply font-extrabold; }
+.concept-selected .air-hero h1 span { @apply text-sun bg-ink; }
+.concept-selected .hero-intro { @apply text-ink; }
+.concept-selected .air-hero .horizon-sun { @apply bg-sun; }
+.concept-selected .horizon-sign { @apply text-ink; }
 .concept-selected .horizon-field,
-.concept-selected .horizon-line {
-  background: #252a46;
-}
-.concept-selected .air-hero .field-two {
-  background: #bedbc7;
-  border-color: #252a46;
-}
-.concept-selected .register-button.primary {
-  background: #252a46;
-  color: #fff9ee;
-}
-.concept-selected .air-search-band {
-  background: #252a46;
-}
+.concept-selected .horizon-line { @apply bg-ink; }
+.concept-selected .air-hero .field-two { @apply bg-mint border-ink; }
+.concept-selected .register-button.primary { @apply bg-ink text-paper; }
+.concept-selected .air-search-band { @apply bg-ink; }
 .concept-selected .air-search-band .search-form {
   --surface: #fff9ee;
   --rule: #c8c5b9;
-  background: #fff9ee;
+  @apply bg-paper;
 }
-.concept-selected .search-button.primary {
-  background: #f0e970;
-  color: #252a46;
-}
-.concept-selected .search-button.primary:hover {
-  background: color-mix(in srgb, #f0e970 90%, #252a46);
-}
+.concept-selected .search-button.primary { @apply bg-sun text-ink; }
+.concept-selected .search-button.primary:hover { @apply [background:color-mix(in_srgb,_#f0e970_90%,_#252a46)]; }
 .concept-selected .air-opportunity {
   --rule: #8e93a4;
 }
-.concept-selected .air-opportunity.tone-0 {
-  background: #acbefa;
-}
-.concept-selected .air-opportunity.tone-1 {
-  background: #bedbc7;
-}
-.concept-selected .air-opportunity.tone-2 {
-  background: #bedbc7;
-}
-.concept-selected .air-opportunity.tone-3 {
-  background: #f0e970;
-}
-.concept-selected .air-opportunity.tone-4 {
-  background: #acbefa;
-}
-.concept-selected .air-opportunity.tone-5 {
-  background: #bedbc7;
-}
-.concept-selected .air-opportunity .opportunity-head {
-  background: #252a46;
-  color: #fff9ee;
-}
-.concept-selected .air-opportunity .company-mark {
-  color: #fff9ee;
-  border-color: #959ab2;
-}
-.concept-selected .air-opportunity .company-sector {
-  color: #e3e7f4;
-}
-.concept-selected .air-opportunity .save-button {
-  color: #fff9ee !important;
-}
-.concept-selected .air-opportunity .save-button.is-saved svg {
-  fill: #f0e970;
-}
-.concept-selected .air-opportunity .opportunity-contract > span:first-child {
-  border-color: #565d78;
-}
-.concept-selected .air-opportunity .apply-button {
-  background: #252a46;
-  color: #fff9ee;
-}
-.concept-selected .round-closing {
-  background: #bedbc7;
-}
-.concept-selected .round-closing .horizon-sun {
-  background: #f0e970;
-}
-.dot-selected {
-  background: #f09169;
-  color: #252a46;
-}
-.comparison-choice-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 16px;
-  padding: 10px 14px;
-  background: #252a46 !important;
-  color: #fff9ee !important;
-  font-size: 12px !important;
-}
+.concept-selected .air-opportunity.tone-0 { @apply bg-lavender; }
+.concept-selected .air-opportunity.tone-1 { @apply bg-mint; }
+.concept-selected .air-opportunity.tone-2 { @apply bg-mint; }
+.concept-selected .air-opportunity.tone-3 { @apply bg-sun; }
+.concept-selected .air-opportunity.tone-4 { @apply bg-lavender; }
+.concept-selected .air-opportunity.tone-5 { @apply bg-mint; }
+.concept-selected .air-opportunity .opportunity-head { @apply bg-ink text-paper; }
+.concept-selected .air-opportunity .company-mark { @apply text-paper border-[#959ab2]; }
+.concept-selected .air-opportunity .company-sector { @apply text-[#e3e7f4]; }
+.concept-selected .air-opportunity .save-button { @apply text-paper!; }
+.concept-selected .air-opportunity .save-button.is-saved svg { @apply fill-sun; }
+.concept-selected .air-opportunity .opportunity-contract > span:first-child { @apply border-[#565d78]; }
+.concept-selected .air-opportunity .apply-button { @apply bg-ink text-paper; }
+.concept-selected .round-closing { @apply bg-mint; }
+.concept-selected .round-closing .horizon-sun { @apply bg-sun; }
+.dot-selected { @apply bg-coral text-ink; }
+.comparison-choice-link { @apply inline-flex items-center gap-[10px] mt-[16px] p-[10px_14px] bg-ink! text-paper! text-[12px]!; }

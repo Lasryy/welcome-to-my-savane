@@ -1,5 +1,17 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 12 octobre 2026 : intégration des étapes 1 et 2
+
+La branche `codex/integration-etapes-1-2` réunit `origin/denis` (`e40c49d`) et `origin/feature/lasry-etape-2` (`6bb7bd7`). Les comptes, sessions, profils et candidatures de Lasry fonctionnent avec le job board, le catalogue admin et le Tailwind de Denis. Les API admin vérifient désormais la session et le rôle en base, et le détail d’une offre ouvre le formulaire de candidature.
+
+Le routeur commun est celui de Denis (`createBrowserRouter` + `RouterProvider`) pour conserver l’avertissement des modifications non enregistrées. Les pages auth et `AdminRoute` y sont intégrées. Les styles auth/candidature restent dans `styles/components.css` avec `@apply`, sur le même thème Tailwind que le catalogue.
+
+Les décisions de fusion, les fonctionnalités conservées et les commandes de vérification sont dans [docs/INTEGRATION-ETAPES-1-2.md](docs/INTEGRATION-ETAPES-1-2.md). La suite de Lasry est l’étape 3 : historique, statuts et utilisateurs admin.
+
+**Les sections ci-dessous décrivent l’état historique du 9 octobre ; leurs mentions « non commité » ou « reste à développer » ne décrivent plus l’application intégrée.**
+
+---
+
 Document de reprise du projet pour la prochaine personne qui travaille sur le produit. Il résume les décisions confirmées, l’état du dépôt et la suite logique du MVP au **9 octobre 2026**.
 
 ## Résumé rapide

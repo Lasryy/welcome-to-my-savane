@@ -1,0 +1,34 @@
+@reference "./tailwind.css";
+
+.custom-select-option:hover,
+.custom-select-option.is-active {
+  @apply bg-sun;
+}
+
+/* Keep selected options above the shared admin and design-lab font resets. */
+.custom-select-option.is-selected {
+  @apply font-bold;
+}
+
+.select-field .custom-select-trigger { @apply p-[11px_12px] border-[var(--rule)] rounded-none [background:var(--surface)] text-[12px]; }
+
+.filter-bar .custom-select-wrap { @apply min-w-[160px]; }
+
+.sort-control .custom-select-trigger { @apply min-h-[0] p-[3px_18px_3px_0] border-0 [background:transparent] text-[var(--ink)] text-[12px]; }
+
+.sort-control .custom-select-trigger:hover:not(:disabled),
+.sort-control .custom-select-trigger[aria-expanded="true"] { @apply [background:transparent]; }
+
+.lab-archives { @apply max-w-[130px] min-h-[0] p-[8px] [border:1px_solid_#5e6666] rounded-[5px] [background:#353b3c] text-[#f6f3ed] text-[11px]; }
+
+.lab-archives:hover:not(:disabled),
+.lab-archives[aria-expanded="true"] { @apply border-[#909999] [background:#353b3c]; }
+
+.lab-archives .custom-select-arrow { @apply [flex-basis:14px] w-[14px] h-[14px]; }
+
+.archives-select .custom-select-menu { @apply left-[auto] right-[0] w-[max-content] min-w-[180px] border-[#5e6666] [background:#242728] text-[#f6f3ed]; }
+
+.archives-select .custom-select-option:hover,
+.archives-select .custom-select-option.is-active { @apply [background:#454d4d]; }
+
+.admin-app .custom-select-trigger { @apply min-h-[46px]; }

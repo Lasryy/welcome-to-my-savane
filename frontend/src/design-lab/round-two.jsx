@@ -1,4 +1,5 @@
 import Icon from "./Icon.jsx";
+import HorizonSign from "../components/horizonSign";
 import { categories, salary } from "./data.js";
 import {
   Header,
@@ -19,18 +20,6 @@ import portraitPhoto from "./assets/young-portrait.jpg";
 
 const intro =
   "Un stage, une alternance, un premier job. Trouvez une équipe où vos idées ont leur place.";
-
-function HorizonSign() {
-  return (
-    <div className="horizon-sign" aria-hidden="true">
-      <span className="horizon-sun" />
-      <span className="horizon-field field-one" />
-      <span className="horizon-field field-two" />
-      <span className="horizon-line" />
-      <span className="horizon-foot">le bon départ.</span>
-    </div>
-  );
-}
 
 function CategoryLine({ lab }) {
   return (

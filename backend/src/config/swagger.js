@@ -1,4 +1,5 @@
 const swaggerJSDoc = require("swagger-jsdoc");
+const path = require("node:path");
 
 const swaggerOptions = {
   definition: {
@@ -6,12 +7,12 @@ const swaggerOptions = {
     info: {
       title: "Welcome To My Savane API",
       version: "1.0.0",
-      description: "API du job board Welcome To My Savane.",
+      description: "API du job board Welcome To My Savane. Le catalogue admin permet de créer, modifier, fermer, rouvrir et supprimer les offres sans candidature liée. Connectez-vous via POST /api/auth/login avec un compte ADMIN pour tester ces opérations ; le cookie de session est envoyé par le navigateur.",
     },
     servers: [
       {
-        url: "http://localhost:3000",
-        description: "Serveur local (port par défaut)",
+        url: "/",
+        description: "Serveur hébergeant cette documentation",
       },
     ],
     components: {
@@ -25,7 +26,7 @@ const swaggerOptions = {
       },
     },
   },
-  apis: ["./src/docs/api.js"],
+  apis: [path.resolve(__dirname, "../docs/api.js")],
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);

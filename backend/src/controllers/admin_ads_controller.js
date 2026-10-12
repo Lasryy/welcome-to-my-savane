@@ -284,4 +284,29 @@ async function updateAdminAd(req, res) {
   }
 }
 
-module.exports = { getAdminAds, getAdminAdById, createAdminAd, updateAdminAd };
+async function deleteAdminAd(req, res) {
+  const id = parseId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ message: "L’identifiant de l’offre est invalide." });
+  }
+
+  try {
+    // ON DELETE RESTRICT also protects applications submitted during deletion.
+    const result = await pool.query("DELETE FROM ads WHERE id = $1 RETURNING id", [id]);
+    if (!result.rowCount) {
+      return res.status(404).json({ message: "Offre introuvable." });
+    }
+
+    return res.status(204).end();
+  } catch (error) {
+    if (error.code === "23503") {
+      return res.status(409).json({
+        message: "Cette offre est liée à une ou plusieurs candidatures et ne peut pas être supprimée. Vous pouvez la fermer pour arrêter les nouvelles candidatures.",
+      });
+    }
+
+    return databaseError(res, error, "Error while deleting admin ad");
+  }
+}
+
+module.exports = { getAdminAds, getAdminAdById, createAdminAd, updateAdminAd, deleteAdminAd };

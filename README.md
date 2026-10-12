@@ -10,6 +10,7 @@ Job board full-stack en cours de développement.
 - Comptes : inscription, connexion, déconnexion, profil et sessions côté serveur.
 - Candidatures : formulaire prérempli et envoi en SQL ; visiteurs, doublons et offres fermées sont refusés.
 - Administration : accès réservé à `ADMIN` dans React et dans les API, y compris les alias entreprises/catégories.
+- Étape 3 Denis : CRUD des offres complet, boutons de fermeture/réouverture et suppression refusée lorsqu’une candidature est liée.
 - Docker Compose : PostgreSQL, API et frontend peuvent être lancés ensemble.
 
 ## Technologies
@@ -90,7 +91,6 @@ backend/   API Express, contrôleurs, routes et connexion PostgreSQL (`pg`)
 ## Prochaines étapes
 
 1. Étape 3 Lasry : historique des candidatures, gestion des statuts et CRUD utilisateurs admin.
-2. Étape 3 Denis : compléter le CRUD des offres, notamment la suppression contrôlée. Les formulaires de création/modification sont déjà présents.
-3. Étape 4 : recherche et filtres côté API, tri et vérification du parcours complet selon la roadmap.
+2. Étape 4 : recherche et filtres côté API, tri et vérification du parcours complet selon la roadmap.
 
 La fusion des étapes 1 et 2 et les commandes de vérification sont décrites dans [le guide d’intégration](docs/INTEGRATION-ETAPES-1-2.md).

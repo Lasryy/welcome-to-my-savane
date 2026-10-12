@@ -18,6 +18,15 @@
  *     description: Account and session management
  *   - name: Applications
  *     description: Job applications
+ * components:
+ *   schemas:
+ *     AdminError:
+ *       type: object
+ *       required: [message]
+ *       properties:
+ *         message:
+ *           type: string
+ *           description: Human-readable reason why the admin action was refused.
  *
  * /api/ads:
  *   get:
@@ -477,6 +486,7 @@
  *   post:
  *     tags: [Admin - Ads]
  *     summary: Create an offer
+ *     description: Requires an ADMIN session. Title, description, company_id, salary_period and status are required. The company and optional category must exist. A published offer appears in the public list; a closed offer remains visible only to administrators.
  *     security:
  *       - sessionCookie: []
  *     requestBody:
@@ -648,8 +658,8 @@
  *       '500': { description: Internal database error. }
  *   patch:
  *     tags: [Admin - Ads]
- *     summary: Partially update an offer
- *     description: Send one or more editable fields. Empty updates are rejected.
+ *     summary: Edit, close or reopen an offer
+ *     description: Requires an ADMIN session. Send one or more editable fields; omitted fields are preserved and empty updates are rejected. Setting status to closed removes the offer from public routes and refuses new applications (409), while preserving existing applications. Setting status to published reopens the offer and makes it publicly visible again.
  *     security:
  *       - sessionCookie: []
  *     parameters:
@@ -677,7 +687,18 @@
  *               contract_type: { type: string, nullable: true, enum: [internship, apprenticeship, permanent, fixed_term, other] }
  *               working_time: { type: string, nullable: true, enum: [full_time, part_time] }
  *               status: { type: string, enum: [published, closed] }
- *           example: { status: closed }
+ *           examples:
+ *             edit:
+ *               summary: Modify the offer content
+ *               value:
+ *                 title: Développeur frontend confirmé
+ *                 description: Vous développerez et maintiendrez les interfaces React du produit.
+ *             close:
+ *               summary: Close the offer and stop new applications
+ *               value: { status: closed }
+ *             reopen:
+ *               summary: Reopen the offer for applications
+ *               value: { status: published }
  *     responses:
  *       '200':
  *         description: Updated offer returned.
@@ -707,6 +728,56 @@
  *       '404': { description: Offer not found. }
  *       '409': { description: Referenced company/category does not exist or data conflict. }
  *       '500': { description: Internal database error. }
+ *   delete:
+ *     tags: [Admin - Ads]
+ *     summary: Delete an offer without applications
+ *     description: Requires an ADMIN session. Permanently deletes a published or closed offer only if it has no linked applications. If any application exists, returns 409 and preserves the offer, applications and their attachments. Close the offer with PATCH instead to stop new applications. No request body is needed.
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '204': { description: Offer deleted. No response body. }
+ *       '400':
+ *         description: Invalid offer ID.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/AdminError' }
+ *             example: { message: L’identifiant de l’offre est invalide. }
+ *       '401':
+ *         description: Login required or account no longer exists.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/AdminError' }
+ *             example: { message: Connectez-vous pour accéder à l’administration. }
+ *       '403':
+ *         description: The account is not an administrator.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/AdminError' }
+ *             example: { message: Cette action est réservée à l’administration. }
+ *       '404':
+ *         description: Offer not found or already deleted.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/AdminError' }
+ *             example: { message: Offre introuvable. }
+ *       '409':
+ *         description: Linked applications prevent deletion.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/AdminError' }
+ *             example:
+ *               message: Cette offre est liée à une ou plusieurs candidatures et ne peut pas être supprimée. Vous pouvez la fermer pour arrêter les nouvelles candidatures.
+ *       '500':
+ *         description: Internal database error or failure to check admin access.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/AdminError' }
+ *             example: { message: Une erreur interne est survenue. }
  */
 
 /**

@@ -9,6 +9,8 @@ const sections = [
   { path: "/admin/ads", label: "Les offres", title: "Gestion des offres", description: "Retrouvez les offres publiées et fermées, affinez votre recherche et mettez leurs informations à jour." },
   { path: "/admin/companies", label: "Les entreprises", title: "Gestion des entreprises", description: "Présentez les équipes qui recrutent et gardez leurs informations à jour." },
   { path: "/admin/categories", label: "Les catégories", title: "Gestion des catégories", description: "Organisez les domaines de métiers pour faciliter la découverte des offres." },
+  { path: "/admin/applications", label: "Les candidatures", title: "Gestion des candidatures", description: "Consultez les candidatures reçues et faites évoluer leur statut." },
+  { path: "/admin/users", label: "Les utilisateurs", title: "Gestion des utilisateurs", description: "Consultez les comptes candidats et mettez leurs informations à jour." },
 ];
 
 export default function AdminLayout() {

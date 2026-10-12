@@ -1,8 +1,12 @@
 const express = require("express");
-const { createApplication } = require("../controllers/applications_controller.js");
+const {
+  createApplication,
+  getMyApplications,
+} = require("../controllers/applications_controller.js");
 
 const router = express.Router();
 
+router.get("/mine", getMyApplications);
 router.post("/", createApplication);
 
 module.exports = router;

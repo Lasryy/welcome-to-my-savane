@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import Icon from "../../design-lab/Icon";
 
-function AdminCard({ title, description, link, header, meta, children, index = 0 }) {
+function AdminCard({ title, description, link, header, meta, children, index = 0, overflowVisible = false }) {
+  const overflowClass = overflowVisible ? "overflow-visible" : "overflow-hidden";
+
   return (
-    <article className={`admin-card tone-${index % 6} rounded-[0_18px_0_0] overflow-hidden min-w-[0] `}>
+    <article className={`admin-card tone-${index % 6} rounded-[0_18px_0_0] ${overflowClass} min-w-[0] `}>
       {header && <div className="admin-card-header flex items-center gap-3 p-[16px_22px] [background:var(--admin-ink)] text-[var(--admin-paper)]">{header}</div>}
       <div className="admin-card-body grid gap-4 p-[22px_23px] admin-max-1200:p-[20px] admin-max-480:p-[23px]">
         {meta}

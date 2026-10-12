@@ -4,6 +4,7 @@ const {
   getAdminAdById,
   createAdminAd,
   updateAdminAd,
+  deleteAdminAd,
 } = require("../controllers/admin_ads_controller");
 
 const router = express.Router();
@@ -13,5 +14,6 @@ router.post("/", createAdminAd);
 router.get("/:id", getAdminAdById);
 router.put("/:id", updateAdminAd);
 router.patch("/:id", updateAdminAd);
+router.delete("/:id", deleteAdminAd);
 
 module.exports = router;

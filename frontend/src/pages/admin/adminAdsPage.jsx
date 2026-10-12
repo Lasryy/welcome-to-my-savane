@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import CustomSelect from "../../components/CustomSelect";
 import AdminCard from "../../components/admin/adminCard";
-import { AdminListState } from "../../components/admin/adminUi";
+import { AdminDeleteConfirmation, AdminFeedback, AdminListState } from "../../components/admin/adminUi";
 import { adminRequest } from "../../services/adminApi";
 import { contractLabels, formatDate, formatSalary } from "../../utils/adminUtils";
 
@@ -26,6 +26,44 @@ export default function AdminAdsPage() {
   const [contractType, setContractType] = useState("");
   const [sort, setSort] = useState("recent");
   const [reloadKey, setReloadKey] = useState(0);
+  const [pending, setPending] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  async function changeStatus(ad) {
+    if (pending) return;
+    const nextStatus = ad.status === "published" ? "closed" : "published";
+    setPending({ id: ad.id, action: "status" });
+    setFeedback(null);
+    try {
+      const updated = await adminRequest(`/api/admin/ads/${ad.id}`, {
+        method: "PATCH", body: { status: nextStatus },
+      });
+      setAds((current) => current.map((item) => item.id === ad.id ? updated : item));
+      setDeletingId(null);
+      setFeedback({ type: "success", message: nextStatus === "closed" ? "L’offre a été fermée. Les nouvelles candidatures sont refusées." : "L’offre a été rouverte." });
+    } catch (requestError) {
+      setFeedback({ type: "error", message: requestError.message });
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function deleteAd(ad) {
+    if (pending) return;
+    setPending({ id: ad.id, action: "delete" });
+    setFeedback(null);
+    try {
+      await adminRequest(`/api/admin/ads/${ad.id}`, { method: "DELETE" });
+      setAds((current) => current.filter((item) => item.id !== ad.id));
+      setDeletingId(null);
+      setFeedback({ type: "success", message: "L’offre a été supprimée." });
+    } catch (requestError) {
+      setFeedback({ type: "error", message: requestError.message });
+    } finally {
+      setPending(null);
+    }
+  }
 
   function clearFilters() {
     setQuery("");
@@ -120,6 +158,7 @@ export default function AdminAdsPage() {
 
   return (
     <>
+      <AdminFeedback feedback={feedback} />
       <div className="admin-toolbar mb-6 flex flex-wrap items-center justify-between gap-4">
         <div><h2>Offres publiées et fermées</h2><p aria-live="polite">{filteredAds.length} résultat{filteredAds.length !== 1 ? "s" : ""} sur {ads.length}</p></div>
         <Link className="admin-button accent inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" to="/admin/ads/new">Créer une offre <span aria-hidden="true">＋</span></Link>
@@ -160,7 +199,16 @@ export default function AdminAdsPage() {
               <p><strong>{ad.company_name}</strong>{ad.category_name ? ` · ${ad.category_name}` : ""}</p>
               <p>{ad.location || "Lieu à préciser"} · {contractLabels[ad.contract_type] || "Contrat à préciser"}</p>
               <p className="admin-salary font-bold tabular-nums">{formatSalary(ad)}</p>
-              <div className="admin-actions flex flex-wrap items-center gap-3"><Link className="admin-button primary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" to={`/admin/ads/${ad.id}/edit`}>Modifier l’offre</Link></div>
+              <div className="admin-actions flex flex-wrap items-center gap-3">
+                <Link className="admin-button primary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" to={`/admin/ads/${ad.id}/edit`}>Modifier l’offre</Link>
+                <button className="admin-button secondary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" disabled={Boolean(pending)} onClick={() => changeStatus(ad)}>
+                  {pending?.id === ad.id && pending.action === "status" ? "Mise à jour…" : ad.status === "published" ? "Fermer l’offre" : "Rouvrir l’offre"}
+                </button>
+                <button className="admin-button secondary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" disabled={Boolean(pending)} onClick={() => { setDeletingId(ad.id); setFeedback(null); }}>Supprimer</button>
+              </div>
+              {deletingId === ad.id && (
+                <AdminDeleteConfirmation name={ad.title} pending={Boolean(pending)} onConfirm={() => deleteAd(ad)} onCancel={() => setDeletingId(null)} />
+              )}
             </AdminCard>
           ))}
         </div>

@@ -908,3 +908,126 @@
  *       '409': { description: Offer is closed or the account already applied. }
  *       '500': { description: Internal database error. }
  */
+
+/**
+ * @openapi
+ * /api/applications/mine:
+ *   get:
+ *     tags: [Applications]
+ *     summary: List the current account's applications
+ *     description: Returns offer title, company, location, status and creation date, newest first.
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Array of applications belonging to the logged-in account. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Internal database error. }
+ * /api/admin/applications:
+ *   get:
+ *     tags: [Admin - Applications]
+ *     summary: List applications for administrators
+ *     description: Includes the offer, company, candidate name and email, status and creation date.
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Array of applications. }
+ *       '401': { description: Login required. }
+ *       '403': { description: ADMIN role required. }
+ *       '500': { description: Internal database error. }
+ * /api/admin/applications/{id}:
+ *   patch:
+ *     tags: [Admin - Applications]
+ *     summary: Update an application status
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             required: [status]
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [sent, in_progress, technical_test, accepted, rejected]
+ *           example: { status: in_progress }
+ *     responses:
+ *       '200': { description: Updated application ID and status. }
+ *       '400': { description: Invalid ID or status, or unexpected fields. }
+ *       '401': { description: Login required. }
+ *       '403': { description: ADMIN role required. }
+ *       '404': { description: Application not found. }
+ *       '500': { description: Internal database error. }
+ * /api/admin/users:
+ *   get:
+ *     tags: [Admin - Users]
+ *     summary: List accounts without password hashes
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Array of accounts with ID, name, email, phone, role and creation date. }
+ *       '401': { description: Login required. }
+ *       '403': { description: ADMIN role required. }
+ *       '500': { description: Internal database error. }
+ * /api/admin/users/{id}:
+ *   patch:
+ *     tags: [Admin - Users]
+ *     summary: Update an account's allowed fields
+ *     description: At least one field is required. Administrators cannot change their own role or demote the last administrator.
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             minProperties: 1
+ *             properties:
+ *               first_name: { type: string, minLength: 1, maxLength: 100 }
+ *               last_name: { type: string, minLength: 1, maxLength: 100 }
+ *               email: { type: string, format: email, maxLength: 255 }
+ *               phone: { type: string, nullable: true, maxLength: 30 }
+ *               role: { type: string, enum: [USER, ADMIN] }
+ *           example: { first_name: Camille, phone: null }
+ *     responses:
+ *       '200': { description: Updated account without password hash. }
+ *       '400': { description: Invalid ID or account fields. }
+ *       '401': { description: Login required. }
+ *       '403': { description: ADMIN role required. }
+ *       '404': { description: Account not found. }
+ *       '409': { description: Email conflict, own role change or last administrator demotion. }
+ *       '500': { description: Internal database error. }
+ *   delete:
+ *     tags: [Admin - Users]
+ *     summary: Delete an account
+ *     description: Own account deletion and last administrator deletion are forbidden. Related candidate data follows the database cascade constraints.
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '204': { description: Account deleted, no response body. }
+ *       '400': { description: Invalid account ID. }
+ *       '401': { description: Login required. }
+ *       '403': { description: ADMIN role required. }
+ *       '404': { description: Account not found. }
+ *       '409': { description: Own account or last administrator deletion. }
+ *       '500': { description: Internal database error. }
+ */

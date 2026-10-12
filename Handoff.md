@@ -1,5 +1,13 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 12 octobre 2026 : intégration étape 3 et Swagger
+
+La branche Lasry réunit son historique et suivi des candidatures, la gestion admin des comptes et des candidatures, ainsi que le CRUD offres étape 3 et Swagger de Denis (`37c3356`). Le menu de statuts des candidatures conserve le correctif de débordement des cartes.
+
+Swagger est monté sur `/api-docs` et sa spécification sur `/api-docs/openapi.json`. Les routes étape 3 Lasry y sont documentées : historique personnel, liste et statut des candidatures admin, liste/modification/suppression des comptes admin. Les catégories sont déjà gérables dans `/admin/categories` et utilisées par le filtre Domaine des offres.
+
+La suite prévue couvre le profil éditable, les projets et expériences, la recherche côté API, puis le CV et les dossiers personnalisés. Ces fonctionnalités ne sont pas encore livrées. Les sections précédentes restent historiques.
+
 ## Mise à jour du 12 octobre 2026 : intégration des étapes 1 et 2
 
 La branche `integration/etapes-1-2` réunit `origin/denis` (`e40c49d`) et `origin/feature/lasry-etape-2` (`6bb7bd7`). Les comptes, sessions, profils et candidatures de Lasry fonctionnent avec le job board, le catalogue admin et le Tailwind de Denis. Les API admin vérifient désormais la session et le rôle en base, et le détail d’une offre ouvre le formulaire de candidature.

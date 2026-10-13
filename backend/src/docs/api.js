@@ -4,6 +4,159 @@
  */
 
 /**
+ * @openapi
+ * /api/projects:
+ *   get:
+ *     tags: [Projects]
+ *     summary: List the current candidate's projects
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Projects owned by the current account, newest first. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
+ *   post:
+ *     tags: [Projects]
+ *     summary: Add a project to the current candidate's profile
+ *     description: Ownership is assigned from the session. The request cannot set person_id.
+ *     security:
+ *       - sessionCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             required: [title]
+ *             properties:
+ *               title: { type: string, minLength: 1, maxLength: 200 }
+ *               description: { type: string, nullable: true, maxLength: 5000 }
+ *               project_url: { type: string, nullable: true, maxLength: 500, format: uri }
+ *               repository_url: { type: string, nullable: true, maxLength: 500, format: uri }
+ *           example: { title: Portfolio, description: Site personnel, project_url: 'https://example.com', repository_url: 'https://github.com/example/site' }
+ *     responses:
+ *       '201': { description: Created project. }
+ *       '400': { description: Invalid or unsupported fields. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
+ * /api/projects/{id}:
+ *   patch:
+ *     tags: [Projects]
+ *     summary: Edit an owned project
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { type: object, minProperties: 1, additionalProperties: false, properties: { title: { type: string, maxLength: 200 }, description: { type: string, nullable: true, maxLength: 5000 }, project_url: { type: string, nullable: true, maxLength: 500, format: uri }, repository_url: { type: string, nullable: true, maxLength: 500, format: uri } } }
+ *     responses:
+ *       '200': { description: Updated project. }
+ *       '400': { description: Invalid ID or fields. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Project not found for this account. }
+ *       '500': { description: Database error. }
+ *   delete:
+ *     tags: [Projects]
+ *     summary: Delete an owned project not linked to an application
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '204': { description: Project deleted. }
+ *       '400': { description: Invalid ID. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Project not found for this account. }
+ *       '409': { description: Project is linked to an application. }
+ *       '500': { description: Database error. }
+ * /api/experiences:
+ *   get:
+ *     tags: [Experiences]
+ *     summary: List the current candidate's experiences
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Experiences owned by the current account, most recent first. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
+ *   post:
+ *     tags: [Experiences]
+ *     summary: Add an experience to the current candidate's profile
+ *     description: Ownership is assigned from the session. End date is optional for a current experience.
+ *     security:
+ *       - sessionCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             required: [company_name, job_title]
+ *             properties:
+ *               company_name: { type: string, minLength: 1, maxLength: 200 }
+ *               job_title: { type: string, minLength: 1, maxLength: 200 }
+ *               description: { type: string, nullable: true, maxLength: 5000 }
+ *               start_date: { type: string, nullable: true, format: date }
+ *               end_date: { type: string, nullable: true, format: date }
+ *           example: { company_name: Savane Tech, job_title: Developer, start_date: '2023-04-01', end_date: null }
+ *     responses:
+ *       '201': { description: Created experience. }
+ *       '400': { description: Invalid fields or date range. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
+ * /api/experiences/{id}:
+ *   patch:
+ *     tags: [Experiences]
+ *     summary: Edit an owned experience
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { type: object, minProperties: 1, additionalProperties: false, properties: { company_name: { type: string, maxLength: 200 }, job_title: { type: string, maxLength: 200 }, description: { type: string, nullable: true, maxLength: 5000 }, start_date: { type: string, nullable: true, format: date }, end_date: { type: string, nullable: true, format: date } } }
+ *     responses:
+ *       '200': { description: Updated experience. }
+ *       '400': { description: Invalid ID, fields or date range. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Experience not found for this account. }
+ *       '500': { description: Database error. }
+ *   delete:
+ *     tags: [Experiences]
+ *     summary: Delete an owned experience not linked to an application
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '204': { description: Experience deleted. }
+ *       '400': { description: Invalid ID. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Experience not found for this account. }
+ *       '409': { description: Experience is linked to an application. }
+ *       '500': { description: Database error. }
+ */
+
+/**
  * @swagger
  * tags:
  *   - name: Ads
@@ -31,37 +184,71 @@
  * /api/ads:
  *   get:
  *     tags: [Ads]
- *     summary: List published offers
- *     description: Returns all published offers, newest first.
+ *     summary: Search published offers
+ *     description: All filters combine. Text and location ignore case. Without page/page_size the historical array is returned. With either pagination parameter returns an object with ads, total, page, page_size and total_pages. Salary sorting uses salary_min (otherwise salary_max), annualized by multiplying monthly amounts by 12; missing amounts come last, ties use newest date then highest ID. Pages beyond the last return an empty ads array and the actual total.
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         description: Text in title, descriptions, company name or offer location. LIKE wildcards are treated literally.
+ *         schema: { type: string, minLength: 1, maxLength: 255 }
+ *       - in: query
+ *         name: location
+ *         description: Part of the offer location.
+ *         schema: { type: string, minLength: 1, maxLength: 255 }
+ *       - in: query
+ *         name: company_id
+ *         schema: { type: integer, minimum: 1, maximum: 2147483647 }
+ *       - in: query
+ *         name: category_id
+ *         schema: { type: integer, minimum: 1, maximum: 2147483647 }
+ *       - in: query
+ *         name: contract_type
+ *         schema: { type: string, enum: [internship, apprenticeship, permanent, fixed_term, other] }
+ *       - in: query
+ *         name: sort
+ *         schema: { type: string, enum: [recent, salary_asc, salary_desc], default: recent }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1, maximum: 2147483647, default: 1 }
+ *       - in: query
+ *         name: page_size
+ *         schema: { type: integer, minimum: 1, maximum: 100, default: 12 }
  *     responses:
  *       '200':
- *         description: Offers returned successfully.
+ *         description: Published offers, optionally paginated.
  *         content:
  *           application/json:
- *             example:
- *               - id: 12
- *                 title: Développeur frontend
- *                 short_description: Rejoignez notre équipe web.
- *                 description: Vous développerez les interfaces du produit.
- *                 location: Paris
- *                 salary_min: 42000
- *                 salary_max: 48000
- *                 salary_period: year
- *                 contract_type: permanent
- *                 working_time: full_time
- *                 status: published
- *                 created_at: '2026-01-15T10:00:00.000Z'
- *                 company_id: 3
- *                 company_name: Savane Tech
- *                 category_id: 2
- *                 category_name: Développement
- *                 salary: 42 000 – 48 000 € / an
+ *             schema:
+ *               oneOf:
+ *                 - type: array
+ *                   items: { type: object }
+ *                 - type: object
+ *                   required: [ads, total, page, page_size, total_pages]
+ *                   properties:
+ *                     ads:
+ *                       type: array
+ *                       items: { type: object }
+ *                     total: { type: integer, minimum: 0 }
+ *                     page: { type: integer, minimum: 1 }
+ *                     page_size: { type: integer, minimum: 1, maximum: 100 }
+ *                     total_pages: { type: integer, minimum: 0 }
+ *             examples:
+ *               paginated:
+ *                 value:
+ *                   ads: [{ id: 12, title: Développeur frontend, company_id: 3, company_name: Savane Tech, salary_min: 42000, salary_max: 48000, salary_period: year, status: published }]
+ *                   total: 1
+ *                   page: 1
+ *                   page_size: 12
+ *                   total_pages: 1
+ *               historical:
+ *                 value: [{ id: 12, title: Développeur frontend, company_name: Savane Tech, status: published }]
+ *       '400':
+ *         description: Unknown, empty, repeated or invalid search parameter.
+ *         content:
+ *           application/json:
+ *             example: { message: Le type de contrat est invalide. }
  *       '500':
  *         description: Internal database error.
- *         content:
- *           application/json:
- *             example:
- *               message: Une erreur interne est survenue.
  *
  * /api/ads/{id}:
  *   get:
@@ -95,6 +282,10 @@
  *               created_at: '2026-01-15T10:00:00.000Z'
  *               company_id: 3
  *               company_name: Savane Tech
+ *               company_description: Éditeur de logiciels.
+ *               company_website: https://savane.example
+ *               company_location: Paris
+ *               company_logo_url: https://savane.example/logo.png
  *               category_id: 2
  *               category_name: Développement
  *               salary: 42 000 – 48 000 € / an
@@ -910,7 +1101,10 @@
  */
 
 /**
- * @openapi
+*/
+
+/**
+* @swagger
  * /api/applications/mine:
  *   get:
  *     tags: [Applications]
@@ -921,6 +1115,42 @@
  *     responses:
  *       '200': { description: Array of applications belonging to the logged-in account. }
  *       '401': { description: Login required. }
+ *       '500': { description: Internal database error. }
+ * /api/people/me:
+ *   get:
+ *     tags: [Profile]
+ *     summary: Read the profile for the current account
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Account ID, first and last name, email, phone and role. Password hash is never returned. }
+ *       '401': { description: Login required or account not found. }
+ *       '500': { description: Internal database error. }
+ *   patch:
+ *     tags: [Profile]
+ *     summary: Update editable fields on the current account
+ *     description: The role and password cannot be changed through this route. Empty phone clears the optional number.
+ *     security:
+ *       - sessionCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             minProperties: 1
+ *             properties:
+ *               first_name: { type: string, minLength: 1, maxLength: 100 }
+ *               last_name: { type: string, minLength: 1, maxLength: 100 }
+ *               email: { type: string, format: email, maxLength: 255 }
+ *               phone: { type: string, nullable: true, maxLength: 30 }
+ *           example: { first_name: Camille, phone: '0612345678' }
+ *     responses:
+ *       '200': { description: Updated public account without password hash. }
+ *       '400': { description: Empty, unknown, or invalid profile fields. }
+ *       '401': { description: Login required or account not found. }
+ *       '409': { description: Email already used by another account. }
  *       '500': { description: Internal database error. }
  * /api/admin/applications:
  *   get:
@@ -1029,5 +1259,48 @@
  *       '403': { description: ADMIN role required. }
  *       '404': { description: Account not found. }
  *       '409': { description: Own account or last administrator deletion. }
+ */
+
+/**
+* @swagger
+ * /api/public/companies:
+ *   get:
+ *     tags: [Ads]
+ *     summary: List public company information for offer filters
+ *     description: Public read-only route, sorted by name then ID. Admin writes remain protected at /api/admin/companies and /api/companies.
+ *     responses:
+ *       '200':
+ *         description: Public company fields only.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id: { type: integer }
+ *                   name: { type: string }
+ *                   description: { type: string, nullable: true }
+ *                   website: { type: string, nullable: true }
+ *                   location: { type: string, nullable: true }
+ *                   logo_url: { type: string, nullable: true }
  *       '500': { description: Internal database error. }
+ * /api/public/categories:
+ *   get:
+ *     tags: [Ads]
+ *     summary: List public categories for offer filters
+ *     description: Public read-only route, sorted by name then ID. Admin writes remain protected at /api/admin/categories and /api/categories.
+ *     responses:
+ *       '200':
+ *         description: Category identifiers and names.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id: { type: integer }
+ *                   name: { type: string }
+  *       '500': { description: Internal database error. }
  */

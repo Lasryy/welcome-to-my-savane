@@ -1,4 +1,5 @@
 const pool = require("../db/pool");
+const { readSearch, buildFilters, SORTS } = require("./ads_search");
 
 const PUBLIC_AD_SELECT = `
   SELECT
@@ -6,6 +7,8 @@ const PUBLIC_AD_SELECT = `
     ads.salary_min, ads.salary_max, ads.salary_period, ads.contract_type,
     ads.working_time, ads.status, ads.created_at,
     companies.id AS company_id, companies.name AS company_name,
+    companies.description AS company_description, companies.website AS company_website,
+    companies.location AS company_location, companies.logo_url AS company_logo_url,
     categories.id AS category_id, categories.name AS category_name
   FROM ads
   JOIN companies ON companies.id = ads.company_id
@@ -45,12 +48,34 @@ function sendServerError(res, error) {
 
 // Return published ads with company and category names for the public job board.
 async function getAds(req, res) {
+  const { value: search, error } = readSearch(req.query);
+  if (error) return res.status(400).json({ message: error });
+
+  const { where, values } = buildFilters(search);
+  // Le tableau historique reste disponible ; page ou page_size active la pagination.
+  const paginated = req.query.page !== undefined || req.query.page_size !== undefined;
   try {
+    let total;
+    let pagination = "";
+    if (paginated) {
+      const count = await pool.query(
+        `SELECT COUNT(*)::integer AS total FROM ads JOIN companies ON companies.id = ads.company_id ${where}`,
+        values,
+      );
+      total = count.rows[0].total;
+      pagination = `LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+      values.push(search.page_size, (search.page - 1) * search.page_size);
+    }
     const result = await pool.query(
-      `${PUBLIC_AD_SELECT} WHERE ads.status = $1 ORDER BY ads.created_at DESC`,
-      ["published"],
+      `${PUBLIC_AD_SELECT} ${where} ORDER BY ${SORTS[search.sort]} ${pagination}`,
+      values,
     );
-    return res.status(200).json(result.rows.map(addSalaryLabel));
+    const ads = result.rows.map(addSalaryLabel);
+    if (!paginated) return res.status(200).json(ads);
+    return res.status(200).json({
+      ads, total, page: search.page, page_size: search.page_size,
+      total_pages: Math.ceil(total / search.page_size),
+    });
   } catch (error) {
     return sendServerError(res, error);
   }

@@ -1,12 +1,26 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 13 octobre 2026 : étape 4 Lasry
+
+La branche `lasry` contient le profil éditable, les projets et les expériences. `/profile` charge trois sections depuis `GET/PATCH /api/people/me`, `GET/POST /api/projects` et `GET/POST /api/experiences`. Les éléments sont modifiables et supprimables via `PATCH/DELETE` sur leur identifiant.
+
+Le propriétaire vient de la session ; les requêtes filtrent les éléments par identifiant et propriétaire. Les champs de rôle, mot de passe et propriétaire ne sont pas modifiables dans le profil. Les URLs HTTP(S), les limites de texte et les dates sont validées. La suppression d'un projet ou d'une expérience lié à une candidature renvoie 409. Les routes sont documentées dans Swagger.
+
+Avant le push : 17 tests d'intégration réussis sur une base isolée `wtms_test_*`, ESLint et build frontend réussis. La vérification manuelle complète du parcours navigateur reste indiquée comme à faire dans le plan. Cette livraison ne comprend ni CV ni sélection de preuves dans le formulaire de candidature. L'intégration de l'étape 4 Denis dans `main` reste distincte.
+
 ## Mise à jour du 12 octobre 2026 : intégration étape 3 et Swagger
 
 La branche Lasry réunit son historique et suivi des candidatures, la gestion admin des comptes et des candidatures, ainsi que le CRUD offres étape 3 et Swagger de Denis (`37c3356`). Le menu de statuts des candidatures conserve le correctif de débordement des cartes.
 
 Swagger est monté sur `/api-docs` et sa spécification sur `/api-docs/openapi.json`. Les routes étape 3 Lasry y sont documentées : historique personnel, liste et statut des candidatures admin, liste/modification/suppression des comptes admin. Les catégories sont déjà gérables dans `/admin/categories` et utilisées par le filtre Domaine des offres.
 
-La suite prévue couvre le profil éditable, les projets et expériences, la recherche côté API, puis le CV et les dossiers personnalisés. Ces fonctionnalités ne sont pas encore livrées. Les sections précédentes restent historiques.
+## Mise à jour du 13 octobre 2026 : étape 4 Denis (Roadmap V3)
+
+La recherche publique utilise désormais PostgreSQL : texte, lieu, entreprise, catégorie et contrat se combinent, avec tri récent/salaire et pagination. Le formulaire conserve les critères et la page dans l’URL ; Rechercher revient à la page 1 et Réinitialiser efface les critères. Les listes de filtres proviennent de routes publiques distinctes des routes admin.
+
+La fiche offre affiche description, site HTTP(S), localisation et logo de l’entreprise. Les écritures catalogue restent protégées par `requireAdmin`. Aucun changement SQL ni modification des modules profil/candidature de Lasry n’est nécessaire.
+
+Contrats et vérifications : [docs/ETAPE-4-DENIS.md](docs/ETAPE-4-DENIS.md). Le format historique de `GET /api/ads` reste un tableau sans paramètre de pagination ; `page` ou `page_size` active l’objet paginé. Swagger documente les critères et les deux nouveaux chemins de lecture. La branche d’intégration réunit maintenant le profil candidat de Lasry et la recherche/catalogue public de Denis. La prochaine étape est le CV à l’étape 5 V3.
 
 ## Mise à jour du 12 octobre 2026 : intégration des étapes 1 et 2
 

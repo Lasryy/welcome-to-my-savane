@@ -64,7 +64,7 @@ npm --prefix backend test
 docker stop wtms-integration-test-db
 ```
 
-La base temporaire disparaît à l’arrêt du conteneur. Les douze scénarios doivent réussir (Node affiche treize tests en comptant le test parent), y compris les vérifications de modification et de suppression contrôlée ajoutées pour l’étape 3 de Denis.
+La base temporaire disparaît à l’arrêt du conteneur. Les quinze scénarios doivent réussir (Node affiche seize tests en comptant le test parent), y compris les vérifications des étapes 3 et 4 de Denis : suppression contrôlée, catalogue public, filtres combinables, paramètres invalides, pagination et tri des salaires.
 
 Le contrôle dans le navigateur couvre également la recherche publique, l’inscription, la connexion avec retour à l’offre, le préremplissage, l’envoi, le profil, la déconnexion, le refus admin pour un `USER`, les listes admin et l’avertissement des modifications non enregistrées.
 
@@ -72,4 +72,4 @@ Le contrôle dans le navigateur couvre également la recherche publique, l’ins
 
 Pour Lasry : historique des candidatures, statuts et CRUD utilisateurs admin à l’étape 3.
 
-L’étape 3 de Denis est terminée : les formulaires de création/modification déjà présents sont conservés, la liste admin propose la fermeture/réouverture et la suppression contrôlée refuse les offres avec candidatures liées. La recherche publique actuellement présente est un filtre frontend ; la recherche, les filtres et le tri côté API restent prévus à l’étape 4.
+L’étape 3 de Denis est terminée : les formulaires de création/modification déjà présents sont conservés, la liste admin propose la fermeture/réouverture et la suppression contrôlée refuse les offres avec candidatures liées. La partie Denis de l’étape 4 V3 est également implémentée ; son contrat public est décrit dans [ETAPE-4-DENIS.md](ETAPE-4-DENIS.md).

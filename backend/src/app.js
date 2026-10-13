@@ -10,6 +10,7 @@ const applicationsRoutes = require("./routes/applications_routes");
 const adminAdsRoutes = require("./routes/admin_ads_routes");
 const companiesRoutes = require("./routes/companies_routes");
 const categoriesRoutes = require("./routes/categories_routes");
+const publicCatalogueRoutes = require("./routes/public_catalogue_routes");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 const sessionMiddleware = require("./middleware/session_middleware");
@@ -27,6 +28,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/ads", adsRoutes);
+app.use("/api/public", publicCatalogueRoutes);
 app.use("/api/applications", applicationsRoutes);
 
 // Both URL forms use the same admin check and the same catalogue controllers.

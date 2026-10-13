@@ -11,6 +11,7 @@ Job board full-stack en cours de développement.
 - Candidatures : formulaire prérempli et envoi en SQL ; visiteurs, doublons et offres fermées sont refusés.
 - Administration : accès réservé à `ADMIN` dans React et dans les API, y compris les alias entreprises/catégories.
 - Étape 3 Denis : CRUD des offres complet, boutons de fermeture/réouverture et suppression refusée lorsqu’une candidature est liée.
+- Étape 4 Denis (V3) : recherche SQL, filtres combinables, tri récent/salaire et pagination, choix conservés dans l’URL et présentation des entreprises sur les offres.
 - Docker Compose : PostgreSQL, API et frontend peuvent être lancés ensemble.
 
 ## Technologies
@@ -90,7 +91,9 @@ backend/   API Express, contrôleurs, routes et connexion PostgreSQL (`pg`)
 
 ## Prochaines étapes
 
-1. Étape 3 Lasry : historique des candidatures, gestion des statuts et CRUD utilisateurs admin.
-2. Étape 4 : recherche et filtres côté API, tri et vérification du parcours complet selon la roadmap.
+La partie Denis de l’étape 4 est décrite dans [le guide de recherche et catalogue public](docs/ETAPE-4-DENIS.md), avec les paramètres API, les formats JSON et les vérifications.
+
+1. Étape 4 Lasry (V3) : profil éditable, projets et expériences ; convenir des contrats pour l’étape 5.
+2. Étape 5 Denis (V3) : CV PDF, stockage protégé et migrations compatibles avec la base existante.
 
 La fusion des étapes 1 et 2 et les commandes de vérification sont décrites dans [le guide d’intégration](docs/INTEGRATION-ETAPES-1-2.md).

@@ -1,5 +1,13 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 13 octobre 2026 : étape 4 Denis (Roadmap V3)
+
+La recherche publique utilise désormais PostgreSQL : texte, lieu, entreprise, catégorie et contrat se combinent, avec tri récent/salaire et pagination. Le formulaire conserve les critères et la page dans l’URL ; Rechercher revient à la page 1 et Réinitialiser efface les critères. Les listes de filtres proviennent de routes publiques distinctes des routes admin.
+
+La fiche offre affiche description, site HTTP(S), localisation et logo de l’entreprise. Les écritures catalogue restent protégées par `requireAdmin`. Aucun changement SQL ni modification des modules profil/candidature de Lasry n’est nécessaire.
+
+Contrats et vérifications : [docs/ETAPE-4-DENIS.md](docs/ETAPE-4-DENIS.md). Le format historique de `GET /api/ads` reste un tableau sans paramètre de pagination ; `page` ou `page_size` active l’objet paginé. Swagger documente les critères et les deux nouveaux chemins de lecture. La suite de Denis est le CV à l’étape 5 V3 ; la partie Lasry de l’étape 4 reste séparée.
+
 ## Mise à jour du 12 octobre 2026 : intégration des étapes 1 et 2
 
 La branche `integration/etapes-1-2` réunit `origin/denis` (`e40c49d`) et `origin/feature/lasry-etape-2` (`6bb7bd7`). Les comptes, sessions, profils et candidatures de Lasry fonctionnent avec le job board, le catalogue admin et le Tailwind de Denis. Les API admin vérifient désormais la session et le rôle en base, et le détail d’une offre ouvre le formulaire de candidature.

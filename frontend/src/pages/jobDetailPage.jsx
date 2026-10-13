@@ -3,6 +3,15 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { contractLabels, formatDate, formatSalary, workingTimeLabels } from "../utils/adminUtils";
 import ApplicationForm from "./applications/ApplicationForm";
 
+function publicUrl(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
 function JobDetail({ id }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -120,6 +129,15 @@ function JobDetail({ id }) {
           {ad.short_description && <p className="mb-6 max-w-[70ch] leading-relaxed">{ad.short_description}</p>}
           <h2 className="mb-3.5 text-2xl font-extrabold">Description du poste</h2>
           <div className="max-w-[70ch] whitespace-pre-line break-words leading-[1.75]">{ad.description}</div>
+          <section className="mt-7 border-t border-rule pt-[22px]" aria-labelledby="company-heading">
+            <div className="mb-4 flex items-center gap-4">
+              {publicUrl(ad.company_logo_url) && <img className="h-16 w-16 shrink-0 object-contain" src={publicUrl(ad.company_logo_url)} alt={`Logo de ${ad.company_name}`} loading="lazy" referrerPolicy="no-referrer" />}
+              <h2 id="company-heading" className="text-2xl font-extrabold">À propos de {ad.company_name}</h2>
+            </div>
+            <p className="mb-3 text-[13px] font-bold">Localisation de l’entreprise : {ad.company_location || "Non renseignée"}</p>
+            <p className="max-w-[70ch] whitespace-pre-line break-words leading-[1.75]">{ad.company_description || "Cette entreprise n’a pas encore renseigné sa présentation."}</p>
+            {publicUrl(ad.company_website) && <a className="mt-4 inline-block break-all font-bold underline underline-offset-4" href={publicUrl(ad.company_website)} target="_blank" rel="noopener noreferrer">Consulter le site de l’entreprise ↗</a>}
+          </section>
           <div className="mt-7 flex flex-wrap items-center gap-4 border-t border-rule pt-[22px]">
             {!showApplicationForm && (
               <button

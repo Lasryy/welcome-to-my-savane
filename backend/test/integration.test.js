@@ -109,7 +109,7 @@ test("Lasry and Denis integration", {
     assert.equal(company.status, 201);
     companyId = company.data.id;
     const updated = await request(`/api/admin/companies/${companyId}`, {
-      method: "PUT", cookie: adminCookie, body: { name: "Integration Company Updated", location: "Lyon" },
+      method: "PUT", cookie: adminCookie, body: { name: "Integration Company Updated", location: "Lyon", description: "Une équipe de test.", website: "https://company.example", logo_url: "https://company.example/logo.png" },
     });
     assert.equal(updated.status, 200);
     assert.equal(updated.data.name, "Integration Company Updated");
@@ -168,6 +168,109 @@ test("Lasry and Denis integration", {
     const adminList = await request("/api/admin/ads", { cookie: adminCookie });
     assert.equal(adminList.status, 200);
     assert.ok(adminList.data.some((ad) => ad.id === closedId));
+  });
+
+  await t.test("public catalogue exposes useful fields and has no write routes", async () => {
+    const companies = await request("/api/public/companies");
+    assert.equal(companies.status, 200);
+    const company = companies.data.find((item) => item.id === companyId);
+    assert.deepEqual(Object.keys(company).sort(), ["description", "id", "location", "logo_url", "name", "website"]);
+    assert.equal(company.description, "Une équipe de test.");
+    const categories = await request("/api/public/categories");
+    assert.equal(categories.status, 200);
+    assert.ok(categories.data.some((item) => item.id === categoryId));
+    const detail = await request(`/api/ads/${publishedId}`);
+    for (const field of ["description", "location", "website", "logo_url"]) {
+      assert.equal(detail.data[`company_${field}`], company[field]);
+    }
+    for (const path of ["/api/public/companies", "/api/public/categories"]) {
+      for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+        const route = method === "POST" ? path : `${path}/${companyId}`;
+        for (const cookie of [undefined, userCookie]) {
+          const response = await fetch(`${baseUrl}${route}`, { method, headers: cookie ? { Cookie: cookie } : {} });
+          assert.equal(response.status, 404);
+        }
+      }
+    }
+    assert.equal((await pool.query("SELECT id FROM companies WHERE id = $1", [companyId])).rowCount, 1);
+    assert.equal((await pool.query("SELECT id FROM categories WHERE id = $1", [categoryId])).rowCount, 1);
+  });
+
+  await t.test("public search combines filters, validates parameters and paginates", async () => {
+    const filters = `q=INTEGRATION&location=lyON&company_id=${companyId}&category_id=${categoryId}&contract_type=permanent`;
+    const found = await request(`/api/ads?${filters}&page=1&page_size=1`);
+    assert.equal(found.status, 200);
+    assert.equal(found.data.total, 1);
+    assert.equal(found.data.total_pages, 1);
+    assert.equal(found.data.page_size, 1);
+    assert.equal(found.data.ads[0].id, publishedId);
+    assert.ok(found.data.ads.every((ad) => ad.status === "published"));
+    assert.ok(Array.isArray((await request(`/api/ads?${filters}`)).data));
+    const empty = await request(`/api/ads?${filters}&page=2&page_size=1`);
+    assert.equal(empty.data.total, 1);
+    assert.equal(empty.data.page, 2);
+    assert.deepEqual(empty.data.ads, []);
+    const missing = await request(`/api/ads?${filters}&q=does-not-exist&page=1`);
+    // Les paramètres répétés sont refusés, au lieu de choisir arbitrairement une valeur.
+    assert.equal(missing.status, 400);
+    const noResults = await request(`/api/ads?company_id=${companyId}&q=does-not-exist&page=1`);
+    assert.equal(noResults.data.total, 0);
+    assert.equal(noResults.data.total_pages, 0);
+    assert.deepEqual(noResults.data.ads, []);
+    for (const [name, value] of [["q", "absent"], ["location", "absent"], ["company_id", "2147483647"], ["category_id", "2147483647"], ["contract_type", "apprenticeship"]]) {
+      const changed = new URLSearchParams(filters);
+      changed.set(name, value);
+      changed.set("page", "1");
+      const response = await request(`/api/ads?${changed}`);
+      assert.equal(response.status, 200);
+      assert.equal(response.data.total, 0, `Le filtre ${name} doit être appliqué`);
+    }
+    for (const query of ["page=0", "page=-1", "page=1.5", "page=1e2", "page_size=101", "page_size=0", "page=2147483648", "company_id=abc", "category_id=0", "sort=DROP%20TABLE", "sort=toString", "contract_type=invalid", "q=", "q=a&q=b", `q=${"a".repeat(256)}`, "status=closed"]) {
+      const response = await request(`/api/ads?${query}`);
+      assert.equal(response.status, 400, query);
+      assert.ok(response.data.message);
+    }
+    for (const text of ["%", "_", "\\", "' OR 1=1 --"]) {
+      const response = await request(`/api/ads?company_id=${companyId}&q=${encodeURIComponent(text)}&page=1`);
+      assert.equal(response.status, 200);
+      assert.equal(response.data.total, 0);
+    }
+  });
+
+  await t.test("salary sorting annualizes monthly amounts and puts missing salaries last", async () => {
+    const ids = [];
+    for (const salary of [
+      { salary_min: 36000, salary_max: 90000, salary_period: "year" },
+      { salary_min: 4000, salary_period: "month" },
+      { salary_max: 42000, salary_period: "year" },
+      { salary_period: "year" },
+      { salary_min: 36000, salary_period: "year" },
+    ]) {
+      const created = await request("/api/admin/ads", {
+        method: "POST", cookie: adminCookie,
+        body: { title: "Salary test", description: "Salary sorting test", company_id: companyId, status: "published", ...salary },
+      });
+      assert.equal(created.status, 201, created.data.message);
+      ids.push(created.data.id);
+    }
+    try {
+      await pool.query("UPDATE ads SET created_at = '2026-01-01T00:00:00Z' WHERE company_id = $1", [companyId]);
+      const prefix = `/api/ads?company_id=${companyId}&page_size=100`;
+      const descending = await request(`${prefix}&sort=salary_desc`);
+      assert.equal(descending.data.total, 6);
+      assert.deepEqual(descending.data.ads.map((ad) => ad.id), [ids[1], ids[2], ids[4], ids[0], publishedId, ids[3]]);
+      const ascending = await request(`${prefix}&sort=salary_asc`);
+      assert.deepEqual(ascending.data.ads.map((ad) => ad.id), [publishedId, ids[4], ids[0], ids[2], ids[1], ids[3]]);
+      const recent = await request(`${prefix}&sort=recent`);
+      assert.deepEqual(recent.data.ads.map((ad) => ad.id), [...ids].reverse().concat(publishedId));
+      const first = await request(`/api/ads?company_id=${companyId}&page=1&page_size=2&sort=salary_desc`);
+      const second = await request(`/api/ads?company_id=${companyId}&page=2&page_size=2&sort=salary_desc`);
+      assert.equal(first.data.total_pages, 3);
+      assert.deepEqual(first.data.ads.map((ad) => ad.id), [ids[1], ids[2]]);
+      assert.deepEqual(second.data.ads.map((ad) => ad.id), [ids[4], ids[0]]);
+    } finally {
+      await pool.query("DELETE FROM ads WHERE id = ANY($1::integer[])", [ids]);
+    }
   });
 
   await t.test("applications use the session identity and reject invalid submissions", async () => {

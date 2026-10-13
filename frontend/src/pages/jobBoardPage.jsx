@@ -1,88 +1,70 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import CustomSelect from "../components/CustomSelect";
 import HorizonSign from "../components/horizonSign";
 import JobCard from "../components/jobCard";
+import { contractLabels } from "../utils/adminUtils";
 
-function JobBoardPage() {
-  const [ads, setAds] = useState([]);
-  const [loading, setLoading] = useState(true);
+const fieldClass = "grid min-w-0 gap-1.5 text-xs";
+const inputClass = "min-h-[46px] w-full rounded-[3px] border border-[#c8c5b9] bg-paper px-[13px] py-2.5 text-ink";
+const buttonClass = "inline-flex min-h-11 items-center justify-center border border-transparent bg-sun px-[18px] py-2.5 text-[13px] font-bold text-ink disabled:opacity-50";
+
+function JobSearch({ query, setSearchParams, catalogue, catalogueError, retry }) {
+  const params = new URLSearchParams(query);
+  const [filters, setFilters] = useState(() => ({
+    q: params.get("q") || "",
+    location: params.get("location") || "",
+    company_id: params.get("company_id") || "",
+    category_id: params.get("category_id") || "",
+    contract_type: params.get("contract_type") || "",
+    sort: params.get("sort") || "recent",
+  }));
+  const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [retryKey, setRetryKey] = useState(0);
-  const [search, setSearch] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [contractType, setContractType] = useState("");
-
-  function clearFilters() {
-    setSearch("");
-    setCategoryId("");
-    setContractType("");
-  }
-
-  function retryLoading() {
-    setLoading(true);
-    setRetryKey((key) => key + 1);
-  }
 
   useEffect(() => {
     const controller = new AbortController();
     async function loadAds() {
+      const apiParams = new URLSearchParams(query);
+      // Demander explicitement le format paginé, même pour la première page.
+      if (!apiParams.has("page")) apiParams.set("page", "1");
       try {
-        const response = await fetch("/api/ads", { signal: controller.signal });
-        if (!response.ok) {
-          throw new Error("Les offres ne peuvent pas être chargées pour le moment.");
-        }
-
+        const response = await fetch(`/api/ads?${apiParams}`, { signal: controller.signal });
         const data = await response.json();
-        if (!Array.isArray(data)) {
-          throw new Error("La réponse du serveur n’est pas une liste d’offres valide.");
-        }
-
-        setAds(data);
-        setError("");
+        if (!response.ok) throw new Error(data.message || "Les offres ne peuvent pas être chargées.");
+        if (!Array.isArray(data.ads)) throw new Error("La réponse du serveur est invalide.");
+        if (!controller.signal.aborted) setResult(data);
       } catch (requestError) {
-        if (requestError.name !== "AbortError") {
-          setError(requestError.message);
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        if (!controller.signal.aborted) setError(requestError.message);
       }
     }
-
     loadAds();
     return () => controller.abort();
-  }, [retryKey]);
+  }, [query]);
 
-  const categories = useMemo(() => {
-    const values = new Map();
-    ads.forEach((ad) => {
-      if (ad.category_id && ad.category_name) {
-        values.set(String(ad.category_id), ad.category_name);
-      }
-    });
-    return [...values].sort((a, b) => a[1].localeCompare(b[1], "fr"));
-  }, [ads]);
+  function changeFilter(name, value) {
+    setFilters((current) => ({ ...current, [name]: value }));
+  }
 
-  const filteredAds = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("fr");
-    return ads.filter((ad) => {
-      const searchable = [
-        ad.title,
-        ad.company_name,
-        ad.location,
-        ad.short_description,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLocaleLowerCase("fr");
-      const matchesSearch = !query || searchable.includes(query);
-      const matchesCategory = !categoryId || String(ad.category_id) === categoryId;
-      const matchesContract = !contractType || ad.contract_type === contractType;
-      return matchesSearch && matchesCategory && matchesContract;
-    });
-  }, [ads, categoryId, contractType, search]);
+  function search(event) {
+    event.preventDefault();
+    const next = new URLSearchParams();
+    for (const [name, value] of Object.entries(filters)) {
+      if (value.trim() && !(name === "sort" && value === "recent")) next.set(name, value.trim());
+    }
+    if (params.has("page_size")) next.set("page_size", params.get("page_size"));
+    next.set("page", "1");
+    if (next.toString() === query) retry();
+    else setSearchParams(next);
+  }
 
+  function changePage(page) {
+    const next = new URLSearchParams(query);
+    next.set("page", String(page));
+    setSearchParams(next);
+  }
+
+  const loading = !result && !error;
   return (
     <>
       <section className="bg-coral">
@@ -107,71 +89,119 @@ function JobBoardPage() {
 
       <section className="mx-auto w-[calc(100%_-_112px)] max-w-[1280px] pt-10 pb-3 max-[1200px]:w-[calc(100%_-_72px)] max-[760px]:w-[calc(100%_-_40px)] max-[760px]:pt-7" aria-labelledby="offers-heading">
         <div className="mb-5 flex items-end justify-between gap-4 max-[480px]:items-start max-[480px]:flex-col">
-          <h2 id="offers-heading" className="m-0 text-[27px] font-extrabold leading-[1.25] tracking-[-.025em]">
-            Les offres du moment
-          </h2>
-          {!loading && !error && (
-            <p className="text-[13px]" aria-live="polite">
-              {filteredAds.length} offre{filteredAds.length !== 1 ? "s" : ""}
-            </p>
-          )}
+          <h2 id="offers-heading" className="m-0 text-[27px] font-extrabold leading-[1.25] tracking-[-.025em]">Les offres du moment</h2>
+          {result && <p className="text-[13px]" role="status">{result.total} offre{result.total !== 1 ? "s" : ""}</p>}
         </div>
 
-        <div className="mb-[22px] grid grid-cols-[minmax(0,1.4fr)_minmax(180px,1fr)_minmax(160px,.8fr)_auto] items-end gap-3 bg-ink p-4 text-paper max-[1000px]:grid-cols-2 max-[760px]:grid-cols-2 max-[480px]:grid-cols-1" role="search" aria-label="Filtrer les offres">
-          <label className="grid min-w-0 gap-1.5 text-xs" htmlFor="job-search-text">
-            Métier, entreprise ou ville
-            <input className="min-h-[46px] w-full rounded-[3px] border border-[#c8c5b9] bg-paper px-[13px] py-2.5 text-ink" id="job-search-text" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Ex. développeur, Lyon…" />
+        <form className="mb-[22px] grid grid-cols-3 items-end gap-3 bg-ink p-4 text-paper max-[1000px]:grid-cols-2 max-[480px]:grid-cols-1" role="search" aria-label="Filtrer les offres" onSubmit={search}>
+          <label className={fieldClass} htmlFor="job-search-text">
+            Métier ou mot-clé
+            <input className={inputClass} id="job-search-text" type="search" maxLength={255} value={filters.q} onChange={(event) => changeFilter("q", event.target.value)} placeholder="Ex. développeur…" />
           </label>
-          <label className="grid min-w-0 gap-1.5 text-xs" htmlFor="job-search-category">
-            Domaine
-            <CustomSelect id="job-search-category" value={categoryId} onChange={setCategoryId} placeholder="Tous les domaines" options={categories.map(([value, label]) => ({ value, label }))} />
+          <label className={fieldClass} htmlFor="job-search-location">
+            Lieu
+            <input className={inputClass} id="job-search-location" type="search" maxLength={255} value={filters.location} onChange={(event) => changeFilter("location", event.target.value)} placeholder="Ex. Lyon…" />
           </label>
-          <label className="grid min-w-0 gap-1.5 text-xs" htmlFor="job-search-contract">
-            Contrat
-            <CustomSelect id="job-search-contract" value={contractType} onChange={setContractType} placeholder="Tous les contrats" options={[
-              { value: "internship", label: "Stage" },
-              { value: "apprenticeship", label: "Alternance" },
-              { value: "permanent", label: "CDI" },
-              { value: "fixed_term", label: "CDD" },
-              { value: "other", label: "Autre" },
+          <label className={fieldClass} htmlFor="job-search-company">
+            Entreprise
+            <CustomSelect id="job-search-company" value={filters.company_id} onChange={(value) => changeFilter("company_id", value)} placeholder="Toutes les entreprises" options={[
+              { value: "", label: "Toutes les entreprises" },
+              ...catalogue.companies.map((company) => ({ value: String(company.id), label: company.name })),
             ]} />
           </label>
-          <button className="inline-flex min-h-11 items-center justify-center gap-2 border border-transparent bg-sun px-[18px] py-2.5 text-[13px] font-bold text-ink hover:bg-[color-mix(in_srgb,#f0e970_90%,#252a46)]" type="button" onClick={clearFilters}>
-            Réinitialiser
-          </button>
-        </div>
+          <label className={fieldClass} htmlFor="job-search-category">
+            Domaine
+            <CustomSelect id="job-search-category" value={filters.category_id} onChange={(value) => changeFilter("category_id", value)} placeholder="Tous les domaines" options={[
+              { value: "", label: "Tous les domaines" },
+              ...catalogue.categories.map((category) => ({ value: String(category.id), label: category.name })),
+            ]} />
+          </label>
+          <label className={fieldClass} htmlFor="job-search-contract">
+            Contrat
+            <CustomSelect id="job-search-contract" value={filters.contract_type} onChange={(value) => changeFilter("contract_type", value)} placeholder="Tous les contrats" options={[
+              { value: "", label: "Tous les contrats" },
+              ...Object.entries(contractLabels).map(([value, label]) => ({ value, label })),
+            ]} />
+          </label>
+          <label className={fieldClass} htmlFor="job-search-sort">
+            Trier par
+            <CustomSelect id="job-search-sort" value={filters.sort} onChange={(value) => changeFilter("sort", value)} options={[
+              { value: "recent", label: "Les plus récentes" },
+              { value: "salary_desc", label: "Salaire décroissant" },
+              { value: "salary_asc", label: "Salaire croissant" },
+            ]} />
+          </label>
+          <div className="flex flex-wrap gap-3 min-[1001px]:col-span-3 min-[481px]:max-[1000px]:col-span-2">
+            <button className={buttonClass} type="submit">Rechercher</button>
+            <button className={`${buttonClass} bg-paper`} type="button" onClick={() => {
+              if (!query) retry();
+              else setSearchParams({});
+            }}>Réinitialiser</button>
+          </div>
+          <p className="text-xs leading-relaxed min-[1001px]:col-span-3 min-[481px]:max-[1000px]:col-span-2">Tri salaire : montant minimum (sinon maximum), comparé sur une année. Les salaires non renseignés sont placés en dernier.</p>
+        </form>
 
-        {loading && (
-          <div className="my-6 border border-rule bg-paper p-6" role="status">
-            <h2 className="mb-2 text-[22px] font-extrabold">On prépare la savane…</h2>
-            <p>Chargement des offres.</p>
-          </div>
-        )}
-        {!loading && error && (
-          <div className="my-6 border border-rule bg-paper p-6" role="alert">
-            <h2 className="mb-2 text-[22px] font-extrabold">Les offres sont momentanément inaccessibles.</h2>
-            <p>{error}</p>
-            <button className="mt-4 inline-flex min-h-11 items-center justify-center border border-ink bg-ink px-[18px] py-2.5 text-[13px] font-bold text-paper" type="button" onClick={retryLoading}>
-              Réessayer
-            </button>
-          </div>
-        )}
-        {!loading && !error && filteredAds.length === 0 && (
-          <div className="my-6 border border-rule bg-paper p-6">
-            <h2 className="mb-2 text-[22px] font-extrabold">Aucune offre pour cette recherche.</h2>
-            <p>Essayez un autre métier, domaine ou contrat.</p>
-          </div>
-        )}
-        {!loading && !error && filteredAds.length > 0 && (
-          <div className="grid grid-cols-3 items-stretch gap-[22px] max-[1200px]:gap-[17px] max-[1000px]:grid-cols-2 max-[480px]:grid-cols-1">
-            {filteredAds.map((ad, index) => (
-              <JobCard key={ad.id} ad={ad} index={index} />
-            ))}
-          </div>
-        )}
+        {catalogueError && <div className="my-6 border border-rule bg-paper p-6" role="alert">
+          <p>{catalogueError}</p>
+          <button className={`${buttonClass} mt-4`} type="button" onClick={retry}>Recharger les filtres</button>
+        </div>}
+        {loading && <div className="my-6 border border-rule bg-paper p-6" role="status">
+          <h2 className="mb-2 text-[22px] font-extrabold">On prépare la savane…</h2>
+          <p>Chargement des offres.</p>
+        </div>}
+        {error && <div className="my-6 border border-rule bg-paper p-6" role="alert">
+          <h2 className="mb-2 text-[22px] font-extrabold">Impossible de charger les offres.</h2>
+          <p>{error}</p>
+          <button className={`${buttonClass} mt-4`} type="button" onClick={retry}>Réessayer</button>
+        </div>}
+        {result && result.ads.length === 0 && <div className="my-6 border border-rule bg-paper p-6" role="status">
+          <h2 className="mb-2 text-[22px] font-extrabold">Aucune offre sur cette page.</h2>
+          <p>{result.total > 0 ? "Revenez à la première page pour voir les résultats." : "Essayez un autre métier, lieu, domaine ou contrat."}</p>
+          {result.total > 0 && <button className={`${buttonClass} mt-4`} type="button" onClick={() => changePage(1)}>Première page</button>}
+        </div>}
+        {result && result.ads.length > 0 && <div className="grid grid-cols-3 items-stretch gap-[22px] max-[1200px]:gap-[17px] max-[1000px]:grid-cols-2 max-[480px]:grid-cols-1">
+          {result.ads.map((ad, index) => <JobCard key={ad.id} ad={ad} index={index} />)}
+        </div>}
+        {result && result.total_pages > 0 && <nav className="mt-7 flex flex-wrap items-center justify-center gap-4" aria-label="Pagination des offres">
+          <button className={buttonClass} type="button" disabled={result.page <= 1} onClick={() => changePage(result.page - 1)}>Précédente</button>
+          <p role="status">Page {result.page} sur {result.total_pages}</p>
+          <button className={buttonClass} type="button" disabled={result.page >= result.total_pages} onClick={() => changePage(result.page + 1)}>Suivante</button>
+        </nav>}
       </section>
     </>
   );
 }
 
-export default JobBoardPage;
+export default function JobBoardPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [retryKey, setRetryKey] = useState(0);
+  const [catalogue, setCatalogue] = useState({ companies: [], categories: [] });
+  const [catalogueError, setCatalogueError] = useState("");
+  const query = searchParams.toString();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadCatalogue() {
+      try {
+        const responses = await Promise.all([
+          fetch("/api/public/companies", { signal: controller.signal }),
+          fetch("/api/public/categories", { signal: controller.signal }),
+        ]);
+        if (responses.some((response) => !response.ok)) throw new Error("Les filtres entreprise et domaine sont momentanément indisponibles.");
+        const [companies, categories] = await Promise.all(responses.map((response) => response.json()));
+        if (!Array.isArray(companies) || !Array.isArray(categories)) throw new Error("Les listes de filtres sont invalides.");
+        if (!controller.signal.aborted) {
+          setCatalogue({ companies, categories });
+          setCatalogueError("");
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) setCatalogueError(error.message);
+      }
+    }
+    loadCatalogue();
+    return () => controller.abort();
+  }, [retryKey]);
+
+  // Un changement d'URL remet la saisie et le chargement dans leur état initial.
+  return <JobSearch key={`${query}-${retryKey}`} query={query} setSearchParams={setSearchParams} catalogue={catalogue} catalogueError={catalogueError} retry={() => setRetryKey((key) => key + 1)} />;
+}

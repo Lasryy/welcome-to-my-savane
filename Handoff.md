@@ -6,7 +6,15 @@ La branche Lasry réunit son historique et suivi des candidatures, la gestion ad
 
 Swagger est monté sur `/api-docs` et sa spécification sur `/api-docs/openapi.json`. Les routes étape 3 Lasry y sont documentées : historique personnel, liste et statut des candidatures admin, liste/modification/suppression des comptes admin. Les catégories sont déjà gérables dans `/admin/categories` et utilisées par le filtre Domaine des offres.
 
-La suite prévue couvre le profil éditable, les projets et expériences, la recherche côté API, puis le CV et les dossiers personnalisés. Ces fonctionnalités ne sont pas encore livrées. Les sections précédentes restent historiques.
+## Mise à jour du 13 octobre 2026 : intégration des étapes 3 et 4
+
+## Mise à jour du 13 octobre 2026 : étape 4 Denis (Roadmap V3)
+
+La recherche publique utilise désormais PostgreSQL : texte, lieu, entreprise, catégorie et contrat se combinent, avec tri récent/salaire et pagination. Le formulaire conserve les critères et la page dans l’URL ; Rechercher revient à la page 1 et Réinitialiser efface les critères. Les listes de filtres proviennent de routes publiques distinctes des routes admin.
+
+La fiche offre affiche description, site HTTP(S), localisation et logo de l’entreprise. Les écritures catalogue restent protégées par `requireAdmin`. Aucun changement SQL ni modification des modules profil/candidature de Lasry n’est nécessaire.
+
+Contrats et vérifications : [docs/ETAPE-4-DENIS.md](docs/ETAPE-4-DENIS.md). Le format historique de `GET /api/ads` reste un tableau sans paramètre de pagination ; `page` ou `page_size` active l’objet paginé. Swagger documente les critères et les deux nouveaux chemins de lecture. La suite de Denis est le CV à l’étape 5 V3 ; la partie Lasry de l’étape 4 reste séparée.
 
 ## Mise à jour du 12 octobre 2026 : intégration des étapes 1 et 2
 

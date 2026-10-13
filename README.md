@@ -13,6 +13,7 @@ Job board full-stack en cours de développement.
 - Étape 3 Lasry : historique personnel, suivi des statuts, liste des candidatures admin et gestion des comptes.
 - Swagger : documentation disponible sur `http://localhost:3000/api-docs`, spécification sur `/api-docs/openapi.json`.
 - Étape 3 Denis : CRUD des offres complet, boutons de fermeture/réouverture et suppression refusée lorsqu’une candidature est liée.
+- Étape 4 Denis (V3) : recherche SQL, filtres combinables, tri récent/salaire et pagination, choix conservés dans l’URL et présentation des entreprises sur les offres.
 - Docker Compose : PostgreSQL, API et frontend peuvent être lancés ensemble.
 
 ## Technologies
@@ -92,8 +93,9 @@ backend/   API Express, contrôleurs, routes et connexion PostgreSQL (`pg`)
 
 ## Prochaines étapes
 
-1. Étape 4 : profil éditable, projets et expériences ; recherche et filtres côté API, tri et pagination.
-2. Étapes suivantes : CV, sélection des preuves par candidature et consultation du dossier envoyé.
-3. Finalisation : documentation Swagger de chaque nouvelle route et vérification du parcours complet.
+La partie Denis de l’étape 4 est décrite dans [le guide de recherche et catalogue public](docs/ETAPE-4-DENIS.md), avec les paramètres API, les formats JSON et les vérifications.
+
+1. Étape 4 Lasry (V3) : profil éditable, projets et expériences ; convenir des contrats pour l’étape 5.
+2. Étape 5 Denis (V3) : CV PDF, stockage protégé et migrations compatibles avec la base existante.
 
 La fusion des étapes 1 et 2 et les commandes de vérification sont décrites dans [le guide d’intégration](docs/INTEGRATION-ETAPES-1-2.md).

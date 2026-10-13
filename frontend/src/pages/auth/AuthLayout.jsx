@@ -4,6 +4,7 @@ export default function AuthLayout({
   description,
   children,
   footer,
+  wide = false,
 }) {
   return (
     <main className="auth-page">
@@ -31,8 +32,8 @@ export default function AuthLayout({
         </a>
       </header>
 
-      <div className="auth-content">
-        <section className="auth-panel" aria-labelledby="auth-title">
+      <div className={`auth-content${wide ? " auth-content-wide" : ""}`}>
+        <section className={`auth-panel${wide ? " auth-panel-wide" : ""}`} aria-labelledby="auth-title">
           <h1 id="auth-title" className="auth-title">
             {title}
           </h1>

@@ -4,6 +4,159 @@
  */
 
 /**
+ * @openapi
+ * /api/projects:
+ *   get:
+ *     tags: [Projects]
+ *     summary: List the current candidate's projects
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Projects owned by the current account, newest first. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
+ *   post:
+ *     tags: [Projects]
+ *     summary: Add a project to the current candidate's profile
+ *     description: Ownership is assigned from the session. The request cannot set person_id.
+ *     security:
+ *       - sessionCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             required: [title]
+ *             properties:
+ *               title: { type: string, minLength: 1, maxLength: 200 }
+ *               description: { type: string, nullable: true, maxLength: 5000 }
+ *               project_url: { type: string, nullable: true, maxLength: 500, format: uri }
+ *               repository_url: { type: string, nullable: true, maxLength: 500, format: uri }
+ *           example: { title: Portfolio, description: Site personnel, project_url: 'https://example.com', repository_url: 'https://github.com/example/site' }
+ *     responses:
+ *       '201': { description: Created project. }
+ *       '400': { description: Invalid or unsupported fields. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
+ * /api/projects/{id}:
+ *   patch:
+ *     tags: [Projects]
+ *     summary: Edit an owned project
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { type: object, minProperties: 1, additionalProperties: false, properties: { title: { type: string, maxLength: 200 }, description: { type: string, nullable: true, maxLength: 5000 }, project_url: { type: string, nullable: true, maxLength: 500, format: uri }, repository_url: { type: string, nullable: true, maxLength: 500, format: uri } } }
+ *     responses:
+ *       '200': { description: Updated project. }
+ *       '400': { description: Invalid ID or fields. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Project not found for this account. }
+ *       '500': { description: Database error. }
+ *   delete:
+ *     tags: [Projects]
+ *     summary: Delete an owned project not linked to an application
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '204': { description: Project deleted. }
+ *       '400': { description: Invalid ID. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Project not found for this account. }
+ *       '409': { description: Project is linked to an application. }
+ *       '500': { description: Database error. }
+ * /api/experiences:
+ *   get:
+ *     tags: [Experiences]
+ *     summary: List the current candidate's experiences
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Experiences owned by the current account, most recent first. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
+ *   post:
+ *     tags: [Experiences]
+ *     summary: Add an experience to the current candidate's profile
+ *     description: Ownership is assigned from the session. End date is optional for a current experience.
+ *     security:
+ *       - sessionCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             required: [company_name, job_title]
+ *             properties:
+ *               company_name: { type: string, minLength: 1, maxLength: 200 }
+ *               job_title: { type: string, minLength: 1, maxLength: 200 }
+ *               description: { type: string, nullable: true, maxLength: 5000 }
+ *               start_date: { type: string, nullable: true, format: date }
+ *               end_date: { type: string, nullable: true, format: date }
+ *           example: { company_name: Savane Tech, job_title: Developer, start_date: '2023-04-01', end_date: null }
+ *     responses:
+ *       '201': { description: Created experience. }
+ *       '400': { description: Invalid fields or date range. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
+ * /api/experiences/{id}:
+ *   patch:
+ *     tags: [Experiences]
+ *     summary: Edit an owned experience
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { type: object, minProperties: 1, additionalProperties: false, properties: { company_name: { type: string, maxLength: 200 }, job_title: { type: string, maxLength: 200 }, description: { type: string, nullable: true, maxLength: 5000 }, start_date: { type: string, nullable: true, format: date }, end_date: { type: string, nullable: true, format: date } } }
+ *     responses:
+ *       '200': { description: Updated experience. }
+ *       '400': { description: Invalid ID, fields or date range. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Experience not found for this account. }
+ *       '500': { description: Database error. }
+ *   delete:
+ *     tags: [Experiences]
+ *     summary: Delete an owned experience not linked to an application
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '204': { description: Experience deleted. }
+ *       '400': { description: Invalid ID. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Experience not found for this account. }
+ *       '409': { description: Experience is linked to an application. }
+ *       '500': { description: Database error. }
+ */
+
+/**
  * @swagger
  * tags:
  *   - name: Ads
@@ -963,6 +1116,42 @@
  *       '200': { description: Array of applications belonging to the logged-in account. }
  *       '401': { description: Login required. }
  *       '500': { description: Internal database error. }
+ * /api/people/me:
+ *   get:
+ *     tags: [Profile]
+ *     summary: Read the profile for the current account
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Account ID, first and last name, email, phone and role. Password hash is never returned. }
+ *       '401': { description: Login required or account not found. }
+ *       '500': { description: Internal database error. }
+ *   patch:
+ *     tags: [Profile]
+ *     summary: Update editable fields on the current account
+ *     description: The role and password cannot be changed through this route. Empty phone clears the optional number.
+ *     security:
+ *       - sessionCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             minProperties: 1
+ *             properties:
+ *               first_name: { type: string, minLength: 1, maxLength: 100 }
+ *               last_name: { type: string, minLength: 1, maxLength: 100 }
+ *               email: { type: string, format: email, maxLength: 255 }
+ *               phone: { type: string, nullable: true, maxLength: 30 }
+ *           example: { first_name: Camille, phone: '0612345678' }
+ *     responses:
+ *       '200': { description: Updated public account without password hash. }
+ *       '400': { description: Empty, unknown, or invalid profile fields. }
+ *       '401': { description: Login required or account not found. }
+ *       '409': { description: Email already used by another account. }
+ *       '500': { description: Internal database error. }
  * /api/admin/applications:
  *   get:
  *     tags: [Admin - Applications]
@@ -1113,5 +1302,5 @@
  *                 properties:
  *                   id: { type: integer }
  *                   name: { type: string }
- */ *       '500': { description: Internal database error. }
+  *       '500': { description: Internal database error. }
  */

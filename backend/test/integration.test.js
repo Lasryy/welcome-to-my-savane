@@ -33,10 +33,20 @@ test("Lasry and Denis integration", {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
 
+    const responseBody = await response.text();
+    let data = null;
+    if (responseBody) {
+      try {
+        data = JSON.parse(responseBody);
+      } catch {
+        data = responseBody;
+      }
+    }
+
     return {
       status: response.status,
       cookie: response.headers.get("set-cookie")?.split(";")[0],
-      data: response.status === 204 ? null : await response.json(),
+      data: response.status === 204 ? null : data,
     };
   }
 
@@ -49,12 +59,17 @@ test("Lasry and Denis integration", {
   };
   let userId;
   let userCookie;
+  let secondUserId;
+  let secondUserCookie;
   let adminId;
   let adminCookie;
   let companyId;
   let categoryId;
   let publishedId;
   let closedId;
+  let applicationId;
+  let projectId;
+  let experienceId;
 
   await t.test("registration, login and profile keep the default USER role", async () => {
     assert.equal((await request("/api/auth/me")).status, 401);
@@ -77,6 +92,227 @@ test("Lasry and Denis integration", {
     assert.equal(profile.data.id, userId);
     assert.equal(profile.data.email, account.email);
     assert.equal(profile.data.password_hash, undefined);
+  });
+
+  await t.test("candidate profile can be updated without changing its role", async () => {
+    assert.equal((await request("/api/people/me")).status, 401);
+
+    const secondAccount = {
+      first_name: "Other",
+      last_name: "Candidate",
+      email: `other-${Date.now()}@example.com`,
+      password: "Integration2026!",
+    };
+    const secondCreated = await request("/api/auth/register", {
+      method: "POST",
+      body: secondAccount,
+    });
+    assert.equal(secondCreated.status, 201);
+    secondUserId = secondCreated.data.id;
+    const secondLogin = await request("/api/auth/login", {
+      method: "POST",
+      body: secondAccount,
+    });
+    assert.equal(secondLogin.status, 200);
+    secondUserCookie = secondLogin.cookie;
+
+    const profile = await request("/api/people/me", { cookie: userCookie });
+    assert.equal(profile.status, 200);
+    assert.equal(profile.data.id, userId);
+    assert.equal(profile.data.role, "USER");
+    assert.equal(profile.data.password_hash, undefined);
+
+    const updated = await request("/api/people/me", {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { first_name: "Updated", phone: "0612345678" },
+    });
+    assert.equal(updated.status, 200);
+    assert.equal(updated.data.first_name, "Updated");
+    assert.equal(updated.data.phone, "0612345678");
+    assert.equal(updated.data.role, "USER");
+
+    assert.equal((await request("/api/people/me", {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { role: "ADMIN" },
+    })).status, 400);
+    assert.equal((await request("/api/people/me", {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { first_name: " " },
+    })).status, 400);
+    assert.equal((await request("/api/people/me", {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { email: secondAccount.email },
+    })).status, 409);
+
+    const unchanged = await pool.query(
+      "SELECT first_name, email, role FROM people WHERE id = $1",
+      [userId],
+    );
+    assert.equal(unchanged.rows[0].first_name, "Updated");
+    assert.equal(unchanged.rows[0].email, account.email);
+    assert.equal(unchanged.rows[0].role, "USER");
+  });
+
+  await t.test("projects belong to their candidate and reject invalid data", async () => {
+    assert.equal((await request("/api/projects")).status, 401);
+    assert.equal((await request("/api/projects", {
+      method: "POST",
+      body: { title: "No session" },
+    })).status, 401);
+    assert.equal((await request("/api/projects", {
+      method: "POST",
+      cookie: userCookie,
+      body: { title: " " },
+    })).status, 400);
+
+    const projectFields = {
+      title: "Portfolio",
+      description: "A small web project.",
+      project_url: "https://example.com/project",
+      repository_url: "https://github.com/example/project",
+    };
+    assert.equal((await request("/api/projects", {
+      method: "POST",
+      cookie: userCookie,
+      body: { ...projectFields, person_id: secondUserId },
+    })).status, 400);
+    const created = await request("/api/projects", {
+      method: "POST",
+      cookie: userCookie,
+      body: projectFields,
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.data.person_id, undefined);
+    projectId = created.data.id;
+    assert.equal((await pool.query(
+      "SELECT person_id FROM projects WHERE id = $1",
+      [projectId],
+    )).rows[0].person_id, userId);
+
+    const ownList = await request("/api/projects", { cookie: userCookie });
+    assert.equal(ownList.status, 200);
+    assert.ok(ownList.data.some((project) => project.id === projectId));
+    assert.deepEqual((await request("/api/projects", { cookie: secondUserCookie })).data, []);
+    assert.equal((await request(`/api/projects/${projectId}`, {
+      method: "PATCH",
+      cookie: secondUserCookie,
+      body: { title: "Takeover" },
+    })).status, 404);
+    assert.equal((await request(`/api/projects/${projectId}`, {
+      method: "DELETE",
+      cookie: secondUserCookie,
+    })).status, 404);
+    assert.equal((await request(`/api/projects/${projectId}`, {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { project_url: "javascript:alert(1)" },
+    })).status, 400);
+
+    const updated = await request(`/api/projects/${projectId}`, {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { title: "Portfolio updated", repository_url: "" },
+    });
+    assert.equal(updated.status, 200);
+    assert.equal(updated.data.title, "Portfolio updated");
+    assert.equal(updated.data.repository_url, null);
+  });
+
+  await t.test("experiences belong to their candidate and validate dates", async () => {
+    assert.equal((await request("/api/experiences")).status, 401);
+    assert.equal((await request("/api/experiences", {
+      method: "POST",
+      cookie: userCookie,
+      body: { company_name: " ", job_title: "Developer" },
+    })).status, 400);
+    assert.equal((await request("/api/experiences", {
+      method: "POST",
+      cookie: userCookie,
+      body: {
+        company_name: "Savane Tech",
+        job_title: "Developer",
+        start_date: "2023-04-01",
+        end_date: "2022-03-01",
+      },
+    })).status, 400);
+    assert.equal((await request("/api/experiences", {
+      method: "POST",
+      cookie: userCookie,
+      body: {
+        company_name: "Savane Tech",
+        job_title: "Developer",
+        start_date: "2023-02-30",
+      },
+    })).status, 400);
+
+    const experienceFields = {
+      company_name: "Savane Tech",
+      job_title: "Developer",
+      description: "Built web pages.",
+      start_date: "2023-04-01",
+      end_date: null,
+    };
+    assert.equal((await request("/api/experiences", {
+      method: "POST",
+      cookie: userCookie,
+      body: { ...experienceFields, person_id: secondUserId },
+    })).status, 400);
+    const created = await request("/api/experiences", {
+      method: "POST",
+      cookie: userCookie,
+      body: experienceFields,
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.data.person_id, undefined);
+    experienceId = created.data.id;
+    assert.equal((await pool.query(
+      "SELECT person_id FROM experiences WHERE id = $1",
+      [experienceId],
+    )).rows[0].person_id, userId);
+
+    const ownList = await request("/api/experiences", { cookie: userCookie });
+    assert.equal(ownList.status, 200);
+    assert.ok(ownList.data.some((experience) => experience.id === experienceId));
+    assert.deepEqual((await request("/api/experiences", { cookie: secondUserCookie })).data, []);
+    assert.equal((await request(`/api/experiences/${experienceId}`, {
+      method: "PATCH",
+      cookie: secondUserCookie,
+      body: { job_title: "Takeover" },
+    })).status, 404);
+    assert.equal((await request(`/api/experiences/${experienceId}`, {
+      method: "DELETE",
+      cookie: secondUserCookie,
+    })).status, 404);
+    const updated = await request(`/api/experiences/${experienceId}`, {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { job_title: "Senior Developer" },
+    });
+    assert.equal(updated.status, 200);
+    assert.equal(updated.data.job_title, "Senior Developer");
+
+    const addEndDate = await request(`/api/experiences/${experienceId}`, {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { end_date: "2024-03-01" },
+    });
+    assert.equal(addEndDate.status, 200);
+    assert.equal((await request(`/api/experiences/${experienceId}`, {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { start_date: null },
+    })).status, 400);
+    const clearEndDate = await request(`/api/experiences/${experienceId}`, {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { end_date: null },
+    });
+    assert.equal(clearEndDate.status, 200);
+    assert.equal(clearEndDate.data.end_date, null);
   });
 
   await t.test("every catalogue URL rejects visitors and USER accounts", async () => {
@@ -278,6 +514,7 @@ test("Lasry and Denis integration", {
     assert.equal((await request("/api/applications", { method: "POST", body })).status, 401);
     const created = await request("/api/applications", { method: "POST", cookie: userCookie, body });
     assert.equal(created.status, 201);
+    applicationId = created.data.id;
     assert.equal(created.data.status, "sent");
     const saved = await pool.query("SELECT person_id, ad_id, message FROM applications WHERE id = $1", [created.data.id]);
     assert.equal(saved.rows[0].person_id, userId);
@@ -292,6 +529,53 @@ test("Lasry and Denis integration", {
     assert.equal((await request("/api/applications", {
       method: "POST", cookie: userCookie, body: { ...body, message: " " },
     })).status, 400);
+  });
+
+  await t.test("linked projects and experiences cannot be deleted", async (subtest) => {
+    if (!applicationId || !projectId || !experienceId) {
+      subtest.skip("requires the application and candidate items to be created first");
+      return;
+    }
+    await pool.query(
+      `INSERT INTO application_projects (application_id, project_id, person_id)
+       VALUES ($1, $2, $3)`,
+      [applicationId, projectId, userId],
+    );
+    await pool.query(
+      `INSERT INTO application_experiences (application_id, experience_id, person_id)
+       VALUES ($1, $2, $3)`,
+      [applicationId, experienceId, userId],
+    );
+
+    const projectDelete = await request(`/api/projects/${projectId}`, {
+      method: "DELETE",
+      cookie: userCookie,
+    });
+    assert.equal(projectDelete.status, 409);
+    const experienceDelete = await request(`/api/experiences/${experienceId}`, {
+      method: "DELETE",
+      cookie: userCookie,
+    });
+    assert.equal(experienceDelete.status, 409);
+    assert.equal((await pool.query(
+      "SELECT 1 FROM application_projects WHERE project_id = $1",
+      [projectId],
+    )).rowCount, 1);
+    assert.equal((await pool.query(
+      "SELECT 1 FROM application_experiences WHERE experience_id = $1",
+      [experienceId],
+    )).rowCount, 1);
+
+    const otherProject = await request("/api/projects", {
+      method: "POST",
+      cookie: secondUserCookie,
+      body: { title: "Temporary project" },
+    });
+    assert.equal(otherProject.status, 201);
+    assert.equal((await request(`/api/projects/${otherProject.data.id}`, {
+      method: "DELETE",
+      cookie: secondUserCookie,
+    })).status, 204);
   });
 
   await t.test("closing and reopening an offer controls public visibility and applications", async () => {

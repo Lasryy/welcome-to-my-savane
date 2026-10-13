@@ -1,5 +1,13 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 13 octobre 2026 : étape 4 Lasry
+
+La branche `lasry` contient le profil éditable, les projets et les expériences. `/profile` charge trois sections depuis `GET/PATCH /api/people/me`, `GET/POST /api/projects` et `GET/POST /api/experiences`. Les éléments sont modifiables et supprimables via `PATCH/DELETE` sur leur identifiant.
+
+Le propriétaire vient de la session ; les requêtes filtrent les éléments par identifiant et propriétaire. Les champs de rôle, mot de passe et propriétaire ne sont pas modifiables dans le profil. Les URLs HTTP(S), les limites de texte et les dates sont validées. La suppression d'un projet ou d'une expérience lié à une candidature renvoie 409. Les routes sont documentées dans Swagger.
+
+Avant le push : 17 tests d'intégration réussis sur une base isolée `wtms_test_*`, ESLint et build frontend réussis. La vérification manuelle complète du parcours navigateur reste indiquée comme à faire dans le plan. Cette livraison ne comprend ni CV ni sélection de preuves dans le formulaire de candidature. L'intégration de l'étape 4 Denis dans `main` reste distincte.
+
 ## Mise à jour du 12 octobre 2026 : intégration étape 3 et Swagger
 
 La branche Lasry réunit son historique et suivi des candidatures, la gestion admin des comptes et des candidatures, ainsi que le CRUD offres étape 3 et Swagger de Denis (`37c3356`). Le menu de statuts des candidatures conserve le correctif de débordement des cartes.

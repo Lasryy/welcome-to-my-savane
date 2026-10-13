@@ -13,6 +13,7 @@ Job board full-stack en cours de développement.
 - Étape 3 Lasry : historique personnel, suivi des statuts, liste des candidatures admin et gestion des comptes.
 - Swagger : documentation disponible sur `http://localhost:3000/api-docs`, spécification sur `/api-docs/openapi.json`.
 - Étape 3 Denis : CRUD des offres complet, boutons de fermeture/réouverture et suppression refusée lorsqu’une candidature est liée.
+- Étape 4 Lasry : profil éditable sur `/profile`, avec gestion des projets et expériences du compte connecté. Les API vérifient le propriétaire, les champs autorisés, les URLs et les dates ; supprimer une preuve déjà liée à une candidature est refusé.
 - Docker Compose : PostgreSQL, API et frontend peuvent être lancés ensemble.
 
 ## Technologies
@@ -92,7 +93,7 @@ backend/   API Express, contrôleurs, routes et connexion PostgreSQL (`pg`)
 
 ## Prochaines étapes
 
-1. Étape 4 : profil éditable, projets et expériences ; recherche et filtres côté API, tri et pagination.
+1. Étape 4 Denis : recherche et filtres côté API, tri et pagination ; intégrer les deux parties après leur validation.
 2. Étapes suivantes : CV, sélection des preuves par candidature et consultation du dossier envoyé.
 3. Finalisation : documentation Swagger de chaque nouvelle route et vérification du parcours complet.
 

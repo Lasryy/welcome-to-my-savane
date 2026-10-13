@@ -28,8 +28,16 @@
     @apply grid flex-1 place-items-center px-6 py-10 pb-14;
   }
 
+  .auth-content-wide {
+    @apply items-start;
+  }
+
   .auth-panel {
     @apply w-full max-w-[440px] rounded-tl-xl rounded-tr-[36px] border border-rule bg-white p-9;
+  }
+
+  .auth-panel-wide {
+    @apply max-w-[880px];
   }
 
   .auth-title {
@@ -95,6 +103,70 @@
 
   .profile-data dd {
     @apply mt-1 font-bold;
+  }
+
+  .profile-section {
+    @apply grid gap-5 border-b border-rule pb-8 last:border-0 last:pb-0;
+  }
+
+  .profile-section-heading {
+    @apply flex flex-wrap items-start justify-between gap-3;
+  }
+
+  .profile-section-heading h2 {
+    @apply m-0 text-xl font-extrabold text-ink;
+  }
+
+  .profile-section-heading p {
+    @apply mt-1 mb-0 max-w-[68ch] text-sm leading-6 text-ink/75;
+  }
+
+  .profile-role {
+    @apply rounded-[3px] bg-paper px-3 py-2 text-sm font-semibold;
+  }
+
+  .profile-actions {
+    @apply flex flex-wrap gap-3;
+  }
+
+  .profile-actions .primary-button {
+    @apply w-auto;
+  }
+
+  .profile-record-list {
+    @apply grid gap-3;
+  }
+
+  .profile-empty {
+    @apply m-0 rounded-[3px] bg-paper p-4 text-sm text-ink/75;
+  }
+
+  .profile-record {
+    @apply grid gap-4 border border-rule p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start;
+  }
+
+  .profile-record h3 {
+    @apply m-0 text-base font-bold text-ink;
+  }
+
+  .profile-record p {
+    @apply mt-2 mb-0 whitespace-pre-wrap text-sm leading-6 text-ink/80;
+  }
+
+  .profile-record .profile-record-dates {
+    @apply text-sm font-semibold text-ink/70;
+  }
+
+  .profile-record-links {
+    @apply mt-3 flex flex-wrap gap-4 text-sm font-bold underline underline-offset-4;
+  }
+
+  .profile-record-actions {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .profile-record-actions .secondary-button {
+    @apply min-h-10 px-3 py-2 text-sm;
   }
 
   /* These classes keep the application form in the same visual system. */
@@ -186,5 +258,13 @@
 
   .auth-panel {
     @apply p-[28px_24px];
+  }
+
+  .auth-panel-wide {
+    @apply p-5;
+  }
+
+  .profile-record {
+    @apply p-3;
   }
 }

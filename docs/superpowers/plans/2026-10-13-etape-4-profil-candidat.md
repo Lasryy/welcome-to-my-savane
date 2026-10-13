@@ -42,11 +42,11 @@
 - `GET /api/people/me` returns `id`, `first_name`, `last_name`, `email`, `phone`, `role` for the session account.
 - `PATCH /api/people/me` accepts only `first_name`, `last_name`, `email`, `phone`; it returns the updated public account.
 
-- [ ] **Step 1: Add API cases to the existing integration suite** for unauthenticated access, successful GET/PATCH, forbidden fields, invalid values and duplicate email.
-- [ ] **Step 2: Run the focused API test** and confirm the new cases fail before implementation.
-- [ ] **Step 3: Implement session-owned GET/PATCH** with field allowlist, trimmed values, email format/uniqueness validation, parameterized SQL, and 400/401/409 responses.
-- [ ] **Step 4: Document both routes in Swagger** with cookie security, payload fields and errors.
-- [ ] **Step 5: Run the focused API test** and confirm it passes.
+- [x] **Step 1: Add API cases to the existing integration suite** for unauthenticated access, successful GET/PATCH, forbidden fields, invalid values and duplicate email.
+- [x] **Step 2: Run the focused API test** and confirm the new cases fail before implementation.
+- [x] **Step 3: Implement session-owned GET/PATCH** with field allowlist, trimmed values, email format/uniqueness validation, parameterized SQL, and 400/401/409 responses.
+- [x] **Step 4: Document both routes in Swagger** with cookie security, payload fields and errors.
+- [x] **Step 5: Run the focused API test** and confirm it passes.
 
 ### Task 2: CRUD API des projets et expériences
 
@@ -64,12 +64,12 @@
 - Items: `PATCH/DELETE /api/projects/:id` and `PATCH/DELETE /api/experiences/:id`.
 - JSON names mirror the SQL columns; ownership always comes from the session.
 
-- [ ] **Step 1: Add API cases to the existing integration suite** for each CRUD operation, required fields, bounds, URL/date validation, 401, cross-account IDs and associated-item deletion.
-- [ ] **Step 2: Run focused API tests** and confirm the new cases fail before implementation.
-- [ ] **Step 3: Implement projects CRUD** with title validation, optional HTTP(S) URLs, owner-scoped SQL and 409 for projects linked to applications.
-- [ ] **Step 4: Implement experiences CRUD** with company/title validation, optional valid dates, owner-scoped SQL and 409 for experiences linked to applications.
-- [ ] **Step 5: Document all routes in Swagger** including request/response fields and status codes.
-- [ ] **Step 6: Run focused API tests** and confirm all new cases pass.
+- [x] **Step 1: Add API cases to the existing integration suite** for each CRUD operation, required fields, bounds, URL/date validation, 401, cross-account IDs and associated-item deletion.
+- [x] **Step 2: Run focused API tests** and confirm the new cases fail before implementation.
+- [x] **Step 3: Implement projects CRUD** with title validation, optional HTTP(S) URLs, owner-scoped SQL and 409 for projects linked to applications.
+- [x] **Step 4: Implement experiences CRUD** with company/title validation, optional valid dates, owner-scoped SQL and 409 for experiences linked to applications.
+- [x] **Step 5: Document all routes in Swagger** including request/response fields and status codes.
+- [x] **Step 6: Run focused API tests** and confirm all new cases pass.
 
 ### Task 3: Page Profil complète
 
@@ -82,10 +82,10 @@
 - Load account with `GET /api/people/me`; load projects and experiences from their collection routes.
 - Use PATCH on existing records and POST for new ones; DELETE only after confirmation.
 
-- [ ] **Step 1: Implement the account section** with editable name, email and optional phone; exclude role/password fields.
-- [ ] **Step 2: Implement project forms and list** with title, description, project URL and repository URL.
-- [ ] **Step 3: Implement experience forms and list** with company, title, description and dates; allow an empty list.
-- [ ] **Step 4: Add clear loading, empty, error, success and deletion-conflict feedback.**
+- [x] **Step 1: Implement the account section** with editable name, email and optional phone; exclude role/password fields.
+- [x] **Step 2: Implement project forms and list** with title, description, project URL and repository URL.
+- [x] **Step 3: Implement experience forms and list** with company, title, description and dates; allow an empty list.
+- [x] **Step 4: Add clear loading, empty, error, success and deletion-conflict feedback.**
 - [ ] **Step 5: Manually verify the three profile sections** in the running app; run ESLint and production build.
 
 ### Task 4: Validation intégrée
@@ -93,9 +93,9 @@
 **Files:**
 - Modify if needed: `backend/test/integration.test.js`
 
-- [ ] **Step 1:** Run the existing integration suite against a dedicated database whose name starts with `wtms_test_`; do not point it at development data.
-- [ ] **Step 2:** Run frontend lint and build.
-- [ ] **Step 3:** Verify Swagger serves the six route groups at `/api-docs` and `/api-docs/openapi.json`.
+- [x] **Step 1:** Run the existing integration suite against a dedicated database whose name starts with `wtms_test_`; do not point it at development data.
+- [x] **Step 2:** Run frontend lint and build.
+- [x] **Step 3:** Generate the Swagger spec and confirm all five profile/project/experience paths are documented. Live HTTP access to the Docker-hosted Swagger endpoint was unavailable in this shell.
 - [ ] **Step 4:** Verify the browser flow with two accounts: create/edit items, ensure cross-account IDs fail, and ensure linked-item deletion is refused.
 
 ---

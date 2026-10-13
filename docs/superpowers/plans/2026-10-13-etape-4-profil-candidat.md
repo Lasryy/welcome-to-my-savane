@@ -36,13 +36,13 @@
 - Create: `backend/src/routes/profile_routes.js`
 - Modify: `backend/src/app.js`
 - Modify: `backend/src/docs/api.js`
-- Test: `backend/test/profile.test.js`
+- Test: `backend/test/integration.test.js` (isolated test database only)
 
 **Interfaces:**
 - `GET /api/people/me` returns `id`, `first_name`, `last_name`, `email`, `phone`, `role` for the session account.
 - `PATCH /api/people/me` accepts only `first_name`, `last_name`, `email`, `phone`; it returns the updated public account.
 
-- [ ] **Step 1: Add API cases** for unauthenticated access, successful GET/PATCH, forbidden fields, invalid values and duplicate email.
+- [ ] **Step 1: Add API cases to the existing integration suite** for unauthenticated access, successful GET/PATCH, forbidden fields, invalid values and duplicate email.
 - [ ] **Step 2: Run the focused API test** and confirm the new cases fail before implementation.
 - [ ] **Step 3: Implement session-owned GET/PATCH** with field allowlist, trimmed values, email format/uniqueness validation, parameterized SQL, and 400/401/409 responses.
 - [ ] **Step 4: Document both routes in Swagger** with cookie security, payload fields and errors.
@@ -57,15 +57,14 @@
 - Create: `backend/src/routes/experiences_routes.js`
 - Modify: `backend/src/app.js`
 - Modify: `backend/src/docs/api.js`
-- Test: `backend/test/projects.test.js`
-- Test: `backend/test/experiences.test.js`
+- Test: `backend/test/integration.test.js` (isolated test database only)
 
 **Interfaces:**
 - Collections: `GET/POST /api/projects` and `GET/POST /api/experiences`.
 - Items: `PATCH/DELETE /api/projects/:id` and `PATCH/DELETE /api/experiences/:id`.
 - JSON names mirror the SQL columns; ownership always comes from the session.
 
-- [ ] **Step 1: Add tests** for each CRUD operation, required fields, bounds, URL/date validation, 401, cross-account IDs and associated-item deletion.
+- [ ] **Step 1: Add API cases to the existing integration suite** for each CRUD operation, required fields, bounds, URL/date validation, 401, cross-account IDs and associated-item deletion.
 - [ ] **Step 2: Run focused API tests** and confirm the new cases fail before implementation.
 - [ ] **Step 3: Implement projects CRUD** with title validation, optional HTTP(S) URLs, owner-scoped SQL and 409 for projects linked to applications.
 - [ ] **Step 4: Implement experiences CRUD** with company/title validation, optional valid dates, owner-scoped SQL and 409 for experiences linked to applications.
@@ -78,26 +77,23 @@
 - Modify: `frontend/src/pages/auth/ProfilePage.jsx`
 - Create if useful: focused profile/project/experience form components beside `ProfilePage.jsx`.
 - Modify only if needed: `frontend/src/styles/components.css`
-- Test: `frontend/src/pages/auth/ProfilePage.test.jsx`
 
 **Interfaces:**
 - Load account with `GET /api/people/me`; load projects and experiences from their collection routes.
 - Use PATCH on existing records and POST for new ones; DELETE only after confirmation.
 
-- [ ] **Step 1: Add UI cases** for the three sections, edit/save, empty lists, success/error/loading and delete confirmation.
-- [ ] **Step 2: Run focused UI tests** and confirm new cases fail before implementation.
-- [ ] **Step 3: Implement the account section** with editable name, email and optional phone; exclude role/password fields.
-- [ ] **Step 4: Implement project forms and list** with title, description, project URL and repository URL.
-- [ ] **Step 5: Implement experience forms and list** with company, title, description and dates; allow an empty list.
-- [ ] **Step 6: Add clear loading, empty, error, success and deletion-conflict feedback.**
-- [ ] **Step 7: Run focused UI tests, ESLint and production build.**
+- [ ] **Step 1: Implement the account section** with editable name, email and optional phone; exclude role/password fields.
+- [ ] **Step 2: Implement project forms and list** with title, description, project URL and repository URL.
+- [ ] **Step 3: Implement experience forms and list** with company, title, description and dates; allow an empty list.
+- [ ] **Step 4: Add clear loading, empty, error, success and deletion-conflict feedback.**
+- [ ] **Step 5: Manually verify the three profile sections** in the running app; run ESLint and production build.
 
 ### Task 4: Validation intégrée
 
 **Files:**
 - Modify if needed: `backend/test/integration.test.js`
 
-- [ ] **Step 1:** Run the targeted backend tests for profile, projects and experiences.
+- [ ] **Step 1:** Run the existing integration suite against a dedicated database whose name starts with `wtms_test_`; do not point it at development data.
 - [ ] **Step 2:** Run frontend lint and build.
 - [ ] **Step 3:** Verify Swagger serves the six route groups at `/api-docs` and `/api-docs/openapi.json`.
 - [ ] **Step 4:** Verify the browser flow with two accounts: create/edit items, ensure cross-account IDs fail, and ensure linked-item deletion is refused.
@@ -109,4 +105,6 @@
 - Spec coverage: account GET/PATCH, projects CRUD, experiences CRUD, session ownership, validation, relationship-preserving deletion, UI states, responsive/accessibility review, Swagger and focused verification are assigned above.
 - Existing SQL tables and application associations are reused; no migration is included.
 - Route names, methods, session ownership and error outcomes match the spec.
-- End-to-end browser verification remains part of Task 4 because automated UI tests alone do not prove database persistence.
+- The repository has no frontend test runner or component-test dependency; keep the implementation dependency-free and verify the page manually in the browser.
+- The backend suite uses Node's built-in test runner and a dedicated PostgreSQL database guard; extend that suite rather than inventing a second test harness.
+- End-to-end browser verification remains part of Task 4 because API tests alone do not prove the page persists data correctly.

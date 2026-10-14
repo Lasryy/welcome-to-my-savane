@@ -85,12 +85,14 @@ docker compose up --build -d
 
 La commande `down -v` supprime définitivement les données conservées dans le volume local. Ne l’utilisez que si vous souhaitez vraiment réinitialiser votre base.
 
-Compte candidat de démonstration :
+Comptes de démonstration créés par le seed :
 
-- E-mail : `alice.martin@example.com`
-- Mot de passe : `JobBoardDemo2026!`
+| Rôle | E-mail | Mot de passe |
+| --- | --- | --- |
+| Candidat | `alice.martin@example.com` | `JobBoardDemo2026!` |
+| Administrateur | `admin@jobboard.example.com` | `JobBoardDemo2026!` |
 
-Un compte administrateur de démonstration existe aussi : `admin@jobboard.example.com`, avec le même mot de passe. Ces identifiants sont réservés au seed local et ne doivent pas être réutilisés en production.
+Ces comptes sont présents après une initialisation neuve de la base. Ils servent uniquement au développement local et ne doivent pas être réutilisés en production.
 
 ## Technologies et versions
 

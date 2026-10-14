@@ -8,6 +8,14 @@ La table `cv_documents` est ajoutée au schéma neuf et par `db/migrations/001_c
 
 Contrats, installation et scénarios : [docs/GUIDE-CV.md](docs/GUIDE-CV.md).
 
+## Mise à jour du 14 octobre 2026 : D5.2 Denis
+
+Le nouveau PDF devient le CV courant dans la transaction de dépôt ; l’ancienne version reste stockée. `GET /api/cv-documents/current` renvoie la version courante ou `null`. `DELETE` retire le statut courant sans effacer le fichier. Une contrainte SQL unique empêche deux CV courants pour un même compte.
+
+Composant autonome `frontend/src/components/profile/CvManager.jsx` : afficher, consulter, remplacer et retirer le CV ; retours de chargement, succès et erreur inclus. Selon le partage de responsabilités de la roadmap, Lasry monte ce composant dans sa page Profil. Son formulaire de candidature n’a pas été modifié.
+
+Migration additive requise pour un volume PostgreSQL déjà créé : appliquer d’abord `001_cv_documents.sql` si D5.1 n’est pas déjà dans la base, puis `002_current_cv.sql`. Vérifications et guide mis à jour dans [docs/ETAPE-5-DENIS.md](docs/ETAPE-5-DENIS.md).
+
 ## Mise à jour du 13 octobre 2026 : étape 4 Lasry
 
 La branche `lasry` contient le profil éditable, les projets et les expériences. `/profile` charge trois sections depuis `GET/PATCH /api/people/me`, `GET/POST /api/projects` et `GET/POST /api/experiences`. Les éléments sont modifiables et supprimables via `PATCH/DELETE` sur leur identifiant.

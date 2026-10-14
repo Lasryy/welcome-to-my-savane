@@ -357,6 +357,18 @@ test("Lasry and Denis integration", {
     await pool.query(migration);
     await pool.query(migration);
     assert.deepEqual(await counts(), before);
+    const legacyDocument = await pool.query(
+      `INSERT INTO cv_documents (person_id, original_name, storage_key, mime_type, size_bytes)
+       VALUES ($1, 'ancien.pdf', 'b161c8f0-f6e8-4e77-9ca8-23d9a30b82aa.pdf', 'application/pdf', 4)
+       RETURNING id`,
+      [userId],
+    );
+    const cvMigration = await fs.readFile(path.join(__dirname, "../../db/migrations/002_current_cv.sql"), "utf8");
+    await pool.query(cvMigration);
+    await pool.query(cvMigration);
+    assert.equal((await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'cv_documents' AND column_name = 'is_current'")).rowCount, 1);
+    assert.equal((await pool.query("SELECT is_current FROM cv_documents WHERE id = $1", [legacyDocument.rows[0].id])).rows[0].is_current, false);
+    await pool.query("DELETE FROM cv_documents WHERE id = $1", [legacyDocument.rows[0].id]);
   });
 
   async function uploadCv({ cookie = userCookie, bytes, name = "cv.pdf", type = "application/pdf", field = "file", extra, twice = false } = {}) {
@@ -421,6 +433,39 @@ test("Lasry and Denis integration", {
     assert.equal(new Set([cvId, ...versions.map((version) => version.data.id)]).size, 3);
     const documents = await pool.query("SELECT storage_key FROM cv_documents WHERE person_id = $1", [userId]);
     assert.equal(new Set(documents.rows.map((document) => document.storage_key)).size, 3);
+    const current = await pool.query("SELECT id FROM cv_documents WHERE person_id = $1 AND is_current", [userId]);
+    assert.equal(current.rowCount, 1);
+    assert.ok([cvId, ...versions.map((version) => version.data.id)].includes(current.rows[0].id));
+    const olderVersionId = [cvId, ...versions.map((version) => version.data.id)].find((id) => id !== current.rows[0].id);
+    await assert.rejects(
+      pool.query("UPDATE cv_documents SET is_current = TRUE WHERE id = $1", [olderVersionId]),
+      (error) => error.code === "23505",
+    );
+  });
+
+  await t.test("candidate can read, replace and remove only their current CV", async () => {
+    assert.equal((await request("/api/cv-documents/current")).status, 401);
+    const currentResponse = await request("/api/cv-documents/current", { cookie: userCookie });
+    assert.equal(currentResponse.status, 200);
+    assert.ok(currentResponse.data);
+    assert.equal(currentResponse.data.storage_key, undefined);
+    assert.equal((await request("/api/cv-documents/current", { cookie: secondUserCookie })).data, null);
+
+    const replaced = await uploadCv({ bytes: pdfBytes, name: "cv-remplacement.pdf" });
+    assert.equal(replaced.status, 201);
+    assert.notEqual(replaced.data.id, currentResponse.data.id);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data.id, replaced.data.id);
+    assert.equal((await request(`/api/cv-documents/${cvId}/file`, { cookie: userCookie })).status, 200);
+
+    assert.equal((await request("/api/cv-documents/current", { method: "DELETE" })).status, 401);
+    assert.equal((await request("/api/cv-documents/current", { method: "DELETE", cookie: secondUserCookie })).status, 204);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data.id, replaced.data.id);
+    assert.equal((await request("/api/cv-documents/current", { method: "DELETE", cookie: userCookie })).status, 204);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data, null);
+    assert.equal((await request(`/api/cv-documents/${replaced.data.id}/file`, { cookie: userCookie })).status, 200);
+    const restored = await uploadCv({ bytes: pdfBytes, name: "cv-actuel.pdf" });
+    assert.equal(restored.status, 201);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data.id, restored.data.id);
   });
 
   await t.test("CV files are readable only by their owner or a current ADMIN", async () => {
@@ -462,6 +507,7 @@ test("Lasry and Denis integration", {
   await t.test("a failed CV SQL insert removes its file and Swagger describes CV routes", async () => {
     const before = await fs.readdir(cvStorageDir);
     const count = (await pool.query("SELECT COUNT(*) FROM cv_documents")).rows[0].count;
+    const currentBeforeFailure = (await pool.query("SELECT id FROM cv_documents WHERE person_id = $1 AND is_current", [userId])).rows[0]?.id;
     // Force a real SQL failure in the isolated test database to check compensation.
     await pool.query(`CREATE FUNCTION reject_test_cv() RETURNS trigger LANGUAGE plpgsql AS
       $$ BEGIN RAISE EXCEPTION 'Forced CV test failure'; END $$;
@@ -471,12 +517,15 @@ test("Lasry and Denis integration", {
       assert.equal((await uploadCv({ bytes: pdfBytes })).status, 500);
       assert.deepEqual(await fs.readdir(cvStorageDir), before);
       assert.equal((await pool.query("SELECT COUNT(*) FROM cv_documents")).rows[0].count, count);
+      assert.equal((await pool.query("SELECT id FROM cv_documents WHERE person_id = $1 AND is_current", [userId])).rows[0]?.id, currentBeforeFailure);
     } finally {
       await pool.query("DROP TRIGGER reject_test_cv ON cv_documents; DROP FUNCTION reject_test_cv()");
     }
     const swagger = await request("/api-docs/openapi.json");
     assert.equal(swagger.status, 200);
     assert.ok(swagger.data.paths["/api/cv-documents"].post.requestBody.content["multipart/form-data"]);
+    assert.ok(swagger.data.paths["/api/cv-documents/current"].get.security);
+    assert.ok(swagger.data.paths["/api/cv-documents/current"].delete.security);
     assert.ok(swagger.data.paths["/api/cv-documents/{id}/file"].get.security);
     assert.ok(swagger.data.components.schemas.CvDocument);
   });

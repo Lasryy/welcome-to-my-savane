@@ -30,6 +30,7 @@ async function createCvDocument(req, res) {
     .replace(/[\x00-\x1f\x7f]/g, "").slice(0, 255);
   let fileWritten = false;
 
+  let client;
   try {
     await fs.mkdir(CV_STORAGE_DIR, { recursive: true });
     const file = await fs.open(filePath, "wx", 0o600);
@@ -40,15 +41,33 @@ async function createCvDocument(req, res) {
       await file.close();
     }
 
-    const result = await pool.query(
+    client = await pool.connect();
+    await client.query("BEGIN");
+
+    // Only one upload for this account can replace its current CV at a time.
+    await client.query("SELECT id FROM people WHERE id = $1 FOR UPDATE", [req.cvAccount.id]);
+    await client.query(
+      "UPDATE cv_documents SET is_current = FALSE WHERE person_id = $1 AND is_current",
+      [req.cvAccount.id],
+    );
+    const result = await client.query(
       `INSERT INTO cv_documents (person_id, original_name, storage_key, mime_type, size_bytes)
        VALUES ($1, $2, $3, 'application/pdf', $4)
        RETURNING id, original_name, mime_type, size_bytes, created_at`,
       [req.cvAccount.id, originalName, storageKey, req.file.size],
     );
     const document = result.rows[0];
+    await client.query("UPDATE cv_documents SET is_current = TRUE WHERE id = $1", [document.id]);
+    await client.query("COMMIT");
     return res.status(201).json({ ...document, file_url: `/api/cv-documents/${document.id}/file` });
   } catch (error) {
+    if (client) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Error while rolling back CV upload:", rollbackError);
+      }
+    }
     // A failed SQL insert must not leave an unused file behind.
     if (fileWritten) {
       try {
@@ -59,6 +78,40 @@ async function createCvDocument(req, res) {
     }
     console.error("Error while creating CV document:", error);
     return res.status(500).json({ message: "Impossible d’enregistrer le CV." });
+  } finally {
+    client?.release();
+  }
+}
+
+async function getCurrentCv(req, res) {
+  try {
+    const result = await pool.query(
+      `SELECT id, original_name, mime_type, size_bytes, created_at
+       FROM cv_documents WHERE person_id = $1 AND is_current
+       ORDER BY created_at DESC, id DESC LIMIT 1`,
+      [req.cvAccount.id],
+    );
+    const document = result.rows[0];
+    return res.status(200).json(document
+      ? { ...document, file_url: `/api/cv-documents/${document.id}/file` }
+      : null);
+  } catch (error) {
+    console.error("Error while loading current CV:", error);
+    return res.status(500).json({ message: "Impossible de charger le CV." });
+  }
+}
+
+// Removing the current CV does not delete a file that might be referenced later.
+async function removeCurrentCv(req, res) {
+  try {
+    await pool.query(
+      "UPDATE cv_documents SET is_current = FALSE WHERE person_id = $1 AND is_current",
+      [req.cvAccount.id],
+    );
+    return res.status(204).end();
+  } catch (error) {
+    console.error("Error while removing current CV:", error);
+    return res.status(500).json({ message: "Impossible de retirer le CV." });
   }
 }
 
@@ -105,4 +158,4 @@ async function getCvFile(req, res, next) {
   }
 }
 
-module.exports = { requireCvAccount, createCvDocument, getCvFile };
+module.exports = { requireCvAccount, createCvDocument, getCurrentCv, removeCurrentCv, getCvFile };

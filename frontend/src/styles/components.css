@@ -182,6 +182,10 @@
     @apply mt-2 text-ink/75;
   }
 
+  .application-daily-count {
+    @apply mt-4 inline-flex rounded-full bg-mint/40 px-4 py-2 text-sm font-semibold text-ink;
+  }
+
   .application-error {
     @apply mt-6 rounded-xl border border-coral bg-coral/10 p-4;
   }
@@ -208,6 +212,50 @@
 
   .application-info-email {
     @apply sm:col-span-2;
+  }
+
+  .application-selection {
+    @apply mt-4;
+  }
+
+  .application-empty-selection {
+    @apply mt-4 border border-rule bg-paper p-4 text-sm text-ink/75;
+  }
+
+  .application-choice-card {
+    @apply rounded-tr-[18px] border border-rule bg-white p-4;
+  }
+
+  .application-choice-card-selected {
+    @apply border-ink bg-mint/30;
+  }
+
+  .application-choice-actions {
+    @apply mt-4 flex flex-wrap gap-2;
+  }
+
+  .application-choice-actions button {
+    @apply min-h-10 px-3 py-2 text-sm;
+  }
+
+  .application-item-dialog {
+    @apply max-h-[90dvh] w-[min(100%_-_24px,_680px)] max-w-none overflow-y-auto border border-rule bg-paper p-5 text-ink sm:p-7;
+  }
+
+  .application-item-dialog::backdrop {
+    background: rgb(37 42 70 / 62%);
+  }
+
+  .application-review-section {
+    @apply rounded-xl bg-paper p-4;
+  }
+
+  .application-review-section h4 {
+    @apply font-bold;
+  }
+
+  .application-review-section p {
+    @apply mt-1 whitespace-pre-wrap text-ink/80;
   }
 
   .application-message {

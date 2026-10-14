@@ -1068,7 +1068,7 @@
  *   post:
  *     tags: [Applications]
  *     summary: Submit an application to an offer
- *     description: Requires a logged-in account. person_id is taken from the session and must not be sent in the body. The offer must still be published.
+ *     description: Requires a logged-in account. person_id is taken from the session. Selected projects and experiences must belong to that account. The offer must still be published. The application and its selections are saved together.
  *     security:
  *       - sessionCookie: []
  *     requestBody:
@@ -1081,7 +1081,15 @@
  *             properties:
  *               ad_id: { type: integer, minimum: 1 }
  *               message: { type: string, minLength: 1, maxLength: 5000 }
- *           example: { ad_id: 12, message: Je souhaite rejoindre votre équipe car... }
+ *               project_ids:
+ *                 type: array
+ *                 items: { type: integer, minimum: 1 }
+ *                 description: Optional profile project IDs to include in the application.
+ *               experience_ids:
+ *                 type: array
+ *                 items: { type: integer, minimum: 1 }
+ *                 description: Optional profile experience IDs to include in the application.
+ *           example: { ad_id: 12, message: Je souhaite rejoindre votre équipe car..., project_ids: [3], experience_ids: [8] }
  *     responses:
  *       '201':
  *         description: Application submitted.
@@ -1093,10 +1101,24 @@
  *               message: Je souhaite rejoindre votre équipe car...
  *               status: sent
  *               created_at: '2026-01-15T10:00:00.000Z'
- *       '400': { description: Invalid offer ID or motivation message. }
+ *       '400': { description: Invalid offer ID, message, or selected profile items. }
  *       '401': { description: Login required. }
  *       '404': { description: Offer not found. }
  *       '409': { description: Offer is closed or the account already applied. }
+ *       '500': { description: Internal database error. }
+ * /api/applications/today:
+ *   get:
+ *     tags: [Applications]
+ *     summary: Count the current account's applications for the current Paris calendar day
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200':
+ *         description: Number of applications created by the account today.
+ *         content:
+ *           application/json:
+ *             example: { count: 2 }
+ *       '401': { description: Login required. }
  *       '500': { description: Internal database error. }
  */
 

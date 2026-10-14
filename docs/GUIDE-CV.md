@@ -117,7 +117,11 @@ commande pour vérifier la persistance.
 
 Le seed reste un outil de réinitialisation volontaire : il vide aussi les métadonnées
 CV pour respecter la clé étrangère vers people. Il ne supprime pas les fichiers sur
-disque ; leur nettoyage est prévu en D5.4. Ne pas lancer le seed pour migrer une base.
+disque. Ne pas lancer le seed pour migrer une base.
+
+Les fichiers UUID sans métadonnée sont nettoyés avec `npm --prefix backend run cleanup:cv`.
+Le script supprime uniquement les fichiers orphelins de plus de 24 heures ; il conserve
+les CV ayant une ligne en base, qu’ils soient courants ou joints à une candidature.
 
 ## Tests manuels dans Swagger ou Postman
 
@@ -154,7 +158,7 @@ pas les fonctionnalités. Utilise uniquement une base isolée dont le nom commen
 
 ## CV associé à une candidature
 
-`POST /api/applications` exige `ad_id`, `message` et `cv_document_id`. Le serveur
-vérifie que le CV appartient au compte connecté. La candidature garde le document
-choisi si le candidat change ensuite son CV par défaut. Les anciennes lignes peuvent
-avoir `cv_document_id = NULL`.
+`POST /api/applications` exige `ad_id` et `message`. `cv_document_id` est facultatif ;
+s’il est renseigné, le serveur vérifie que le CV appartient au compte connecté. La
+candidature garde le document choisi si le candidat change ensuite son CV par défaut.
+Les anciennes lignes peuvent aussi avoir `cv_document_id = NULL`.

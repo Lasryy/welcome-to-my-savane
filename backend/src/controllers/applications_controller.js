@@ -62,7 +62,10 @@ async function createApplication(req, res) {
   // Get the applicant's identity from the session, never from the submitted form.
   const personId = req.session.userId;
   const adId = Number(req.body?.ad_id);
-  const cvDocumentId = Number(req.body?.cv_document_id);
+  const rawCvDocumentId = req.body?.cv_document_id;
+  const cvDocumentId = rawCvDocumentId === undefined || rawCvDocumentId === null || rawCvDocumentId === ""
+    ? null
+    : Number(rawCvDocumentId);
   const message =
     typeof req.body?.message === "string" ? req.body.message.trim() : "";
   const selectedProjects = readSelectedIds(req.body?.project_ids, "project_ids");
@@ -75,8 +78,8 @@ async function createApplication(req, res) {
     return res.status(400).json({ error: "L’offre sélectionnée est invalide." });
   }
 
-  if (!Number.isSafeInteger(cvDocumentId) || cvDocumentId <= 0) {
-    return res.status(400).json({ error: "Choisis un CV avant d’envoyer ta candidature." });
+  if (cvDocumentId !== null && (!Number.isSafeInteger(cvDocumentId) || cvDocumentId <= 0)) {
+    return res.status(400).json({ error: "Le CV choisi est invalide." });
   }
 
   if (!message) {
@@ -128,15 +131,17 @@ async function createApplication(req, res) {
       });
     }
 
-    // A candidate can attach only one of their own saved CVs.
-    const cvResult = await client.query(
-      "SELECT id FROM cv_documents WHERE id = $1 AND person_id = $2",
-      [cvDocumentId, personId],
-    );
-    if (!cvResult.rowCount) {
-      await client.query("ROLLBACK");
-      transactionStarted = false;
-      return res.status(400).json({ error: "Le CV choisi n’appartient pas à ton profil." });
+    // A candidate can attach only one of their own saved CVs; a CV is optional.
+    if (cvDocumentId !== null) {
+      const cvResult = await client.query(
+        "SELECT id FROM cv_documents WHERE id = $1 AND person_id = $2",
+        [cvDocumentId, personId],
+      );
+      if (!cvResult.rowCount) {
+        await client.query("ROLLBACK");
+        transactionStarted = false;
+        return res.status(400).json({ error: "Le CV choisi n’appartient pas à ton profil." });
+      }
     }
 
     // The application is inserted only if the offer is still published.

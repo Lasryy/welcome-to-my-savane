@@ -1068,7 +1068,7 @@
  *   post:
  *     tags: [Applications]
  *     summary: Submit an application to an offer
- *     description: Requires a logged-in account and one CV from that account's library. person_id is taken from the session. Selected projects and experiences must belong to that account. The offer must still be published. The application and its selections are saved together.
+ *     description: Requires a logged-in account. An optional CV and all selected projects and experiences must belong to that account. person_id is taken from the session. The offer must still be published. The application and its selections are saved together.
  *     security:
  *       - sessionCookie: []
  *     requestBody:
@@ -1077,10 +1077,10 @@
  *         application/json:
  *           schema:
  *             type: object
- *             required: [ad_id, message, cv_document_id]
+ *             required: [ad_id, message]
  *             properties:
  *               ad_id: { type: integer, minimum: 1 }
- *               cv_document_id: { type: integer, minimum: 1, description: A CV document owned by the logged-in account. }
+ *               cv_document_id: { type: integer, minimum: 1, nullable: true, description: Optional CV document owned by the logged-in account. }
  *               message: { type: string, minLength: 1, maxLength: 5000 }
  *               project_ids:
  *                 type: array

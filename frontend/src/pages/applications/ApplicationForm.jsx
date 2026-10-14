@@ -71,7 +71,7 @@ export default function ApplicationForm({ ad, onCancel }) {
         method: "POST",
         body: JSON.stringify({
           ad_id: Number(ad.id),
-          cv_document_id: Number(selectedCvId),
+          cv_document_id: selectedCvId ? Number(selectedCvId) : null,
           message,
           project_ids: selectedProjectIds,
           experience_ids: selectedExperienceIds,
@@ -165,17 +165,26 @@ export default function ApplicationForm({ ad, onCancel }) {
           <section className="application-selection" aria-labelledby="application-cv-title">
             <h3 id="application-cv-title" className="text-lg font-bold">CV à joindre</h3>
             <p className="mt-1 text-sm text-ink/75">
-              Choisis le CV que l’entreprise recevra avec cette candidature.
+                Choisis un CV à joindre, ou continue sans CV.
             </p>
             {cvDocuments.length === 0 ? (
               <div className="application-empty-selection" role="status">
-                <p>Ajoute d’abord un CV à ton profil pour pouvoir postuler.</p>
+                <p>Tu peux postuler sans CV, ou en ajouter un à ton profil.</p>
                 <Link className="mt-3 inline-flex font-bold underline underline-offset-4" to="/profile">
                   Ajouter un CV dans mon profil
                 </Link>
               </div>
             ) : (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <button
+                  className={`application-choice-card text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${!selectedCvId ? "application-choice-card-selected" : "hover:bg-paper"}`}
+                  type="button"
+                  aria-pressed={!selectedCvId}
+                  onClick={() => setSelectedCvId("")}
+                >
+                  <span className="block font-bold">Ne pas joindre de CV</span>
+                  <span className="mt-1 block text-sm text-ink/75">Le CV est facultatif.</span>
+                </button>
                 {cvDocuments.map((document) => {
                   const isSelected = document.id === Number(selectedCvId);
                   return (
@@ -217,7 +226,7 @@ export default function ApplicationForm({ ad, onCancel }) {
           {submitError && <p className="form-error" role="alert">{submitError}</p>}
 
           <div className="application-actions">
-            <button className="primary-button" type="submit" disabled={!selectedCvId || cvDocuments.length === 0}>
+            <button className="primary-button" type="submit">
               Vérifier ma candidature
             </button>
             <button className="secondary-button" type="button" onClick={onCancel}>Annuler</button>

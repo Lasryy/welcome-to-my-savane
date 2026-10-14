@@ -94,12 +94,10 @@ Un compte administrateur de démonstration existe aussi : `admin@jobboard.exampl
 
 ## Technologies et versions
 
-Les versions des dépendances JavaScript viennent des `package-lock.json`. Node.js et PostgreSQL correspondent aux versions observées dans les conteneurs locaux le 14 octobre 2026. npm est fourni avec Node.js. Les tags Docker du dépôt (`node:22-alpine` et `postgres:17`) ne fixent que leur version majeure : Docker peut donc télécharger un correctif plus récent lors d’une nouvelle installation.
+Le projet utilise Node.js 22 et PostgreSQL 17 dans Docker. Les versions exactes des dépendances JavaScript sont verrouillées dans les fichiers `package-lock.json`.
 
 | Élément | Version utilisée |
 | --- | --- |
-| Node.js | 22.23.3 (`node:22-alpine` dans les Dockerfiles) |
-| PostgreSQL | 17.11 (`postgres:17` dans Compose) |
 | React | 19.3.0 |
 | React DOM | 19.3.0 |
 | React Router DOM | 7.18.4 |
@@ -109,8 +107,6 @@ Les versions des dépendances JavaScript viennent des `package-lock.json`. Node.
 | express-session | 1.19.0 |
 | node-postgres (`pg`) | 8.23.1 |
 | bcrypt | 6.0.0 |
-
-Versions de l’environnement Docker local observées : Docker Engine 29.8.0 et Docker Compose 5.5.1. Les versions Node.js et PostgreSQL peuvent évoluer si les images `node:22-alpine` ou `postgres:17` sont reconstruites plus tard ; les numéros du tableau décrivent l’environnement utilisé pour cette documentation.
 
 ## Commandes de développement
 
@@ -145,14 +141,7 @@ frontend/  Interface React et styles Tailwind CSS
 
 ## API
 
-Les routes principales sont documentées dans Swagger à l’adresse <http://localhost:3000/api-docs> lorsque Docker Compose est lancé.
-
-- Authentification : `/api/auth`
-- Offres : `/api/ads` et `/api/public`
-- Candidatures : `/api/applications`
-- Profil, projets et expériences : `/api/people`, `/api/projects`, `/api/experiences`
-- CV : `/api/cv-documents`
-- Administration : `/api/admin`
+Les routes de l’API sont documentées dans Swagger à l’adresse <http://localhost:3000/api-docs> lorsque Docker Compose est lancé.
 
 Une base déjà initialisée doit recevoir la migration `db/migrations/001_cv_documents.sql` pour créer la table des CV. Le guide [Étape 5 Denis](docs/ETAPE-5-DENIS.md) explique la migration, le stockage Docker et les tests des routes CV.
 

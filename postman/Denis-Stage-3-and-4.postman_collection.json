@@ -1,0 +1,1231 @@
+{
+  "info": {
+    "name": "Welcome To My Savane — Tests Denis (étapes 3 et 4)",
+    "description": "Vérifications Postman séquentielles des routes publiques et admin : droits, CRUD catalogue et offres, fermeture/réouverture, refus de suppression liée, recherche, tri et pagination. Les ressources temporaires sont supprimées à la fin. Utiliser une base de développement jetable ou dédiée. L’API doit déjà avoir son schéma et ses données de démonstration.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@jobboard.example.com"
+    },
+    {
+      "key": "adminPassword",
+      "value": "JobBoardDemo2026!"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "companyId",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "adId",
+      "value": ""
+    },
+    {
+      "key": "linkedAdId",
+      "value": ""
+    },
+    {
+      "key": "existingAdId",
+      "value": ""
+    },
+    {
+      "key": "testUserId",
+      "value": ""
+    },
+    {
+      "key": "testUserEmail",
+      "value": ""
+    },
+    {
+      "key": "testUserPassword",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Admin refuse un visiteur",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.cookies.jar().clear(pm.variables.get(\"baseUrl\"), (error) => {",
+              "  if (error) console.log(\"Impossible de vider le cookie de session\", error);",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Un visiteur reçoit 401\", () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Catalogue public des entreprises",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/public/companies"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Liste publique, sans champs privés\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const companies = pm.response.json();",
+              "  pm.expect(companies).to.be.an(\"array\");",
+              "  if (companies.length) {",
+              "    pm.expect(companies[0]).to.have.property(\"name\");",
+              "    pm.expect(companies[0]).not.to.have.property(\"password_hash\");",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Catalogue public des domaines",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/public/categories"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Liste publique des catégories\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an(\"array\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Offres publiques paginées",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ads?page=1&page_size=10&sort=recent"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Réponse paginée et offres publiées\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.ads).to.be.an(\"array\").that.has.lengthOf.at.most(10);",
+              "  pm.expect(body.total).to.be.a(\"number\");",
+              "  pm.expect(body.page).to.eql(1);",
+              "  pm.expect(body.page_size).to.eql(10);",
+              "  pm.expect(body.total_pages).to.eql(Math.ceil(body.total / 10));",
+              "  pm.expect(body.ads.every((ad) => ad.status === \"published\")).to.eql(true);",
+              "  if (body.ads.length) pm.collectionVariables.set(\"existingAdId\", body.ads[0].id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Tri salarial",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ads?page=1&page_size=20&sort=salary_desc"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "function annualSalary(ad) {",
+              "  const amount = ad.salary_min ?? ad.salary_max;",
+              "  if (amount == null) return null;",
+              "  return amount * (ad.salary_period === \"month\" ? 12 : 1);",
+              "}",
+              "pm.test(\"Salaires décroissants et montants absents à la fin\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const salaries = pm.response.json().ads.map(annualSalary);",
+              "  const known = salaries.filter((amount) => amount !== null);",
+              "  const missing = salaries.filter((amount) => amount === null);",
+              "  pm.expect(known).to.eql([...known].sort((a, b) => b - a));",
+              "  pm.expect(salaries.slice(known.length)).to.eql(missing);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Paramètre de pagination invalide",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ads?page=0"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"page=0 est refusé avec une explication\", () => {",
+              "  pm.response.to.have.status(400);",
+              "  pm.expect(pm.response.json().message).to.be.a(\"string\").and.not.empty;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Détail d’une offre publique",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ads/{{existingAdId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Détail public inclut l’entreprise\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const ad = pm.response.json();",
+              "  pm.expect(ad).to.have.property(\"company_description\");",
+              "  pm.expect(ad).to.have.property(\"company_website\");",
+              "  pm.expect(ad).to.have.property(\"company_location\");",
+              "  pm.expect(ad).to.have.property(\"company_logo_url\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Connexion administrateur",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Connexion réussie et rôle ADMIN\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.role).to.eql(\"ADMIN\");",
+              "  pm.expect(body.password_hash).to.be.undefined;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Création entreprise de test",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman Denis {{runId}}\",\n  \"description\": \"Entreprise temporaire créée par la collection Denis.\",\n  \"website\": \"https://example.com\",\n  \"location\": \"Paris\",\n  \"logo_url\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"runId\", String(Date.now()));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Entreprise créée\", () => {",
+              "  pm.response.to.have.status(201);",
+              "  const company = pm.response.json();",
+              "  pm.expect(company.name).to.include(\"Postman Denis\");",
+              "  pm.collectionVariables.set(\"companyId\", company.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09b - Modifier l’entreprise temporaire",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman Denis Updated {{runId}}\",\n  \"description\": \"Entreprise temporaire mise à jour.\",\n  \"website\": \"https://example.com\",\n  \"location\": \"Lyon\",\n  \"logo_url\": \"https://example.com/logo.png\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"PUT enregistre l’entreprise\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().location).to.eql(\"Lyon\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Création catégorie de test",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman Denis {{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Catégorie créée\", () => {",
+              "  pm.response.to.have.status(201);",
+              "  const category = pm.response.json();",
+              "  pm.collectionVariables.set(\"categoryId\", category.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10b - Renommer la catégorie temporaire",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories/{{categoryId}}"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman Denis Category Updated {{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"PUT renomme la catégorie\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().name).to.include(\"Updated\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Validation : offre incomplète refusée",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Payload incomplet\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Sans titre, la création échoue en 400\", () => {",
+              "  pm.response.to.have.status(400);",
+              "  pm.expect(pm.response.json().message).to.be.a(\"string\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Création offre temporaire",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman test offer {{runId}}\",\n  \"short_description\": \"Offre créée pendant les tests Denis.\",\n  \"description\": \"Offre temporaire pour tester recherche, édition, fermeture et suppression.\",\n  \"location\": \"Paris\",\n  \"company_id\": \"{{companyId}}\",\n  \"category_id\": \"{{categoryId}}\",\n  \"salary_min\": 36000,\n  \"salary_max\": 42000,\n  \"salary_period\": \"year\",\n  \"contract_type\": \"permanent\",\n  \"working_time\": \"full_time\",\n  \"status\": \"published\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Offre créée et identifiant mémorisé\", () => {",
+              "  pm.response.to.have.status(201);",
+              "  const ad = pm.response.json();",
+              "  pm.expect(ad.status).to.eql(\"published\");",
+              "  pm.collectionVariables.set(\"adId\", ad.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Lecture offre admin",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/{{adId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Le détail admin retrouve l’offre\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"adId\")));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 - Modification partielle PATCH",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/{{adId}}"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman offer updated\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"PATCH modifie seulement le titre\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().title).to.eql(\"Postman offer updated\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Remplacement complet PUT",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/{{adId}}"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman offer updated\",\n  \"short_description\": \"Offre créée pendant les tests Denis.\",\n  \"description\": \"Offre temporaire mise à jour pour tester PUT.\",\n  \"location\": \"Lyon\",\n  \"company_id\": \"{{companyId}}\",\n  \"category_id\": \"{{categoryId}}\",\n  \"salary_min\": 36000,\n  \"salary_max\": 42000,\n  \"salary_period\": \"year\",\n  \"contract_type\": \"permanent\",\n  \"working_time\": \"full_time\",\n  \"status\": \"published\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"PUT enregistre les champs envoyés\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const ad = pm.response.json();",
+              "  pm.expect(ad.title).to.eql(\"Postman offer updated\");",
+              "  pm.expect(ad.location).to.eql(\"Lyon\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Recherche avec filtres combinés",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ads?q=Postman&location=Lyon&company_id={{companyId}}&category_id={{categoryId}}&contract_type=permanent&page=1&page_size=10"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Les filtres combinés retrouvent l’offre\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.total).to.eql(1);",
+              "  pm.expect(body.ads[0].id).to.eql(Number(pm.collectionVariables.get(\"adId\")));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 - Fermer l’offre",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/{{adId}}"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"closed\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"L’offre passe à closed\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().status).to.eql(\"closed\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 - Vérifier qu’une offre fermée est cachée au public",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ads/{{adId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Le détail public d’une offre fermée est 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 - Réouvrir l’offre",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/{{adId}}"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"published\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"L’offre repasse à published\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().status).to.eql(\"published\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 - Supprimer la catégorie liée",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories/{{categoryId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Suppression catégorie acceptée\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 - Une offre garde son intégrité après suppression du domaine",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/{{adId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"category_id devient null\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().category_id).to.be.null;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 - Refuser suppression entreprise encore liée",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"L’entreprise liée à une offre est protégée\", () => {",
+              "  pm.response.to.have.status(409);",
+              "  pm.expect(pm.response.json().message).to.include(\"liée\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 - Supprimer l’offre sans candidature",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/{{adId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"L’offre temporaire est supprimée\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "25 - Créer une deuxième offre temporaire",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman linked offer {{runId}}\",\n  \"description\": \"Offre temporaire pour vérifier la protection des candidatures.\",\n  \"company_id\": \"{{companyId}}\",\n  \"salary_period\": \"year\",\n  \"status\": \"published\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Offre créée pour tester le refus de suppression liée\", () => {",
+              "  pm.response.to.have.status(201);",
+              "  pm.collectionVariables.set(\"linkedAdId\", pm.response.json().id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "26 - Créer un candidat temporaire",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Postman\",\n  \"last_name\": \"Denis Test\",\n  \"email\": \"{{testUserEmail}}\",\n  \"password\": \"{{testUserPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"testUserEmail\", \"postman-denis-\" + Date.now() + \"@example.com\");",
+              "pm.collectionVariables.set(\"testUserPassword\", \"PostmanTest2026!\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Compte USER temporaire créé\", () => {",
+              "  pm.response.to.have.status(201);",
+              "  const user = pm.response.json();",
+              "  pm.expect(user.role).to.eql(\"USER\");",
+              "  pm.expect(user.password_hash).to.be.undefined;",
+              "  pm.collectionVariables.set(\"testUserId\", user.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "27 - Connexion candidat temporaire",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testUserEmail}}\",\n  \"password\": \"{{testUserPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Session candidat ouverte\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().role).to.eql(\"USER\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "28 - Refuser l’administration à un compte USER",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Un compte USER reçoit 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "29 - Le candidat postule à l’offre temporaire",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/applications"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ad_id\": \"{{linkedAdId}}\",\n  \"message\": \"Candidature temporaire de test Postman.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Candidature temporaire créée\", () => {",
+              "  pm.response.to.have.status(201);",
+              "  pm.collectionVariables.set(\"applicationId\", pm.response.json().id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "30 - Déconnexion candidat",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/logout"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Déconnexion candidat réussie\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "31 - Reconnexion administrateur",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Session admin rétablie\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().role).to.eql(\"ADMIN\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "32 - Refuser la suppression d’une offre avec candidature",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/{{linkedAdId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Une offre liée est conservée avec une erreur 409\", () => {",
+              "  pm.response.to.have.status(409);",
+              "  pm.expect(pm.response.json().message).to.include(\"candidature\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "33 - Supprimer le compte temporaire pour nettoyer la candidature",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/users/{{testUserId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Compte temporaire supprimé\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "34 - Nettoyer l’offre temporaire",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/{{linkedAdId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"L’offre est supprimable après retrait du compte test\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 - Supprimer l’entreprise désormais inutilisée",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Entreprise temporaire supprimée\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "35 - Identifiant offre invalide",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ads/not-an-id"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"ID invalide refusé en 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "36 - Offre inexistante",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/ads/2147483647"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Offre absente renvoie 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

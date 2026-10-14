@@ -48,10 +48,12 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
       SESSION_SECRET: ${SESSION_SECRET}
+      CV_STORAGE_DIR: /app/storage/cv
 
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - cv_data:/app/storage/cv
 
     depends_on:
       postgres:
@@ -86,3 +88,4 @@ services:
 
 volumes:
   postgres_data:
+  cv_data:

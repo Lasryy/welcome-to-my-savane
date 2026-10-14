@@ -16,6 +16,7 @@ Job board full-stack en cours de développement.
 - Étape 4 Lasry : profil éditable sur `/profile`, avec gestion des projets et expériences du compte connecté. Les API vérifient le propriétaire, les champs autorisés, les URLs et les dates ; supprimer une preuve déjà liée à une candidature est refusé.
 - Étape 4 Denis (V3) : recherche SQL, filtres combinables, tri récent/salaire et pagination, choix conservés dans l’URL et présentation des entreprises sur les offres.
 - Docker Compose : PostgreSQL, API et frontend peuvent être lancés ensemble.
+- Étape 5 Denis, D5.1 : dépôt de CV PDF (5 Mo), métadonnées SQL et consultation réservée au propriétaire ou aux ADMIN, avec volume Docker persistant. [Installation et tests](docs/ETAPE-5-DENIS.md).
 
 ## Technologies
 
@@ -96,6 +97,6 @@ backend/   API Express, contrôleurs, routes et connexion PostgreSQL (`pg`)
 
 Les deux parties de l’étape 4 et leurs contrats sont documentés : [recherche et catalogue public](docs/ETAPE-4-DENIS.md) et [profil candidat](docs/superpowers/specs/2026-10-13-etape-4-profil-candidat.md).
 
-Prochaine étape : préparer le CV PDF et le stockage protégé, puis brancher la sélection des projets et expériences aux candidatures.
+Le dépôt et le stockage protégé des CV sont livrés en D5.1. Une base existante nécessite la [migration CV](docs/ETAPE-5-DENIS.md). Prochaine livraison Denis : gestion du CV courant et composants React (D5.2), puis préparation du dossier figé (D5.3) et conservation/nettoyage (D5.4). Lasry branchera la sélection des projets, expériences et CV aux candidatures.
 
 La fusion des étapes 1 et 2 et les commandes de vérification sont décrites dans [le guide d’intégration](docs/INTEGRATION-ETAPES-1-2.md).

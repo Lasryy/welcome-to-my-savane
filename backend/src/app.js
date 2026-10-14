@@ -10,6 +10,7 @@ const applicationsRoutes = require("./routes/applications_routes");
 const profileRoutes = require("./routes/profile_routes");
 const projectsRoutes = require("./routes/projects_routes");
 const experiencesRoutes = require("./routes/experiences_routes");
+const cvDocumentsRoutes = require("./routes/cv_documents_routes");
 const adminAdsRoutes = require("./routes/admin_ads_routes");
 const adminApplicationsRoutes = require("./routes/admin_applications_routes");
 const adminUsersRoutes = require("./routes/admin_users_routes");
@@ -38,6 +39,7 @@ app.use("/api/applications", applicationsRoutes);
 app.use("/api/people", profileRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/experiences", experiencesRoutes);
+app.use("/api/cv-documents", cvDocumentsRoutes);
 
 // Both URL forms use the same admin check and the same catalogue controllers.
 app.use("/api/admin/ads", requireAdmin, adminAdsRoutes);

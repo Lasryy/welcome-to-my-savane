@@ -26,7 +26,10 @@ const swaggerOptions = {
       },
     },
   },
-  apis: [path.resolve(__dirname, "../docs/api.js")],
+  apis: [
+    path.resolve(__dirname, "../docs/api.js"),
+    path.resolve(__dirname, "../docs/cv.js"),
+  ],
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);

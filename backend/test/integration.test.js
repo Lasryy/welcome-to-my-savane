@@ -11,6 +11,15 @@ test("Lasry and Denis integration", {
     "DB_NAME must start with wtms_test_ to protect development data",
   );
 
+  // Never write test CVs into the development storage directory.
+  const fs = require("node:fs/promises");
+  const os = require("node:os");
+  const path = require("node:path");
+  const { PDFDocument } = require("pdf-lib");
+  const cvStorageDir = await fs.mkdtemp(path.join(os.tmpdir(), "wtms-test-cv-"));
+  process.env.CV_STORAGE_DIR = cvStorageDir;
+  t.after(() => fs.rm(cvStorageDir, { recursive: true, force: true }));
+
   const app = require("../src/app");
   const pool = require("../src/db/pool");
   const server = app.listen(0, "127.0.0.1");
@@ -336,6 +345,140 @@ test("Lasry and Denis integration", {
     assert.equal(login.status, 200);
     assert.equal(login.data.role, "ADMIN");
     adminCookie = login.cookie;
+  });
+
+  await t.test("CV migration preserves the nine existing tables and can run twice", async () => {
+    const tables = ["people", "companies", "categories", "ads", "applications", "projects",
+      "experiences", "application_projects", "application_experiences"];
+    const counts = async () => Promise.all(tables.map(async (table) =>
+      (await pool.query(`SELECT COUNT(*) FROM ${table}`)).rows[0].count));
+    const before = await counts();
+    const migration = await fs.readFile(path.join(__dirname, "../../db/migrations/001_cv_documents.sql"), "utf8");
+    await pool.query(migration);
+    await pool.query(migration);
+    assert.deepEqual(await counts(), before);
+  });
+
+  async function uploadCv({ cookie = userCookie, bytes, name = "cv.pdf", type = "application/pdf", field = "file", extra, twice = false } = {}) {
+    const form = new FormData();
+    if (bytes !== undefined) {
+      form.append(field, new Blob([bytes], { type }), name);
+      if (twice) form.append(field, new Blob([bytes], { type }), name);
+    }
+    if (extra) form.append("person_id", String(secondUserId));
+    const response = await fetch(`${baseUrl}/api/cv-documents`, {
+      method: "POST", headers: cookie ? { Cookie: cookie } : {}, body: form,
+    });
+    return { status: response.status, data: await response.json() };
+  }
+
+  const pdf = await PDFDocument.create();
+  pdf.addPage().drawText("Integration CV");
+  const pdfBytes = await pdf.save();
+  let cvId;
+
+  await t.test("CV uploads reject visitors, invalid PDFs and oversized or unexpected fields", async () => {
+    assert.equal((await uploadCv({ cookie: null, bytes: pdfBytes })).status, 401);
+    assert.equal((await uploadCv()).status, 400);
+    assert.equal((await uploadCv({ bytes: Buffer.alloc(0) })).status, 400);
+    assert.equal((await uploadCv({ bytes: pdfBytes, type: "text/plain" })).status, 415);
+    assert.equal((await uploadCv({ bytes: pdfBytes, name: "cv.txt" })).status, 415);
+    assert.equal((await uploadCv({ bytes: Buffer.from("This is not a PDF") })).status, 400);
+    assert.equal((await uploadCv({ bytes: Buffer.from("%PDF-1.7\nFake PDF\n%%EOF") })).status, 400);
+    const emptyPdf = await PDFDocument.create();
+    assert.equal((await uploadCv({ bytes: await emptyPdf.save({ addDefaultPage: false }) })).status, 400);
+    assert.equal((await uploadCv({ bytes: Buffer.alloc(5 * 1024 * 1024 + 1) })).status, 413);
+    assert.equal((await uploadCv({ bytes: pdfBytes, field: "cv" })).status, 400);
+    assert.equal((await uploadCv({ bytes: pdfBytes, extra: true })).status, 400);
+    assert.equal((await uploadCv({ bytes: pdfBytes, twice: true })).status, 400);
+    assert.equal((await request("/api/cv-documents", { method: "POST", cookie: userCookie, body: {} })).status, 400);
+    const malformed = await fetch(`${baseUrl}/api/cv-documents`, {
+      method: "POST", headers: { Cookie: userCookie, "Content-Type": "multipart/form-data" }, body: "broken",
+    });
+    assert.equal(malformed.status, 400);
+    assert.equal((await pool.query("SELECT id FROM cv_documents")).rowCount, 0);
+    assert.deepEqual(await fs.readdir(cvStorageDir), []);
+  });
+
+  await t.test("CV upload stores private metadata and creates independent versions", async () => {
+    const created = await uploadCv({ bytes: pdfBytes, name: "CV été.pdf" });
+    assert.equal(created.status, 201);
+    cvId = created.data.id;
+    assert.equal(created.data.original_name, "CV été.pdf");
+    assert.equal(created.data.mime_type, "application/pdf");
+    assert.equal(created.data.size_bytes, pdfBytes.length);
+    assert.equal(created.data.file_url, `/api/cv-documents/${cvId}/file`);
+    assert.equal(created.data.storage_key, undefined);
+    assert.equal(created.data.person_id, undefined);
+    const stored = (await pool.query("SELECT * FROM cv_documents WHERE id = $1", [cvId])).rows[0];
+    assert.equal(stored.person_id, userId);
+    assert.match(stored.storage_key, /^[0-9a-f-]{36}\.pdf$/);
+    assert.deepEqual(await fs.readFile(path.join(cvStorageDir, stored.storage_key)), Buffer.from(pdfBytes));
+    assert.equal((await fs.stat(path.join(cvStorageDir, stored.storage_key))).mode & 0o777, 0o600);
+    assert.equal((await request(`/storage/cv/${stored.storage_key}`)).status, 404);
+    const versions = await Promise.all([uploadCv({ bytes: pdfBytes }), uploadCv({ bytes: pdfBytes })]);
+    assert.ok(versions.every((version) => version.status === 201));
+    assert.equal(new Set([cvId, ...versions.map((version) => version.data.id)]).size, 3);
+    const documents = await pool.query("SELECT storage_key FROM cv_documents WHERE person_id = $1", [userId]);
+    assert.equal(new Set(documents.rows.map((document) => document.storage_key)).size, 3);
+  });
+
+  await t.test("CV files are readable only by their owner or a current ADMIN", async () => {
+    const fileUrl = `/api/cv-documents/${cvId}/file`;
+    assert.equal((await request(fileUrl)).status, 401);
+    assert.equal((await request(fileUrl, { cookie: secondUserCookie })).status, 404);
+    assert.equal((await request("/api/cv-documents/2147483647/file", { cookie: userCookie })).status, 404);
+    for (const id of ["invalid", "0", "1e0", "2147483648"]) {
+      assert.equal((await request(`/api/cv-documents/${id}/file`, { cookie: userCookie })).status, 400);
+    }
+    for (const cookie of [userCookie, adminCookie]) {
+      const response = await fetch(`${baseUrl}${fileUrl}`, { headers: { Cookie: cookie } });
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get("content-type"), "application/pdf");
+      assert.match(response.headers.get("content-disposition"), /^inline/);
+      assert.equal(response.headers.get("cache-control"), "private, no-store");
+      assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+      assert.deepEqual(Buffer.from(await response.arrayBuffer()), Buffer.from(pdfBytes));
+    }
+    const download = await fetch(`${baseUrl}${fileUrl}?download=1`, { headers: { Cookie: userCookie } });
+    assert.match(download.headers.get("content-disposition"), /^attachment/);
+    await download.arrayBuffer();
+    await pool.query("UPDATE people SET role = 'USER' WHERE id = $1", [adminId]);
+    try {
+      assert.equal((await request(fileUrl, { cookie: adminCookie })).status, 404);
+    } finally {
+      await pool.query("UPDATE people SET role = 'ADMIN' WHERE id = $1", [adminId]);
+    }
+    const missing = await uploadCv({ bytes: pdfBytes });
+    const stored = (await pool.query("SELECT storage_key FROM cv_documents WHERE id = $1", [missing.data.id])).rows[0];
+    await fs.unlink(path.join(cvStorageDir, stored.storage_key));
+    const response = await fetch(`${baseUrl}/api/cv-documents/${missing.data.id}/file`, { headers: { Cookie: userCookie } });
+    assert.equal(response.status, 404);
+    assert.match(response.headers.get("content-type"), /application\/json/);
+    assert.equal(response.headers.get("content-disposition"), null);
+    assert.match((await response.json()).message, /indisponible/);
+  });
+
+  await t.test("a failed CV SQL insert removes its file and Swagger describes CV routes", async () => {
+    const before = await fs.readdir(cvStorageDir);
+    const count = (await pool.query("SELECT COUNT(*) FROM cv_documents")).rows[0].count;
+    // Force a real SQL failure in the isolated test database to check compensation.
+    await pool.query(`CREATE FUNCTION reject_test_cv() RETURNS trigger LANGUAGE plpgsql AS
+      $$ BEGIN RAISE EXCEPTION 'Forced CV test failure'; END $$;
+      CREATE TRIGGER reject_test_cv BEFORE INSERT ON cv_documents
+      FOR EACH ROW EXECUTE FUNCTION reject_test_cv()`);
+    try {
+      assert.equal((await uploadCv({ bytes: pdfBytes })).status, 500);
+      assert.deepEqual(await fs.readdir(cvStorageDir), before);
+      assert.equal((await pool.query("SELECT COUNT(*) FROM cv_documents")).rows[0].count, count);
+    } finally {
+      await pool.query("DROP TRIGGER reject_test_cv ON cv_documents; DROP FUNCTION reject_test_cv()");
+    }
+    const swagger = await request("/api-docs/openapi.json");
+    assert.equal(swagger.status, 200);
+    assert.ok(swagger.data.paths["/api/cv-documents"].post.requestBody.content["multipart/form-data"]);
+    assert.ok(swagger.data.paths["/api/cv-documents/{id}/file"].get.security);
+    assert.ok(swagger.data.components.schemas.CvDocument);
   });
 
   await t.test("company CRUD works with both URL forms", async () => {

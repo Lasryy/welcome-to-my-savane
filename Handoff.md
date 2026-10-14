@@ -1,5 +1,13 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 14 octobre 2026 : D5.1 Denis
+
+Deux routes ajoutées : `POST /api/cv-documents` reçoit un unique fichier PDF de 5 Mo maximum ; `GET /api/cv-documents/:id/file` le sert au propriétaire ou à un ADMIN, avec `?download=1` pour télécharger. Le contenu est lu avant stockage, le propriétaire vient de la session et chaque dépôt crée une version indépendante.
+
+La table `cv_documents` est ajoutée au schéma neuf et par `db/migrations/001_cv_documents.sql` pour une base existante. Le volume Docker `cv_data` conserve les fichiers. Aucun changement du profil, du formulaire, de l’historique ou des routes existantes. Le CV courant et les composants frontend attendent D5.2 ; les références de candidature et la copie figée attendent D5.3 et l’intégration Lasry.
+
+Contrats, installation et scénarios : [docs/ETAPE-5-DENIS.md](docs/ETAPE-5-DENIS.md).
+
 ## Mise à jour du 13 octobre 2026 : étape 4 Lasry
 
 La branche `lasry` contient le profil éditable, les projets et les expériences. `/profile` charge trois sections depuis `GET/PATCH /api/people/me`, `GET/POST /api/projects` et `GET/POST /api/experiences`. Les éléments sont modifiables et supprimables via `PATCH/DELETE` sur leur identifiant.

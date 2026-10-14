@@ -13,8 +13,7 @@
 - Historique des candidatures et suivi de leur statut.
 - Espace d’administration pour les offres, les entreprises, les catégories, les candidatures et les comptes.
 - Documentation interactive de l’API avec Swagger.
-
-Le CV sera intégré lorsque le composant et le contrat de stockage associés seront disponibles.
+- CV (D5.1 Denis) : dépôt de PDF jusqu’à 5 Mo, métadonnées dans PostgreSQL et fichier privé sur un volume Docker. L’API autorise la consultation au propriétaire ou à un administrateur.
 
 ## Prérequis
 
@@ -95,12 +94,11 @@ Un compte administrateur de démonstration existe aussi : `admin@jobboard.exampl
 
 ## Technologies et versions
 
-Les versions JavaScript ci-dessous viennent des `package-lock.json`. Node.js, npm et PostgreSQL sont les versions observées dans les conteneurs locaux le 14 octobre 2026. Les tags Docker du dépôt (`node:22-alpine` et `postgres:17`) ne fixent que leur version majeure : Docker peut donc télécharger un correctif plus récent lors d’une nouvelle installation.
+Les versions des dépendances JavaScript viennent des `package-lock.json`. Node.js et PostgreSQL correspondent aux versions observées dans les conteneurs locaux le 14 octobre 2026. npm est fourni avec Node.js. Les tags Docker du dépôt (`node:22-alpine` et `postgres:17`) ne fixent que leur version majeure : Docker peut donc télécharger un correctif plus récent lors d’une nouvelle installation.
 
 | Élément | Version utilisée |
 | --- | --- |
 | Node.js | 22.23.3 (`node:22-alpine` dans les Dockerfiles) |
-| npm | 10.9.9 (fourni avec Node.js dans les conteneurs locaux) |
 | PostgreSQL | 17.11 (`postgres:17` dans Compose) |
 | React | 19.3.0 |
 | React DOM | 19.3.0 |
@@ -153,10 +151,13 @@ Les routes principales sont documentées dans Swagger à l’adresse <http://loc
 - Offres : `/api/ads` et `/api/public`
 - Candidatures : `/api/applications`
 - Profil, projets et expériences : `/api/people`, `/api/projects`, `/api/experiences`
+- CV : `/api/cv-documents`
 - Administration : `/api/admin`
+
+Une base déjà initialisée doit recevoir la migration `db/migrations/001_cv_documents.sql` pour créer la table des CV. Le guide [Étape 5 Denis](docs/ETAPE-5-DENIS.md) explique la migration, le stockage Docker et les tests des routes CV.
 
 Pour les requêtes protégées, le backend identifie le compte à partir de la session. Le navigateur conserve un cookie de session ; le mot de passe est stocké sous forme de hash bcrypt.
 
 ## État du projet
 
-Les étapes 1 à 4 sont intégrées dans `main`. L’étape 5 est en cours : le parcours candidat permet de sélectionner les projets et expériences à joindre à une candidature, de vérifier un récapitulatif et de consulter le nombre de candidatures envoyées dans la journée. L’intégration du CV dépend du composant et du contrat de stockage fournis par l’autre partie de l’équipe.
+Les étapes 1 à 4 sont intégrées dans `main`. L’étape 5 est en cours : le parcours candidat permet de sélectionner les projets et expériences à joindre à une candidature, de vérifier un récapitulatif et de consulter le nombre de candidatures envoyées dans la journée. Le dépôt et la consultation sécurisée du CV (D5.1 Denis) sont disponibles côté API ; son interface et son rattachement à une candidature restent à réaliser.

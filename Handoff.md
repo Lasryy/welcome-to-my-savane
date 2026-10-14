@@ -6,7 +6,7 @@ Deux routes ajoutées : `POST /api/cv-documents` reçoit un unique fichier PDF d
 
 La table `cv_documents` est ajoutée au schéma neuf et par `db/migrations/001_cv_documents.sql` pour une base existante. Le volume Docker `cv_data` conserve les fichiers. Aucun changement du profil, du formulaire, de l’historique ou des routes existantes. Le CV courant et les composants frontend attendent D5.2 ; les références de candidature et la copie figée attendent D5.3 et l’intégration Lasry.
 
-Contrats, installation et scénarios : [docs/ETAPE-5-DENIS.md](docs/ETAPE-5-DENIS.md).
+Contrats, installation et scénarios : [docs/GUIDE-CV.md](docs/GUIDE-CV.md).
 
 ## Mise à jour du 13 octobre 2026 : étape 4 Lasry
 

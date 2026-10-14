@@ -150,6 +150,7 @@ CREATE TABLE applications (
         ON DELETE RESTRICT,
 
     cv_document_id INTEGER,
+    submitted_snapshot JSONB,
 
     message TEXT,
 
@@ -165,7 +166,9 @@ CREATE TABLE applications (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     UNIQUE (person_id, ad_id),
-    UNIQUE (id, person_id)
+    UNIQUE (id, person_id),
+    CONSTRAINT applications_submitted_snapshot_object_check
+        CHECK (submitted_snapshot IS NULL OR jsonb_typeof(submitted_snapshot) = 'object')
 );
 
 
@@ -295,14 +298,15 @@ ON cv_documents(person_id, created_at DESC, id DESC);
 CREATE UNIQUE INDEX idx_cv_documents_one_current_per_person
 ON cv_documents(person_id) WHERE is_current;
 
+-- The composite reference ensures a dossier can only point to its candidate's CV.
 ALTER TABLE applications
-ADD CONSTRAINT applications_cv_document_owner_fk
+ADD CONSTRAINT fk_applications_cv_document_owner
 FOREIGN KEY (cv_document_id, person_id)
 REFERENCES cv_documents(id, person_id)
-ON DELETE SET NULL (cv_document_id);
+ON DELETE RESTRICT;
 
 CREATE INDEX idx_applications_cv_document
-ON applications(cv_document_id);
+ON applications(cv_document_id) WHERE cv_document_id IS NOT NULL;
 
 -- ============================================
 -- INDEXES

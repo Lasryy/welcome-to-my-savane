@@ -79,6 +79,7 @@ test("Lasry and Denis integration", {
   let applicationId;
   let projectId;
   let experienceId;
+  let secondCvId;
 
   await t.test("registration, login and profile keep the default USER role", async () => {
     assert.equal((await request("/api/auth/me")).status, 401);
@@ -347,7 +348,7 @@ test("Lasry and Denis integration", {
     adminCookie = login.cookie;
   });
 
-  await t.test("CV migration preserves the nine existing tables and can run twice", async () => {
+  await t.test("CV and dossier migrations preserve existing tables and can run twice", async () => {
     const tables = ["people", "companies", "categories", "ads", "applications", "projects",
       "experiences", "application_projects", "application_experiences"];
     const counts = async () => Promise.all(tables.map(async (table) =>
@@ -369,6 +370,27 @@ test("Lasry and Denis integration", {
     assert.equal((await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'cv_documents' AND column_name = 'is_current'")).rowCount, 1);
     assert.equal((await pool.query("SELECT is_current FROM cv_documents WHERE id = $1", [legacyDocument.rows[0].id])).rows[0].is_current, false);
     await pool.query("DELETE FROM cv_documents WHERE id = $1", [legacyDocument.rows[0].id]);
+
+    // The loaded fresh schema already includes D5.3; remove its additions to simulate a D5.2 database.
+    await pool.query(`
+      ALTER TABLE applications DROP CONSTRAINT IF EXISTS fk_applications_cv_document_owner;
+      ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_submitted_snapshot_object_check;
+      DROP INDEX IF EXISTS idx_applications_cv_document;
+      ALTER TABLE applications DROP COLUMN IF EXISTS cv_document_id;
+      ALTER TABLE applications DROP COLUMN IF EXISTS submitted_snapshot;
+    `);
+    const applicationCount = (await pool.query("SELECT COUNT(*) FROM applications")).rows[0].count;
+    const dossierMigration = await fs.readFile(path.join(__dirname, "../../db/migrations/003_frozen_application_dossier.sql"), "utf8");
+    await pool.query(dossierMigration);
+    await pool.query(dossierMigration);
+    assert.equal((await pool.query("SELECT COUNT(*) FROM applications")).rows[0].count, applicationCount);
+    for (const column of ["cv_document_id", "submitted_snapshot"]) {
+      assert.equal((await pool.query(
+        "SELECT 1 FROM information_schema.columns WHERE table_name = 'applications' AND column_name = $1",
+        [column],
+      )).rowCount, 1);
+    }
+    assert.equal((await pool.query("SELECT COUNT(*) FROM applications WHERE cv_document_id IS NOT NULL OR submitted_snapshot IS NOT NULL")).rows[0].count, "0");
   });
 
   async function uploadCv({ cookie = userCookie, bytes, name = "cv.pdf", type = "application/pdf", field = "file", extra, twice = false } = {}) {
@@ -721,6 +743,44 @@ test("Lasry and Denis integration", {
     assert.equal((await request("/api/applications", {
       method: "POST", cookie: userCookie, body: { ...body, message: " " },
     })).status, 400);
+  });
+
+  await t.test("D5.3 keeps legacy applications empty and enforces owned CV snapshots", async () => {
+    const otherUpload = await uploadCv({ cookie: secondUserCookie, bytes: pdfBytes, name: "autre-candidat.pdf" });
+    assert.equal(otherUpload.status, 201);
+    secondCvId = otherUpload.data.id;
+
+    const legacy = await pool.query(
+      "SELECT cv_document_id, submitted_snapshot FROM applications WHERE id = $1",
+      [applicationId],
+    );
+    assert.equal(legacy.rows[0].cv_document_id, null);
+    assert.equal(legacy.rows[0].submitted_snapshot, null);
+
+    await assert.rejects(
+      pool.query("UPDATE applications SET cv_document_id = $1 WHERE id = $2", [secondCvId, applicationId]),
+      (error) => error.code === "23503",
+    );
+    const snapshot = {
+      person: { first_name: "Integration", last_name: "Candidate", email: account.email, phone: null },
+      message: "Ma candidature figée.",
+      projects: [{ id: projectId, title: "Projet conservé", description: "Copié au dépôt." }],
+      experiences: [{ id: experienceId, company: "Entreprise", position: "Développeur" }],
+    };
+    await pool.query(
+      "UPDATE applications SET cv_document_id = $1, submitted_snapshot = $2 WHERE id = $3",
+      [cvId, JSON.stringify(snapshot), applicationId],
+    );
+    const saved = await pool.query(
+      "SELECT cv_document_id, submitted_snapshot FROM applications WHERE id = $1",
+      [applicationId],
+    );
+    assert.equal(saved.rows[0].cv_document_id, cvId);
+    assert.deepEqual(saved.rows[0].submitted_snapshot, snapshot);
+    await assert.rejects(
+      pool.query("UPDATE applications SET submitted_snapshot = $1 WHERE id = $2", [JSON.stringify(["pas", "un objet"]), applicationId]),
+      (error) => error.code === "23514",
+    );
   });
 
   await t.test("linked projects and experiences cannot be deleted", async (subtest) => {

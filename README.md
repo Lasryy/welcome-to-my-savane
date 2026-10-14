@@ -145,7 +145,7 @@ frontend/  Interface React et styles Tailwind CSS
 
 Les routes de l’API sont documentées dans Swagger à l’adresse <http://localhost:3000/api-docs> lorsque Docker Compose est lancé.
 
-Une base déjà initialisée doit recevoir les migrations dans l’ordre : `001_cv_documents.sql`, `002_current_cv.sql`, puis `003_application_cv.sql` (dans `db/migrations/`). Le [guide CV](docs/GUIDE-CV.md) explique le stockage, les routes et le CV joint à une candidature.
+Une base déjà initialisée doit recevoir les migrations dans l’ordre : `001_cv_documents.sql`, `002_current_cv.sql`, puis `003_frozen_application_dossier.sql` (dans `db/migrations/`). Le [guide CV](docs/GUIDE-CV.md) explique le stockage, les routes et le CV joint à une candidature.
 
 Pour les requêtes protégées, le backend identifie le compte à partir de la session. Le navigateur conserve un cookie de session ; le mot de passe est stocké sous forme de hash bcrypt.
 

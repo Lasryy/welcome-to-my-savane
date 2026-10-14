@@ -11,7 +11,7 @@ Pour une base Docker existante, appliquer la migration additive avant de redéma
 ```sh
 docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/001_cv_documents.sql
 docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/002_current_cv.sql
-docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/003_application_cv.sql
+docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/003_frozen_application_dossier.sql
 docker compose up -d --build --renew-anon-volumes backend
 ```
 
@@ -106,7 +106,8 @@ stockage, le type PDF et la taille. L’index partiel unique n’autorise qu’u
 candidat. La paire `(id, person_id)` est unique pour préparer
 les références de candidature contrôlant le propriétaire. `applications.cv_document_id`
 est aussi relié à `applications.person_id` : la base empêche d’associer le CV d’une
-autre personne à une candidature.
+autre personne à une candidature. `applications.submitted_snapshot` est un emplacement
+nullable pour une copie du dossier ; le parcours actuel ne le remplit pas encore.
 
 Docker utilise le volume nommé `cv_data` monté à `/app/storage/cv`. Les PDF restent
 présents après redémarrage ou recréation du backend. Les sessions sont actuellement
@@ -143,15 +144,13 @@ Les routes et leurs formats sont documentés dans `/api-docs`.
 ## Tests automatiques
 
 Le fichier `backend/test/integration.test.js` garde son garde-fou `wtms_test_` et
-utilise un répertoire temporaire pour les CV, supprimé après le test. Suivre les
-commandes du [guide d’intégration](INTEGRATION-ETAPES-1-2.md). Le test applique
-lui-même la migration CV et vérifie sa réexécution, les erreurs d’envoi, les droits,
-les versions concurrentes, les octets du fichier, un fichier disparu et la suppression
-du fichier lors d’un échec SQL forcé. Il vérifie aussi le contrat Swagger.
+utilise un répertoire temporaire pour les CV, supprimé après le test. Il applique les
+migrations CV et dossier figé et couvre notamment leur réexécution et la conservation
+des candidatures existantes.
 
 Sans `RUN_INTEGRATION_TESTS=1`, `npm test` ignore le test d’intégration : cela ne valide
-pas les fonctionnalités. Avec une base isolée configurée, le résultat attendu est
-25 scénarios réussis, soit 26 tests en comptant le parent.
+pas les fonctionnalités. Utilise uniquement une base isolée dont le nom commence par
+`wtms_test_` pour lancer ces scénarios.
 
 ## CV associé à une candidature
 

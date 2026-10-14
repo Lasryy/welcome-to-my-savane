@@ -37,7 +37,7 @@ Le backend fournit également `/api/admin/companies` et `/api/admin/categories` 
 
 La page publique charge `/api/ads` et le détail `/api/ads/:id` sans connexion. Le bouton « Postuler » ouvre le formulaire de Lasry ; les données du compte viennent de `/api/auth/me` et l’envoi utilise `/api/applications`.
 
-Depuis l’étape 4 Denis, la recherche publique utilise `/api/ads?page=1` avec les critères dans l’URL et reçoit un objet paginé. `/api/public/companies` et `/api/public/categories` alimentent les filtres sans connexion. Ces nouvelles routes ne proposent aucune écriture ; `/api/companies` et `/api/categories` restent réservées aux administrateurs. Les listes admin gardent leur tableau complet. Voir [le contrat public](../docs/ETAPE-4-DENIS.md).
+La recherche publique utilise `/api/ads?page=1` avec les critères dans l’URL et reçoit un objet paginé. `/api/public/companies` et `/api/public/categories` alimentent les filtres sans connexion. Ces nouvelles routes ne proposent aucune écriture ; `/api/companies` et `/api/categories` restent réservées aux administrateurs. Les listes admin gardent leur tableau complet.
 
 `App.jsx` utilise un seul `createBrowserRouter` et `RouterProvider`. `AdminRoute` vérifie le rôle avant de rendre `AdminLayout`. Ce routeur permet de conserver l’avertissement `useBlocker` des formulaires d’offres quand des modifications n’ont pas été enregistrées. `main.jsx` monte l’application sans ajouter de second routeur.
 

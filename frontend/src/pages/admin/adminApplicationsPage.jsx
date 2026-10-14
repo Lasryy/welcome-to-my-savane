@@ -96,6 +96,14 @@ export default function AdminApplicationsPage() {
             <AdminCard key={application.id} title={application.title} description={application.company_name} index={index} overflowVisible>
               <p><strong>Candidat :</strong> {application.first_name} {application.last_name} · {application.email}</p>
               <p><strong>Envoyée le :</strong> {formatDate(application.created_at)}</p>
+              {application.cv_file_url && (
+                <p>
+                  <strong>CV reçu :</strong>{" "}
+                  <a className="font-bold underline underline-offset-4" href={application.cv_file_url} target="_blank" rel="noreferrer">
+                    {application.cv_original_name || "Consulter le CV"}
+                  </a>
+                </p>
+              )}
               <label className="admin-field grid max-w-[320px] gap-2" htmlFor={`application-status-${application.id}`}>
                 Statut de la candidature
                 <CustomSelect

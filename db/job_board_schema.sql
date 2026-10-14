@@ -149,6 +149,8 @@ CREATE TABLE applications (
         REFERENCES ads(id)
         ON DELETE RESTRICT,
 
+    cv_document_id INTEGER,
+
     message TEXT,
 
     status VARCHAR(30) NOT NULL DEFAULT 'sent'
@@ -292,6 +294,15 @@ ON cv_documents(person_id, created_at DESC, id DESC);
 
 CREATE UNIQUE INDEX idx_cv_documents_one_current_per_person
 ON cv_documents(person_id) WHERE is_current;
+
+ALTER TABLE applications
+ADD CONSTRAINT applications_cv_document_owner_fk
+FOREIGN KEY (cv_document_id, person_id)
+REFERENCES cv_documents(id, person_id)
+ON DELETE SET NULL (cv_document_id);
+
+CREATE INDEX idx_applications_cv_document
+ON applications(cv_document_id);
 
 -- ============================================
 -- INDEXES

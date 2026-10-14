@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
+import CvManager from "../../components/profile/CvManager";
 
 const emptyProject = {
   title: "",
@@ -294,7 +295,7 @@ function ProfilePage() {
     <AuthLayout
       wide
       title={user ? `Bonjour ${user.first_name}.` : "Mon profil."}
-      description="Gère tes informations, tes projets et tes expériences professionnelles."
+      description="Gère tes informations, ton CV, tes projets et tes expériences professionnelles."
     >
       {isLoading && <p role="status">Chargement du profil…</p>}
       {error && <p className="form-error mb-5" role="alert">{error}</p>}
@@ -320,6 +321,8 @@ function ProfilePage() {
               </button>
             </form>
           </section>
+
+          <CvManager />
 
           <section className="profile-section" aria-labelledby="profile-projects-title">
             <div className="profile-section-heading">

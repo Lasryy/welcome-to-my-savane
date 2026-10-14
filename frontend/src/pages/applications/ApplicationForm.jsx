@@ -14,6 +14,8 @@ export default function ApplicationForm({ ad, onCancel }) {
   const [user, setUser] = useState(null);
   const [projects, setProjects] = useState([]);
   const [experiences, setExperiences] = useState([]);
+  const [cvDocuments, setCvDocuments] = useState([]);
+  const [selectedCvId, setSelectedCvId] = useState("");
   const [todayCount, setTodayCount] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -32,16 +34,20 @@ export default function ApplicationForm({ ad, onCancel }) {
     async function loadApplicationData() {
       try {
         const options = { signal: controller.signal };
-        const [account, myProjects, myExperiences, count] = await Promise.all([
+        const [account, myProjects, myExperiences, count, myCvDocuments] = await Promise.all([
           requestJson("/api/people/me", options),
           requestJson("/api/projects", options),
           requestJson("/api/experiences", options),
           requestJson("/api/applications/today", options),
+          requestJson("/api/cv-documents", options),
         ]);
 
         setUser(account);
         setProjects(myProjects);
         setExperiences(myExperiences);
+        setCvDocuments(myCvDocuments);
+        const defaultCv = myCvDocuments.find((document) => document.is_current);
+        setSelectedCvId(String(defaultCv?.id || myCvDocuments[0]?.id || ""));
         setTodayCount(count.count);
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -65,6 +71,7 @@ export default function ApplicationForm({ ad, onCancel }) {
         method: "POST",
         body: JSON.stringify({
           ad_id: Number(ad.id),
+          cv_document_id: Number(selectedCvId),
           message,
           project_ids: selectedProjectIds,
           experience_ids: selectedExperienceIds,
@@ -99,6 +106,7 @@ export default function ApplicationForm({ ad, onCancel }) {
   const selectedExperiences = experiences.filter((experience) =>
     selectedExperienceIds.includes(experience.id),
   );
+  const selectedCv = cvDocuments.find((document) => document.id === Number(selectedCvId));
 
   return (
     <section className="application-card" aria-labelledby="application-title">
@@ -154,6 +162,42 @@ export default function ApplicationForm({ ad, onCancel }) {
             onExperienceUpdate={updateExperience}
           />
 
+          <section className="application-selection" aria-labelledby="application-cv-title">
+            <h3 id="application-cv-title" className="text-lg font-bold">CV à joindre</h3>
+            <p className="mt-1 text-sm text-ink/75">
+              Choisis le CV que l’entreprise recevra avec cette candidature.
+            </p>
+            {cvDocuments.length === 0 ? (
+              <div className="application-empty-selection" role="status">
+                <p>Ajoute d’abord un CV à ton profil pour pouvoir postuler.</p>
+                <Link className="mt-3 inline-flex font-bold underline underline-offset-4" to="/profile">
+                  Ajouter un CV dans mon profil
+                </Link>
+              </div>
+            ) : (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {cvDocuments.map((document) => {
+                  const isSelected = document.id === Number(selectedCvId);
+                  return (
+                    <button
+                      key={document.id}
+                      className={`application-choice-card text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${isSelected ? "application-choice-card-selected" : "hover:bg-paper"}`}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => setSelectedCvId(String(document.id))}
+                    >
+                      <span className="block font-bold">{document.original_name}</span>
+                      <span className="mt-1 block text-sm text-ink/75">
+                        PDF · {(document.size_bytes / (1024 * 1024)).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} Mo
+                        {document.is_current ? " · CV par défaut" : ""}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
           <label className="form-field" htmlFor="application-message">
             Message de motivation
             <textarea
@@ -173,7 +217,9 @@ export default function ApplicationForm({ ad, onCancel }) {
           {submitError && <p className="form-error" role="alert">{submitError}</p>}
 
           <div className="application-actions">
-            <button className="primary-button" type="submit">Vérifier ma candidature</button>
+            <button className="primary-button" type="submit" disabled={!selectedCvId || cvDocuments.length === 0}>
+              Vérifier ma candidature
+            </button>
             <button className="secondary-button" type="button" onClick={onCancel}>Annuler</button>
           </div>
         </form>
@@ -189,6 +235,16 @@ export default function ApplicationForm({ ad, onCancel }) {
             <div><dt>E-mail</dt><dd>{user.email}</dd></div>
             <div><dt>Téléphone</dt><dd>{user.phone || "Non renseigné"}</dd></div>
           </dl>
+          <div className="application-review-section">
+            <h4>CV joint</h4>
+            {selectedCv ? (
+              <p>
+                <a className="font-bold underline underline-offset-4" href={selectedCv.file_url} target="_blank" rel="noreferrer">
+                  {selectedCv.original_name}
+                </a>
+              </p>
+            ) : <p>Aucun CV sélectionné</p>}
+          </div>
           <div className="application-review-section">
             <h4>Projets</h4>
             <p>{selectedProjects.map((project) => project.title).join(", ") || "Aucun projet sélectionné"}</p>

@@ -84,6 +84,14 @@ export default function ApplicationsHistoryPage() {
                 </h2>
                 <p>{application.company_name}{application.location ? ` · ${application.location}` : ""}</p>
                 <p className="mt-1 text-sm">Envoyée le {formatDate(application.created_at)}</p>
+                {application.cv_file_url && (
+                  <p className="mt-2 text-sm">
+                    CV envoyé :{" "}
+                    <a className="font-bold underline underline-offset-4" href={application.cv_file_url} target="_blank" rel="noreferrer">
+                      {application.cv_original_name || "Consulter le CV"}
+                    </a>
+                  </p>
+                )}
               </div>
               <span className="inline-flex w-fit border border-ink px-3 py-2 text-sm font-bold">
                 {STATUS_LABELS[application.status] || "Statut inconnu"}

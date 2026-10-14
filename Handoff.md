@@ -1,10 +1,23 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 14 octobre 2026 : CV joints aux candidatures
+
+Le candidat peut conserver plusieurs PDF dans son profil, choisir un CV par défaut,
+puis sélectionner celui à envoyer avec chaque nouvelle candidature. L’API vérifie
+que ce document appartient au compte connecté. Le CV choisi apparaît dans le résumé,
+l’historique candidat et le suivi admin ; les fichiers sont toujours servis avec session.
+
+La migration additive `db/migrations/003_application_cv.sql` ajoute la référence
+`applications.cv_document_id` et contrôle aussi le propriétaire par clé étrangère.
+Elle est nullable pour ne pas invalider les candidatures historiques. Sur une base déjà
+créée, appliquer les migrations `001`, `002`, puis `003`. Voir
+[docs/GUIDE-CV.md](docs/GUIDE-CV.md) pour les commandes et le parcours manuel.
+
 ## Mise à jour du 14 octobre 2026 : D5.1 Denis
 
 Deux routes ajoutées : `POST /api/cv-documents` reçoit un unique fichier PDF de 5 Mo maximum ; `GET /api/cv-documents/:id/file` le sert au propriétaire ou à un ADMIN, avec `?download=1` pour télécharger. Le contenu est lu avant stockage, le propriétaire vient de la session et chaque dépôt crée une version indépendante.
 
-La table `cv_documents` est ajoutée au schéma neuf et par `db/migrations/001_cv_documents.sql` pour une base existante. Le volume Docker `cv_data` conserve les fichiers. Aucun changement du profil, du formulaire, de l’historique ou des routes existantes. Le CV courant et les composants frontend attendent D5.2 ; les références de candidature et la copie figée attendent D5.3 et l’intégration Lasry.
+La table `cv_documents` est ajoutée au schéma neuf et par `db/migrations/001_cv_documents.sql` pour une base existante. Le volume Docker `cv_data` conserve les fichiers. Cette première livraison a ensuite été complétée par D5.2 et le lien candidature décrit dans la mise à jour ci-dessus.
 
 Contrats, installation et scénarios : [docs/GUIDE-CV.md](docs/GUIDE-CV.md).
 
@@ -12,7 +25,7 @@ Contrats, installation et scénarios : [docs/GUIDE-CV.md](docs/GUIDE-CV.md).
 
 Le nouveau PDF devient le CV courant dans la transaction de dépôt ; l’ancienne version reste stockée. `GET /api/cv-documents/current` renvoie la version courante ou `null`. `DELETE` retire le statut courant sans effacer le fichier. Une contrainte SQL unique empêche deux CV courants pour un même compte.
 
-Composant autonome `frontend/src/components/profile/CvManager.jsx` : afficher, consulter, remplacer et retirer le CV ; retours de chargement, succès et erreur inclus. Selon le partage de responsabilités de la roadmap, Lasry monte ce composant dans sa page Profil. Son formulaire de candidature n’a pas été modifié.
+`frontend/src/components/profile/CvManager.jsx` est intégré dans `ProfilePage.jsx` : le candidat peut afficher, consulter, ajouter plusieurs CV et choisir celui par défaut, avec états de chargement, succès et erreur.
 
 Migration additive requise pour un volume PostgreSQL déjà créé : appliquer d’abord `001_cv_documents.sql` si D5.1 n’est pas déjà dans la base, puis `002_current_cv.sql`. Vérifications et guide mis à jour dans [docs/ETAPE-5-DENIS.md](docs/ETAPE-5-DENIS.md).
 

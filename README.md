@@ -13,7 +13,7 @@
 - Historique des candidatures et suivi de leur statut.
 - Espace d’administration pour les offres, les entreprises, les catégories, les candidatures et les comptes.
 - Documentation interactive de l’API avec Swagger.
-- CV : dépôt, consultation et remplacement du CV courant (PDF jusqu’à 5 Mo). Les anciennes versions sont conservées ; les fichiers restent privés sur un volume Docker. Un composant de gestion du CV est disponible pour l’espace Profil.
+- CV : bibliothèque de plusieurs CV PDF dans le Profil. Pour chaque candidature, le candidat choisit le CV envoyé ; le candidat et l’administration peuvent ensuite le consulter avec leur session.
 
 ## Prérequis
 
@@ -145,10 +145,10 @@ frontend/  Interface React et styles Tailwind CSS
 
 Les routes de l’API sont documentées dans Swagger à l’adresse <http://localhost:3000/api-docs> lorsque Docker Compose est lancé.
 
-Une base déjà initialisée doit recevoir les migrations CV dans l’ordre : `db/migrations/001_cv_documents.sql`, puis `db/migrations/002_current_cv.sql`. Le [guide CV](docs/GUIDE-CV.md) explique les migrations, le stockage Docker et les routes. Le composant de gestion du CV est prêt à être intégré à la page Profil ; son rattachement à une candidature reste à faire.
+Une base déjà initialisée doit recevoir les migrations dans l’ordre : `001_cv_documents.sql`, `002_current_cv.sql`, puis `003_application_cv.sql` (dans `db/migrations/`). Le [guide CV](docs/GUIDE-CV.md) explique le stockage, les routes et le CV joint à une candidature.
 
 Pour les requêtes protégées, le backend identifie le compte à partir de la session. Le navigateur conserve un cookie de session ; le mot de passe est stocké sous forme de hash bcrypt.
 
 ## État du projet
 
-Le parcours candidat permet de sélectionner les projets et expériences à joindre à une candidature, de vérifier un récapitulatif et de consulter le nombre de candidatures envoyées dans la journée. Le dépôt, le remplacement et la consultation sécurisée du CV sont disponibles ; l’intégration du composant CV au profil et le rattachement du CV à une candidature restent à faire.
+Le parcours candidat permet de choisir les projets, les expériences et un CV à joindre à une candidature, puis de vérifier un récapitulatif avant l’envoi. Les CV restent dans le Profil pour être réutilisés sur d’autres offres.

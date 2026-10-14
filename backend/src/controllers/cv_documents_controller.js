@@ -44,7 +44,7 @@ async function createCvDocument(req, res) {
     client = await pool.connect();
     await client.query("BEGIN");
 
-    // Only one upload for this account can replace its current CV at a time.
+    // Serialize uploads so each account has one predictable default CV.
     await client.query("SELECT id FROM people WHERE id = $1 FOR UPDATE", [req.cvAccount.id]);
     await client.query(
       "UPDATE cv_documents SET is_current = FALSE WHERE person_id = $1 AND is_current",
@@ -83,6 +83,26 @@ async function createCvDocument(req, res) {
   }
 }
 
+async function getCvDocuments(req, res) {
+  try {
+    const result = await pool.query(
+      `SELECT id, original_name, mime_type, size_bytes, created_at, is_current
+       FROM cv_documents
+       WHERE person_id = $1
+       ORDER BY is_current DESC, created_at DESC, id DESC`,
+      [req.cvAccount.id],
+    );
+    const documents = result.rows.map((document) => ({
+      ...document,
+      file_url: `/api/cv-documents/${document.id}/file`,
+    }));
+    return res.status(200).json(documents);
+  } catch (error) {
+    console.error("Error while listing CV documents:", error);
+    return res.status(500).json({ message: "Impossible de charger tes CV." });
+  }
+}
+
 async function getCurrentCv(req, res) {
   try {
     const result = await pool.query(
@@ -98,6 +118,56 @@ async function getCurrentCv(req, res) {
   } catch (error) {
     console.error("Error while loading current CV:", error);
     return res.status(500).json({ message: "Impossible de charger le CV." });
+  }
+}
+
+async function setCurrentCv(req, res) {
+  const id = Number(req.params.id);
+  if (!/^\d+$/.test(req.params.id) || !Number.isSafeInteger(id) || id < 1) {
+    return res.status(400).json({ message: "L’identifiant du CV est invalide." });
+  }
+
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query("BEGIN");
+    await client.query("SELECT id FROM people WHERE id = $1 FOR UPDATE", [req.cvAccount.id]);
+
+    const documentResult = await client.query(
+      `SELECT id, original_name, mime_type, size_bytes, created_at
+       FROM cv_documents
+       WHERE id = $1 AND person_id = $2`,
+      [id, req.cvAccount.id],
+    );
+    if (!documentResult.rowCount) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "CV introuvable dans ton profil." });
+    }
+
+    await client.query(
+      "UPDATE cv_documents SET is_current = (id = $2) WHERE person_id = $1",
+      [req.cvAccount.id, id],
+    );
+    await client.query("COMMIT");
+
+    const document = documentResult.rows[0];
+    return res.status(200).json({
+      ...document,
+      is_current: true,
+      file_url: `/api/cv-documents/${document.id}/file`,
+    });
+  } catch (error) {
+    if (client) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Error while rolling back current CV update:", rollbackError);
+      }
+    }
+    console.error("Error while choosing current CV:", error);
+    return res.status(500).json({ message: "Impossible de choisir ce CV." });
+  } finally {
+    client?.release();
   }
 }
 
@@ -158,4 +228,12 @@ async function getCvFile(req, res, next) {
   }
 }
 
-module.exports = { requireCvAccount, createCvDocument, getCurrentCv, removeCurrentCv, getCvFile };
+module.exports = {
+  requireCvAccount,
+  createCvDocument,
+  getCvDocuments,
+  getCurrentCv,
+  setCurrentCv,
+  removeCurrentCv,
+  getCvFile,
+};

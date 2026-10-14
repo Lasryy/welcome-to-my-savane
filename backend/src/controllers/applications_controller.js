@@ -62,6 +62,7 @@ async function createApplication(req, res) {
   // Get the applicant's identity from the session, never from the submitted form.
   const personId = req.session.userId;
   const adId = Number(req.body?.ad_id);
+  const cvDocumentId = Number(req.body?.cv_document_id);
   const message =
     typeof req.body?.message === "string" ? req.body.message.trim() : "";
   const selectedProjects = readSelectedIds(req.body?.project_ids, "project_ids");
@@ -72,6 +73,10 @@ async function createApplication(req, res) {
 
   if (!Number.isSafeInteger(adId) || adId <= 0) {
     return res.status(400).json({ error: "L’offre sélectionnée est invalide." });
+  }
+
+  if (!Number.isSafeInteger(cvDocumentId) || cvDocumentId <= 0) {
+    return res.status(400).json({ error: "Choisis un CV avant d’envoyer ta candidature." });
   }
 
   if (!message) {
@@ -123,14 +128,25 @@ async function createApplication(req, res) {
       });
     }
 
+    // A candidate can attach only one of their own saved CVs.
+    const cvResult = await client.query(
+      "SELECT id FROM cv_documents WHERE id = $1 AND person_id = $2",
+      [cvDocumentId, personId],
+    );
+    if (!cvResult.rowCount) {
+      await client.query("ROLLBACK");
+      transactionStarted = false;
+      return res.status(400).json({ error: "Le CV choisi n’appartient pas à ton profil." });
+    }
+
     // The application is inserted only if the offer is still published.
     const result = await client.query(
-      `INSERT INTO applications (person_id, ad_id, message)
-       SELECT $1, ads.id, $3
+      `INSERT INTO applications (person_id, ad_id, message, cv_document_id)
+       SELECT $1, ads.id, $3, $4
        FROM ads
        WHERE ads.id = $2 AND ads.status = 'published'
-       RETURNING id, ad_id, message, status, created_at`,
-      [personId, adId, message],
+       RETURNING id, ad_id, message, cv_document_id, status, created_at`,
+      [personId, adId, message, cvDocumentId],
     );
 
     if (result.rows.length === 0) {
@@ -201,16 +217,27 @@ async function getMyApplications(req, res) {
     const result = await pool.query(
       `SELECT applications.id, applications.ad_id, ads.title,
               companies.name AS company_name, ads.location,
+              applications.cv_document_id,
+              cv_documents.original_name AS cv_original_name,
               applications.status, applications.created_at
        FROM applications
        JOIN ads ON ads.id = applications.ad_id
        JOIN companies ON companies.id = ads.company_id
+       LEFT JOIN cv_documents
+         ON cv_documents.id = applications.cv_document_id
+        AND cv_documents.person_id = applications.person_id
        WHERE applications.person_id = $1
        ORDER BY applications.created_at DESC, applications.id DESC`,
       [req.session.userId],
     );
 
-    return res.status(200).json(result.rows);
+    const applications = result.rows.map((application) => ({
+      ...application,
+      cv_file_url: application.cv_document_id
+        ? `/api/cv-documents/${application.cv_document_id}/file`
+        : null,
+    }));
+    return res.status(200).json(applications);
   } catch (error) {
     console.error("Error while fetching personal applications:", error);
     return res.status(500).json({ error: "Impossible de charger tes candidatures." });
@@ -224,15 +251,26 @@ async function getAdminApplications(req, res) {
       `SELECT applications.id, applications.ad_id, ads.title,
               companies.name AS company_name,
               people.first_name, people.last_name, people.email,
+              applications.cv_document_id,
+              cv_documents.original_name AS cv_original_name,
               applications.status, applications.created_at
        FROM applications
        JOIN people ON people.id = applications.person_id
        JOIN ads ON ads.id = applications.ad_id
        JOIN companies ON companies.id = ads.company_id
+       LEFT JOIN cv_documents
+         ON cv_documents.id = applications.cv_document_id
+        AND cv_documents.person_id = applications.person_id
        ORDER BY applications.created_at DESC, applications.id DESC`,
     );
 
-    return res.status(200).json(result.rows);
+    const applications = result.rows.map((application) => ({
+      ...application,
+      cv_file_url: application.cv_document_id
+        ? `/api/cv-documents/${application.cv_document_id}/file`
+        : null,
+    }));
+    return res.status(200).json(applications);
   } catch (error) {
     console.error("Error while fetching admin applications:", error);
     return res.status(500).json({ message: "Impossible de charger les candidatures." });

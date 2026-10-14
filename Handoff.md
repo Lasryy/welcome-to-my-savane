@@ -14,7 +14,13 @@ Le nouveau PDF devient le CV courant dans la transaction de dépôt ; l’ancien
 
 Composant autonome `frontend/src/components/profile/CvManager.jsx` : afficher, consulter, remplacer et retirer le CV ; retours de chargement, succès et erreur inclus. Selon le partage de responsabilités de la roadmap, Lasry monte ce composant dans sa page Profil. Son formulaire de candidature n’a pas été modifié.
 
-Migration additive requise pour un volume PostgreSQL déjà créé : appliquer d’abord `001_cv_documents.sql` si D5.1 n’est pas déjà dans la base, puis `002_current_cv.sql`. Vérifications et guide mis à jour dans [docs/ETAPE-5-DENIS.md](docs/ETAPE-5-DENIS.md).
+Migration additive requise pour un volume PostgreSQL déjà créé : appliquer d’abord `001_cv_documents.sql` si D5.1 n’est pas déjà dans la base, puis `002_current_cv.sql`. Pour le contrat D5.3, appliquer ensuite `003_frozen_application_dossier.sql`. Les changements suivants sont détaillés ci-dessous.
+
+## Mise à jour du 14 octobre 2026 : D5.3 Denis
+
+La migration `003_frozen_application_dossier.sql` ajoute `applications.cv_document_id` (nullable) pour référencer la version de CV exacte et `applications.submitted_snapshot` (JSONB nullable) pour le contenu figé du dossier. Une clé étrangère composite garantit que le CV appartient au candidat. Les candidatures existantes sont conservées sans CV ni copie, avec ces deux champs à `NULL`.
+
+Contrat prévu pour Lasry : écrire message, associations choisies, référence CV et copie du contenu dans la même transaction de création. Construire la copie côté serveur depuis les données SQL appartenant au compte connecté. Structure JSON et migrations : [docs/ETAPE-5-DENIS.md](docs/ETAPE-5-DENIS.md).
 
 ## Mise à jour du 13 octobre 2026 : étape 4 Lasry
 

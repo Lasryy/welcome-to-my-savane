@@ -1,9 +1,11 @@
-# Étape 5 Denis - D5.1 et D5.2 : gestion du CV PDF courant
+# Étape 5 Denis - D5.1 à D5.3 : CV et dossier de candidature figé
 
-Cette livraison ajoute le stockage protégé des CV, la gestion du CV courant et
-un composant React autonome. D5.3 (copie figée du dossier) et D5.4 (conservation
-des versions jointes et nettoyage) restent à réaliser séparément. Lasry monte
-le composant CV dans sa page Profil.
+Cette livraison ajoute le stockage protégé des CV, la gestion du CV courant,
+un composant React autonome et les champs SQL nécessaires pour conserver la
+version exacte du CV et une copie figée du dossier envoyé. Lasry monte le
+composant CV dans sa page Profil et remplira ces champs lors de l’envoi de la
+candidature. D5.4 (accès admin et nettoyage des fichiers inutilisés) reste à
+réaliser séparément.
 
 ## Installation
 
@@ -12,13 +14,16 @@ Pour une base Docker existante, appliquer la migration additive avant de redéma
 ```sh
 docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/001_cv_documents.sql
 docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/002_current_cv.sql
+docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/003_frozen_application_dossier.sql
 docker compose up -d --build --renew-anon-volumes backend
 ```
 
-Les migrations créent seulement la table `cv_documents` et ses index. Elles peuvent
-être réexécutées et ne modifient ni les comptes ni les candidatures. Pour une installation neuve,
+Les migrations sont additives et réexécutables : elles ajoutent la table CV, ses index,
+le statut courant, puis les deux colonnes nullable du dossier. Elles ne suppriment ni
+compte ni candidature. Pour une installation neuve,
 `db/job_board_schema.sql` crée déjà cette table et le statut CV courant avant le chargement du seed.
-Les scripts d’initialisation Docker ne migrent pas les volumes PostgreSQL existants.
+Il crée également les emplacements du dossier figé sur `applications`. Les scripts
+d’initialisation Docker ne migrent pas les volumes PostgreSQL existants.
 
 Hors Docker : `npm --prefix backend ci`, puis `npm --prefix backend run dev`.
 Le répertoire par défaut est `backend/storage/cv`. Une variable d’environnement
@@ -103,6 +108,40 @@ Le seed reste un outil de réinitialisation volontaire : il vide aussi les méta
 CV pour respecter la clé étrangère vers people. Il ne supprime pas les fichiers sur
 disque ; leur nettoyage est prévu en D5.4. Ne pas lancer le seed pour migrer une base.
 
+## D5.3 : contrat SQL du dossier envoyé
+
+La migration `003_frozen_application_dossier.sql` ajoute à `applications` :
+
+- `cv_document_id INTEGER NULL`, référence la version exacte du CV, même si elle
+  n’est plus le CV courant. La clé étrangère composite `(cv_document_id, person_id)`
+  garantit que le document appartient au candidat de la candidature.
+- `submitted_snapshot JSONB NULL`, emplacement du contenu figé au moment de l’envoi.
+  La base accepte un objet JSON ou `NULL`; les candidatures préexistantes restent
+  à `NULL` et toutes les lignes sont conservées.
+
+Contrat d’écriture pour Lasry : dans la transaction de `POST /api/applications`,
+enregistrer les associations choisies, la version CV facultative et un objet JSON
+avec les informations qui doivent rester lisibles après modification du profil.
+Exemple de structure de `submitted_snapshot` :
+
+```json
+{
+  "person": { "first_name": "Ada", "last_name": "Lovelace", "email": "ada@example.com", "phone": null },
+  "message": "Mon message envoyé",
+  "projects": [{ "id": 12, "title": "Projet", "description": "Description copiée", "project_url": null, "repository_url": null }],
+  "experiences": [{ "id": 4, "company": "Société", "position": "Développeuse", "description": "Expérience copiée", "start_date": "2024-01-01", "end_date": null }]
+}
+```
+
+Les identifiants servent à retrouver l’origine, mais les valeurs des champs sont
+copiées dans le JSON. `cv_document_id` reste séparé et vaut `NULL` sans CV.
+Construire la copie depuis les données SQL du candidat et des éléments dont le
+propriétaire correspond à la session ; ne pas accepter la copie fournie par le
+client. L’association CV, le message, les lignes `application_projects` et
+`application_experiences`, et la copie doivent être enregistrés dans la même
+transaction. Les anciennes candidatures sans copie restent consultables avec les
+données qu’elles possèdent.
+
 ## Tests manuels dans Swagger ou Postman
 
 1. Appliquer la migration et démarrer le backend avec les commandes ci-dessus.
@@ -129,19 +168,21 @@ Les routes et leurs formats sont documentés dans `/api-docs`.
 Le fichier `backend/test/integration.test.js` garde son garde-fou `wtms_test_` et
 utilise un répertoire temporaire pour les CV, supprimé après le test. Suivre les
 commandes du [guide d’intégration](INTEGRATION-ETAPES-1-2.md). Le test applique
-lui-même la migration CV et vérifie sa réexécution, les erreurs d’envoi, les droits,
+lui-même les migrations CV et dossier figé et vérifie leur réexécution, la conservation
+des candidatures existantes, les références de propriété, les erreurs d’envoi, les droits,
 les versions concurrentes, les octets du fichier, un fichier disparu et la suppression
 du fichier lors d’un échec SQL forcé. Il vérifie aussi le contrat Swagger.
 
 Sans `RUN_INTEGRATION_TESTS=1`, `npm test` ignore le test d’intégration : cela ne valide
 pas les fonctionnalités. Avec une base isolée configurée, le résultat attendu est
-25 scénarios réussis, soit 26 tests en comptant le parent.
+26 scénarios réussis, soit 27 tests en comptant le parent.
 
 ## Suite pour Lasry
 
 `id` identifie une version du document et `file_url` permet sa lecture protégée.
 `frontend/src/components/profile/CvManager.jsx` fournit le composant React autonome
 de gestion du CV courant. Lasry peut le monter dans `ProfilePage.jsx`.
-Le champ `cv_document_id` dans
-les candidatures et la copie figée ne sont pas encore livrés. Attendre les contrats
-D5.3 avant de brancher l’envoi du dossier complet.
+`applications.cv_document_id` et `applications.submitted_snapshot` sont prêts pour
+L5.2/L6.1. La base protège le lien du CV par propriétaire. Lasry reste propriétaire
+de `POST /api/applications`, des tables de liaison et du contenu produit pour la copie ;
+D5.4 complètera la consultation admin et le nettoyage du stockage.

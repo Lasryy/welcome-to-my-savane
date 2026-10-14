@@ -3,7 +3,8 @@
 -- PostgreSQL 17 ; aucune extension ni dépendance supplémentaire.
 -- Données entièrement fictives ; domaines réservés example.com.
 -- ============================================================
--- ATTENTION : ce script remplace TOUTES les données des neuf tables.
+-- ATTENTION : ce script remplace les données des neuf tables et les métadonnées CV.
+-- Les fichiers CV sur disque ne sont pas effacés par ce script SQL.
 -- À utiliser uniquement sur une base de développement/démonstration.
 -- Exécution conseillée : psql -v ON_ERROR_STOP=1 -f db/seed_mvp.sql
 -- Une transaction englobe la réinitialisation et les contrôles :
@@ -37,6 +38,7 @@
 BEGIN;
 
 TRUNCATE TABLE
+    cv_documents,
     application_experiences, application_projects, experiences, projects,
     applications, ads, categories, companies, people
 RESTART IDENTITY;

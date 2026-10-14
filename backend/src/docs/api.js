@@ -1068,7 +1068,7 @@
  *   post:
  *     tags: [Applications]
  *     summary: Submit an application to an offer
- *     description: Requires a logged-in account. person_id is taken from the session and must not be sent in the body. The offer must still be published.
+ *     description: Requires a logged-in account. An optional CV and all selected projects and experiences must belong to that account. person_id is taken from the session. The offer must still be published. The application and its selections are saved together.
  *     security:
  *       - sessionCookie: []
  *     requestBody:
@@ -1080,8 +1080,17 @@
  *             required: [ad_id, message]
  *             properties:
  *               ad_id: { type: integer, minimum: 1 }
+ *               cv_document_id: { type: integer, minimum: 1, nullable: true, description: Optional CV document owned by the logged-in account. }
  *               message: { type: string, minLength: 1, maxLength: 5000 }
- *           example: { ad_id: 12, message: Je souhaite rejoindre votre équipe car... }
+ *               project_ids:
+ *                 type: array
+ *                 items: { type: integer, minimum: 1 }
+ *                 description: Optional profile project IDs to include in the application.
+ *               experience_ids:
+ *                 type: array
+ *                 items: { type: integer, minimum: 1 }
+ *                 description: Optional profile experience IDs to include in the application.
+ *           example: { ad_id: 12, cv_document_id: 4, message: Je souhaite rejoindre votre équipe car..., project_ids: [3], experience_ids: [8] }
  *     responses:
  *       '201':
  *         description: Application submitted.
@@ -1091,12 +1100,27 @@
  *               id: 41
  *               ad_id: 12
  *               message: Je souhaite rejoindre votre équipe car...
+ *               cv_document_id: 4
  *               status: sent
  *               created_at: '2026-01-15T10:00:00.000Z'
- *       '400': { description: Invalid offer ID or motivation message. }
+ *       '400': { description: Invalid offer ID, CV, message, or selected profile items. }
  *       '401': { description: Login required. }
  *       '404': { description: Offer not found. }
  *       '409': { description: Offer is closed or the account already applied. }
+ *       '500': { description: Internal database error. }
+ * /api/applications/today:
+ *   get:
+ *     tags: [Applications]
+ *     summary: Count the current account's applications for the current Paris calendar day
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200':
+ *         description: Number of applications created by the account today.
+ *         content:
+ *           application/json:
+ *             example: { count: 2 }
+ *       '401': { description: Login required. }
  *       '500': { description: Internal database error. }
  */
 
@@ -1109,7 +1133,7 @@
  *   get:
  *     tags: [Applications]
  *     summary: List the current account's applications
- *     description: Returns offer title, company, location, status and creation date, newest first.
+ *     description: Returns offer title, company, location, submitted CV name and protected file URL, status and creation date, newest first.
  *     security:
  *       - sessionCookie: []
  *     responses:
@@ -1156,7 +1180,7 @@
  *   get:
  *     tags: [Admin - Applications]
  *     summary: List applications for administrators
- *     description: Includes the offer, company, candidate name and email, status and creation date.
+ *     description: Includes the offer, company, candidate name and email, submitted CV name and protected file URL, status and creation date.
  *     security:
  *       - sessionCookie: []
  *     responses:

@@ -1,101 +1,154 @@
 # Welcome to My Savane
 
-Job board full-stack en cours de développement.
+**Welcome to My Savane** est un job board réalisé en équipe dans le cadre du projet Epitech T-WEB-501. Les candidats peuvent consulter des offres, créer leur profil et envoyer des candidatures. L’administration gère les offres, les entreprises, les catégories et les comptes.
 
-## Avancement actuel
+> Projet pédagogique en cours de développement. Les données de démonstration sont fictives ; ne l’utilisez pas pour stocker des données personnelles réelles.
 
-- Base PostgreSQL : schéma dans `db/job_board_schema.sql` et peuplement détaillé dans `db/seed_mvp.sql`.
-- Frontend : job board public relié à l’API, détail des offres et espace d’administration en React + Vite.
-- Backend : API Express connectée à PostgreSQL pour les offres publiques et l’administration des offres, entreprises et catégories.
-- Comptes : inscription, connexion, déconnexion, profil et sessions côté serveur.
-- Candidatures : formulaire prérempli et envoi en SQL ; visiteurs, doublons et offres fermées sont refusés.
-- Administration : accès réservé à `ADMIN` dans React et dans les API, y compris les alias entreprises/catégories.
-- Étape 3 Lasry : historique personnel, suivi des statuts, liste des candidatures admin et gestion des comptes.
-- Swagger : documentation disponible sur `http://localhost:3000/api-docs`, spécification sur `/api-docs/openapi.json`.
-- Étape 3 Denis : CRUD des offres complet, boutons de fermeture/réouverture et suppression refusée lorsqu’une candidature est liée.
-- Étape 4 Lasry : profil éditable sur `/profile`, avec gestion des projets et expériences du compte connecté. Les API vérifient le propriétaire, les champs autorisés, les URLs et les dates ; supprimer une preuve déjà liée à une candidature est refusé.
-- Étape 4 Denis (V3) : recherche SQL, filtres combinables, tri récent/salaire et pagination, choix conservés dans l’URL et présentation des entreprises sur les offres.
-- Docker Compose : PostgreSQL, API et frontend peuvent être lancés ensemble.
+## Fonctionnalités disponibles
 
-## Technologies
+- Consultation des offres publiées, recherche et filtres.
+- Création de compte, connexion et déconnexion avec session.
+- Profil candidat : coordonnées, projets et expériences.
+- Candidatures : message de motivation, choix des projets et expériences à présenter, puis récapitulatif avant l’envoi.
+- Historique des candidatures et suivi de leur statut.
+- Espace d’administration pour les offres, les entreprises, les catégories, les candidatures et les comptes.
+- Documentation interactive de l’API avec Swagger.
+- CV : bibliothèque de plusieurs CV PDF dans le Profil. Pour chaque candidature, le candidat choisit le CV envoyé ; le candidat et l’administration peuvent ensuite le consulter avec leur session.
 
-React · Vite · Node.js/Express · PostgreSQL · Docker
+## Prérequis
 
-## Installation et commandes
+- Git
+- Docker Desktop avec Docker Compose v2
 
-Prérequis : Node.js, npm et Docker.
+Le lancement recommandé utilise Docker : Node.js et PostgreSQL sont déjà fournis dans les images des conteneurs. Pour lancer les commandes de développement hors de Docker, installez aussi Node.js 22 et npm.
+
+## Installation depuis GitHub
+
+Clonez le dépôt puis entrez dans son dossier :
+
+```bash
+git clone https://github.com/EpitechMscProPromo2029/T-WEB-501-PAR-5-1-job_board-6.git
+cd T-WEB-501-PAR-5-1-job_board-6
+```
+
+Créez le fichier local de configuration :
 
 ```bash
 cp .env.example .env
-docker compose up -d postgres
 ```
 
-Le schéma et le peuplement sont chargés automatiquement au premier démarrage de PostgreSQL, lorsque le volume est vide. Le fichier `db/seed_mvp.sql` contient des données entièrement fictives :
-
-- 30 entreprises et 20 catégories de métiers ;
-- 240 offres détaillées : 195 publiées et 45 fermées ;
-- 120 candidats et 2 administrateurs, avec des mots de passe hachés en bcrypt ;
-- 360 projets, 360 expériences et 720 candidatures ;
-- 1 440 projets joints et 1 440 expériences jointes aux candidatures.
-
-Les offres couvrent le développement, la data, la cybersécurité, le design, le commerce, les RH, la finance, l’industrie et d’autres secteurs. Chaque description comprend un contexte sectoriel, six missions propres au métier, les livrables, l’accompagnement, les apprentissages, le profil, les compétences, les langues et les conditions du poste. Les attentes sont adaptées au niveau : junior, confirmé, senior, stage ou alternance. Les fourchettes `salary_min` et `salary_max` sont exprimées en euros bruts pour le temps de travail indiqué : `salary_period = 'month'` pour les stages et alternances, et `'year'` pour les autres contrats. Deux bornes à `NULL` indiquent un montant non renseigné. Les dates sont calculées par rapport au jour du chargement.
-
-Le seed respecte les valeurs du schéma actuel : contrats `permanent`, `fixed_term`, `internship`, `apprenticeship`, temps de travail `full_time` ou `part_time` et candidatures `sent`, `in_progress`, `technical_test`, `accepted` ou `rejected`. Les associations de pièces jointes renseignent `person_id` afin de respecter les clés étrangères composites qui garantissent leur propriétaire.
-
-Pour recharger le peuplement sur une base de développement utilisant déjà le schéma actuel de `db/job_board_schema.sql` (cette commande ne migre pas une ancienne base) :
+Remplacez `SESSION_SECRET` dans `.env` par une valeur privée générée avec :
 
 ```bash
-docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/seed_mvp.sql
+openssl rand -hex 32
 ```
 
-**Attention : cette commande remplace toutes les données des neuf tables et réinitialise leurs identifiants.** Le script utilise une transaction et vérifie les volumes, les propriétaires des pièces jointes, les doublons et la chronologie avant validation. Une erreur annule le chargement.
+Gardez cette valeur dans votre `.env` local : **ne la publiez pas et ne la committez pas**. Le fichier `.env` est ignoré par Git.
 
-Comptes de démonstration : `alice.martin@example.com` (candidat) et `admin@jobboard.example.com` (administrateur). Tous les comptes du seed utilisent le mot de passe `JobBoardDemo2026!`. La connexion est disponible sur `/login`.
-
-Lancer le frontend :
+Démarrez PostgreSQL, le backend et le frontend :
 
 ```bash
-cd frontend
-npm install
-npm run dev
+docker compose up --build -d
+docker compose ps
 ```
 
-Application : <http://localhost:5173>
+Ouvrez ensuite :
 
-Documentation interactive de l’API : <http://localhost:3000/api-docs> (ou le port défini par `BACK_PORT` dans `.env`). Le document OpenAPI JSON est disponible sur `/api-docs/openapi.json`.
+- Site : <http://localhost:5173>
+- API : <http://localhost:3000>
+- Documentation Swagger : <http://localhost:3000/api-docs>
 
-Commandes frontend :
+Les ports peuvent être changés dans `.env` avec `FRONT_PORT`, `BACK_PORT` et `POSTGRES_PORT`.
+
+Pour suivre les journaux :
 
 ```bash
-npm run build   # build de production
-npm run lint    # vérification ESLint
-npm run preview # prévisualisation du build
+docker compose logs -f
 ```
 
-Arrêter les conteneurs :
+Pour arrêter les services sans supprimer les données PostgreSQL :
 
 ```bash
 docker compose down
 ```
 
-Lancer les trois services :
+### Base de données et données de démonstration
+
+Au premier démarrage, lorsque le volume PostgreSQL est vide, Docker exécute automatiquement `db/job_board_schema.sql`, puis `db/seed_mvp.sql`. Le seed contient des offres, des entreprises, des catégories, des comptes, des projets, des expériences et des candidatures fictifs.
+
+Les scripts d’initialisation ne sont **pas rejoués** si le volume PostgreSQL existe déjà. Pour supprimer la base locale et la recréer depuis zéro :
 
 ```bash
-docker compose up --build
+docker compose down -v
+docker compose up --build -d
 ```
 
-## Structure
+La commande `down -v` supprime définitivement les données conservées dans le volume local. Ne l’utilisez que si vous souhaitez vraiment réinitialiser votre base.
+
+Comptes de démonstration créés par le seed :
+
+| Rôle | E-mail | Mot de passe |
+| --- | --- | --- |
+| Candidat | `alice.martin@example.com` | `JobBoardDemo2026!` |
+| Administrateur | `admin@jobboard.example.com` | `JobBoardDemo2026!` |
+
+Ces comptes sont présents après une initialisation neuve de la base. Ils servent uniquement au développement local et ne doivent pas être réutilisés en production.
+
+## Technologies et versions
+
+Le projet utilise Node.js 22 et PostgreSQL 17 dans Docker. Les versions exactes des dépendances JavaScript sont verrouillées dans les fichiers `package-lock.json`.
+
+| Élément | Version utilisée |
+| --- | --- |
+| React | 19.3.0 |
+| React DOM | 19.3.0 |
+| React Router DOM | 7.18.4 |
+| Vite | 8.3.3 |
+| Tailwind CSS | 4.3.3 |
+| Express | 5.2.1 |
+| express-session | 1.19.0 |
+| node-postgres (`pg`) | 8.23.1 |
+| bcrypt | 6.0.0 |
+
+## Commandes de développement
+
+Les commandes suivantes s’exécutent depuis le dossier correspondant :
+
+```bash
+# Frontend
+cd frontend
+npm ci
+npm run dev
+npm run build
+npm run lint
+```
+
+```bash
+# Backend, dans un autre terminal
+cd backend
+npm ci
+npm run dev
+```
+
+Pour un lancement manuel, le backend doit pouvoir joindre PostgreSQL et doit recevoir les variables de `.env`. Docker Compose configure ces connexions automatiquement ; pour une première prise en main, utilisez plutôt la procédure Docker ci-dessus.
+
+## Structure du dépôt
 
 ```text
-db/        Schéma et seed PostgreSQL
-frontend/  Application React/Vite
-backend/   API Express, contrôleurs, routes et connexion PostgreSQL (`pg`)
+backend/   API Express, routes, contrôleurs, sessions et documentation Swagger
+db/        Schéma PostgreSQL et données de démonstration
+docs/      Roadmaps, choix techniques et guides du projet
+frontend/  Interface React et styles Tailwind CSS
 ```
 
-## Prochaines étapes
+## API
 
-Les deux parties de l’étape 4 et leurs contrats sont documentés : [recherche et catalogue public](docs/ETAPE-4-DENIS.md) et [profil candidat](docs/superpowers/specs/2026-10-13-etape-4-profil-candidat.md).
+Les routes de l’API sont documentées dans Swagger à l’adresse <http://localhost:3000/api-docs> lorsque Docker Compose est lancé.
 
-Prochaine étape : préparer le CV PDF et le stockage protégé, puis brancher la sélection des projets et expériences aux candidatures.
+Une base déjà initialisée doit recevoir les migrations dans l’ordre : `001_cv_documents.sql`, `002_current_cv.sql`, puis `003_frozen_application_dossier.sql` (dans `db/migrations/`). Le [guide CV](docs/GUIDE-CV.md) explique le stockage, les routes et le CV joint à une candidature.
 
-La fusion des étapes 1 et 2 et les commandes de vérification sont décrites dans [le guide d’intégration](docs/INTEGRATION-ETAPES-1-2.md).
+Pour les requêtes protégées, le backend identifie le compte à partir de la session. Le navigateur conserve un cookie de session ; le mot de passe est stocké sous forme de hash bcrypt.
+
+## État du projet
+
+Le parcours candidat permet de choisir les projets, les expériences et un CV à joindre à une candidature, puis de vérifier un récapitulatif avant l’envoi. Les CV restent dans le Profil pour être réutilisés sur d’autres offres.

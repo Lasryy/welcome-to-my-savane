@@ -11,6 +11,15 @@ test("Lasry and Denis integration", {
     "DB_NAME must start with wtms_test_ to protect development data",
   );
 
+  // Never write test CVs into the development storage directory.
+  const fs = require("node:fs/promises");
+  const os = require("node:os");
+  const path = require("node:path");
+  const { PDFDocument } = require("pdf-lib");
+  const cvStorageDir = await fs.mkdtemp(path.join(os.tmpdir(), "wtms-test-cv-"));
+  process.env.CV_STORAGE_DIR = cvStorageDir;
+  t.after(() => fs.rm(cvStorageDir, { recursive: true, force: true }));
+
   const app = require("../src/app");
   const pool = require("../src/db/pool");
   const server = app.listen(0, "127.0.0.1");
@@ -70,6 +79,7 @@ test("Lasry and Denis integration", {
   let applicationId;
   let projectId;
   let experienceId;
+  let secondCvId;
 
   await t.test("registration, login and profile keep the default USER role", async () => {
     assert.equal((await request("/api/auth/me")).status, 401);
@@ -338,6 +348,275 @@ test("Lasry and Denis integration", {
     adminCookie = login.cookie;
   });
 
+  await t.test("CV and dossier migrations preserve existing tables and can run twice", async () => {
+    const tables = ["people", "companies", "categories", "ads", "applications", "projects",
+      "experiences", "application_projects", "application_experiences"];
+    const counts = async () => Promise.all(tables.map(async (table) =>
+      (await pool.query(`SELECT COUNT(*) FROM ${table}`)).rows[0].count));
+    const before = await counts();
+    const migration = await fs.readFile(path.join(__dirname, "../../db/migrations/001_cv_documents.sql"), "utf8");
+    await pool.query(migration);
+    await pool.query(migration);
+    assert.deepEqual(await counts(), before);
+    const legacyDocument = await pool.query(
+      `INSERT INTO cv_documents (person_id, original_name, storage_key, mime_type, size_bytes)
+       VALUES ($1, 'ancien.pdf', 'b161c8f0-f6e8-4e77-9ca8-23d9a30b82aa.pdf', 'application/pdf', 4)
+       RETURNING id`,
+      [userId],
+    );
+    const cvMigration = await fs.readFile(path.join(__dirname, "../../db/migrations/002_current_cv.sql"), "utf8");
+    await pool.query(cvMigration);
+    await pool.query(cvMigration);
+    assert.equal((await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'cv_documents' AND column_name = 'is_current'")).rowCount, 1);
+    assert.equal((await pool.query("SELECT is_current FROM cv_documents WHERE id = $1", [legacyDocument.rows[0].id])).rows[0].is_current, false);
+    await pool.query("DELETE FROM cv_documents WHERE id = $1", [legacyDocument.rows[0].id]);
+
+    // The loaded fresh schema already includes D5.3; remove its additions to simulate a D5.2 database.
+    await pool.query(`
+      ALTER TABLE applications DROP CONSTRAINT IF EXISTS fk_applications_cv_document_owner;
+      ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_submitted_snapshot_object_check;
+      DROP INDEX IF EXISTS idx_applications_cv_document;
+      ALTER TABLE applications DROP COLUMN IF EXISTS cv_document_id;
+      ALTER TABLE applications DROP COLUMN IF EXISTS submitted_snapshot;
+    `);
+    const applicationCount = (await pool.query("SELECT COUNT(*) FROM applications")).rows[0].count;
+    const dossierMigration = await fs.readFile(path.join(__dirname, "../../db/migrations/003_frozen_application_dossier.sql"), "utf8");
+    await pool.query(dossierMigration);
+    await pool.query(dossierMigration);
+    assert.equal((await pool.query("SELECT COUNT(*) FROM applications")).rows[0].count, applicationCount);
+    for (const column of ["cv_document_id", "submitted_snapshot"]) {
+      assert.equal((await pool.query(
+        "SELECT 1 FROM information_schema.columns WHERE table_name = 'applications' AND column_name = $1",
+        [column],
+      )).rowCount, 1);
+    }
+    assert.equal((await pool.query("SELECT COUNT(*) FROM applications WHERE cv_document_id IS NOT NULL OR submitted_snapshot IS NOT NULL")).rows[0].count, "0");
+  });
+
+  async function uploadCv({ cookie = userCookie, bytes, name = "cv.pdf", type = "application/pdf", field = "file", extra, twice = false } = {}) {
+    const form = new FormData();
+    if (bytes !== undefined) {
+      form.append(field, new Blob([bytes], { type }), name);
+      if (twice) form.append(field, new Blob([bytes], { type }), name);
+    }
+    if (extra) form.append("person_id", String(secondUserId));
+    const response = await fetch(`${baseUrl}/api/cv-documents`, {
+      method: "POST", headers: cookie ? { Cookie: cookie } : {}, body: form,
+    });
+    return { status: response.status, data: await response.json() };
+  }
+
+  const pdf = await PDFDocument.create();
+  pdf.addPage().drawText("Integration CV");
+  const pdfBytes = await pdf.save();
+  let cvId;
+
+  await t.test("CV uploads reject visitors, invalid PDFs and oversized or unexpected fields", async () => {
+    assert.equal((await uploadCv({ cookie: null, bytes: pdfBytes })).status, 401);
+    assert.equal((await uploadCv()).status, 400);
+    assert.equal((await uploadCv({ bytes: Buffer.alloc(0) })).status, 400);
+    assert.equal((await uploadCv({ bytes: pdfBytes, type: "text/plain" })).status, 415);
+    assert.equal((await uploadCv({ bytes: pdfBytes, name: "cv.txt" })).status, 415);
+    assert.equal((await uploadCv({ bytes: Buffer.from("This is not a PDF") })).status, 400);
+    assert.equal((await uploadCv({ bytes: Buffer.from("%PDF-1.7\nFake PDF\n%%EOF") })).status, 400);
+    const emptyPdf = await PDFDocument.create();
+    assert.equal((await uploadCv({ bytes: await emptyPdf.save({ addDefaultPage: false }) })).status, 400);
+    assert.equal((await uploadCv({ bytes: Buffer.alloc(5 * 1024 * 1024 + 1) })).status, 413);
+    assert.equal((await uploadCv({ bytes: pdfBytes, field: "cv" })).status, 400);
+    assert.equal((await uploadCv({ bytes: pdfBytes, extra: true })).status, 400);
+    assert.equal((await uploadCv({ bytes: pdfBytes, twice: true })).status, 400);
+    assert.equal((await request("/api/cv-documents", { method: "POST", cookie: userCookie, body: {} })).status, 400);
+    const malformed = await fetch(`${baseUrl}/api/cv-documents`, {
+      method: "POST", headers: { Cookie: userCookie, "Content-Type": "multipart/form-data" }, body: "broken",
+    });
+    assert.equal(malformed.status, 400);
+    assert.equal((await pool.query("SELECT id FROM cv_documents")).rowCount, 0);
+    assert.deepEqual(await fs.readdir(cvStorageDir), []);
+  });
+
+  await t.test("CV upload stores private metadata and creates independent versions", async () => {
+    const created = await uploadCv({ bytes: pdfBytes, name: "CV été.pdf" });
+    assert.equal(created.status, 201);
+    cvId = created.data.id;
+    assert.equal(created.data.original_name, "CV été.pdf");
+    assert.equal(created.data.mime_type, "application/pdf");
+    assert.equal(created.data.size_bytes, pdfBytes.length);
+    assert.equal(created.data.file_url, `/api/cv-documents/${cvId}/file`);
+    assert.equal(created.data.storage_key, undefined);
+    assert.equal(created.data.person_id, undefined);
+    const stored = (await pool.query("SELECT * FROM cv_documents WHERE id = $1", [cvId])).rows[0];
+    assert.equal(stored.person_id, userId);
+    assert.match(stored.storage_key, /^[0-9a-f-]{36}\.pdf$/);
+    assert.deepEqual(await fs.readFile(path.join(cvStorageDir, stored.storage_key)), Buffer.from(pdfBytes));
+    assert.equal((await fs.stat(path.join(cvStorageDir, stored.storage_key))).mode & 0o777, 0o600);
+    assert.equal((await request(`/storage/cv/${stored.storage_key}`)).status, 404);
+    const versions = await Promise.all([uploadCv({ bytes: pdfBytes }), uploadCv({ bytes: pdfBytes })]);
+    assert.ok(versions.every((version) => version.status === 201));
+    assert.equal(new Set([cvId, ...versions.map((version) => version.data.id)]).size, 3);
+    const documents = await pool.query("SELECT storage_key FROM cv_documents WHERE person_id = $1", [userId]);
+    assert.equal(new Set(documents.rows.map((document) => document.storage_key)).size, 3);
+    const current = await pool.query("SELECT id FROM cv_documents WHERE person_id = $1 AND is_current", [userId]);
+    assert.equal(current.rowCount, 1);
+    assert.ok([cvId, ...versions.map((version) => version.data.id)].includes(current.rows[0].id));
+    const olderVersionId = [cvId, ...versions.map((version) => version.data.id)].find((id) => id !== current.rows[0].id);
+    await assert.rejects(
+      pool.query("UPDATE cv_documents SET is_current = TRUE WHERE id = $1", [olderVersionId]),
+      (error) => error.code === "23505",
+    );
+  });
+
+  await t.test("candidate can read, replace and remove only their current CV", async () => {
+    assert.equal((await request("/api/cv-documents/current")).status, 401);
+    const currentResponse = await request("/api/cv-documents/current", { cookie: userCookie });
+    assert.equal(currentResponse.status, 200);
+    assert.ok(currentResponse.data);
+    assert.equal(currentResponse.data.storage_key, undefined);
+    assert.equal((await request("/api/cv-documents/current", { cookie: secondUserCookie })).data, null);
+
+    const replaced = await uploadCv({ bytes: pdfBytes, name: "cv-remplacement.pdf" });
+    assert.equal(replaced.status, 201);
+    assert.notEqual(replaced.data.id, currentResponse.data.id);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data.id, replaced.data.id);
+    assert.equal((await request(`/api/cv-documents/${cvId}/file`, { cookie: userCookie })).status, 200);
+
+    assert.equal((await request("/api/cv-documents/current", { method: "DELETE" })).status, 401);
+    assert.equal((await request("/api/cv-documents/current", { method: "DELETE", cookie: secondUserCookie })).status, 204);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data.id, replaced.data.id);
+    assert.equal((await request("/api/cv-documents/current", { method: "DELETE", cookie: userCookie })).status, 204);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data, null);
+    assert.equal((await request(`/api/cv-documents/${replaced.data.id}/file`, { cookie: userCookie })).status, 200);
+    const restored = await uploadCv({ bytes: pdfBytes, name: "cv-actuel.pdf" });
+    assert.equal(restored.status, 201);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data.id, restored.data.id);
+
+    const documents = await request("/api/cv-documents", { cookie: userCookie });
+    assert.equal(documents.status, 200);
+    assert.ok(documents.data.length >= 4);
+    assert.equal(documents.data.find((document) => document.id === restored.data.id).is_current, true);
+    assert.equal(documents.data.some((document) => document.storage_key), false);
+    assert.equal((await request(`/api/cv-documents/${cvId}/current`, { method: "PUT" })).status, 401);
+    assert.equal((await request("/api/cv-documents/not-an-id/current", { method: "PUT", cookie: userCookie })).status, 400);
+    assert.equal((await request(`/api/cv-documents/${cvId}/current`, { method: "PUT", cookie: secondUserCookie })).status, 404);
+    const chosen = await request(`/api/cv-documents/${cvId}/current`, { method: "PUT", cookie: userCookie });
+    assert.equal(chosen.status, 200);
+    assert.equal(chosen.data.is_current, true);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data.id, cvId);
+  });
+
+  await t.test("a candidate can store several private CV versions", async () => {
+    const uploaded = await uploadCv({ cookie: secondUserCookie, bytes: pdfBytes, name: "autre-candidat.pdf" });
+    assert.equal(uploaded.status, 201);
+    secondCvId = uploaded.data.id;
+    const list = await request("/api/cv-documents", { cookie: secondUserCookie });
+    assert.equal(list.status, 200);
+    assert.equal(list.data.length, 1);
+    assert.equal(list.data[0].id, secondCvId);
+    assert.equal((await request(`/api/cv-documents/${secondCvId}/current`, { method: "PUT", cookie: userCookie })).status, 404);
+  });
+
+  await t.test("CV files are readable only by their owner or a current ADMIN", async () => {
+    const fileUrl = `/api/cv-documents/${cvId}/file`;
+    assert.equal((await request(fileUrl)).status, 401);
+    assert.equal((await request(fileUrl, { cookie: secondUserCookie })).status, 404);
+    assert.equal((await request("/api/cv-documents/2147483647/file", { cookie: userCookie })).status, 404);
+    for (const id of ["invalid", "0", "1e0", "2147483648"]) {
+      assert.equal((await request(`/api/cv-documents/${id}/file`, { cookie: userCookie })).status, 400);
+    }
+    for (const cookie of [userCookie, adminCookie]) {
+      const response = await fetch(`${baseUrl}${fileUrl}`, { headers: { Cookie: cookie } });
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get("content-type"), "application/pdf");
+      assert.match(response.headers.get("content-disposition"), /^inline/);
+      assert.equal(response.headers.get("cache-control"), "private, no-store");
+      assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+      assert.deepEqual(Buffer.from(await response.arrayBuffer()), Buffer.from(pdfBytes));
+    }
+    const download = await fetch(`${baseUrl}${fileUrl}?download=1`, { headers: { Cookie: userCookie } });
+    assert.match(download.headers.get("content-disposition"), /^attachment/);
+    await download.arrayBuffer();
+    await pool.query("UPDATE people SET role = 'USER' WHERE id = $1", [adminId]);
+    try {
+      assert.equal((await request(fileUrl, { cookie: adminCookie })).status, 404);
+    } finally {
+      await pool.query("UPDATE people SET role = 'ADMIN' WHERE id = $1", [adminId]);
+    }
+    const missing = await uploadCv({ bytes: pdfBytes });
+    const stored = (await pool.query("SELECT storage_key FROM cv_documents WHERE id = $1", [missing.data.id])).rows[0];
+    await fs.unlink(path.join(cvStorageDir, stored.storage_key));
+    const response = await fetch(`${baseUrl}/api/cv-documents/${missing.data.id}/file`, { headers: { Cookie: userCookie } });
+    assert.equal(response.status, 404);
+    assert.match(response.headers.get("content-type"), /application\/json/);
+    assert.equal(response.headers.get("content-disposition"), null);
+    assert.match((await response.json()).message, /indisponible/);
+  });
+
+  await t.test("a failed CV SQL insert removes its file and Swagger describes CV routes", async () => {
+    const before = await fs.readdir(cvStorageDir);
+    const count = (await pool.query("SELECT COUNT(*) FROM cv_documents")).rows[0].count;
+    const currentBeforeFailure = (await pool.query("SELECT id FROM cv_documents WHERE person_id = $1 AND is_current", [userId])).rows[0]?.id;
+    // Force a real SQL failure in the isolated test database to check compensation.
+    await pool.query(`CREATE FUNCTION reject_test_cv() RETURNS trigger LANGUAGE plpgsql AS
+      $$ BEGIN RAISE EXCEPTION 'Forced CV test failure'; END $$;
+      CREATE TRIGGER reject_test_cv BEFORE INSERT ON cv_documents
+      FOR EACH ROW EXECUTE FUNCTION reject_test_cv()`);
+    try {
+      assert.equal((await uploadCv({ bytes: pdfBytes })).status, 500);
+      assert.deepEqual(await fs.readdir(cvStorageDir), before);
+      assert.equal((await pool.query("SELECT COUNT(*) FROM cv_documents")).rows[0].count, count);
+      assert.equal((await pool.query("SELECT id FROM cv_documents WHERE person_id = $1 AND is_current", [userId])).rows[0]?.id, currentBeforeFailure);
+    } finally {
+      await pool.query("DROP TRIGGER reject_test_cv ON cv_documents; DROP FUNCTION reject_test_cv()");
+    }
+    const swagger = await request("/api-docs/openapi.json");
+    assert.equal(swagger.status, 200);
+    assert.ok(swagger.data.paths["/api/cv-documents"].post.requestBody.content["multipart/form-data"]);
+    assert.ok(swagger.data.paths["/api/cv-documents/current"].get.security);
+    assert.ok(swagger.data.paths["/api/cv-documents/current"].delete.security);
+    assert.ok(swagger.data.paths["/api/cv-documents"].get.security);
+    assert.ok(swagger.data.paths["/api/cv-documents/{id}/current"].put.security);
+    assert.ok(swagger.data.paths["/api/cv-documents/{id}/file"].get.security);
+    assert.ok(swagger.data.paths["/api/applications/today"].get.security);
+    assert.deepEqual(swagger.data.paths["/api/applications"].post.requestBody.content["application/json"].schema.required, ["ad_id", "message"]);
+    assert.ok(swagger.data.components.schemas.CvDocument);
+  });
+
+  await t.test("CV cleanup removes only old files with no metadata", async () => {
+    const path = require("node:path");
+    const { randomUUID } = require("node:crypto");
+    const { cleanupUnusedCvFiles } = require("../src/services/cv_storage_cleanup");
+    const cleanupDir = path.join(cvStorageDir, "cleanup-fixture");
+    await fs.mkdir(cleanupDir);
+
+    const referenced = (await pool.query(
+      "SELECT storage_key FROM cv_documents WHERE id = $1",
+      [cvId],
+    )).rows[0].storage_key;
+    const oldDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const referencedPath = path.join(cleanupDir, referenced);
+    await fs.copyFile(path.join(cvStorageDir, referenced), referencedPath);
+    await fs.utimes(referencedPath, oldDate, oldDate);
+
+    const orphanName = `${randomUUID()}.pdf`;
+    const orphanPath = path.join(cleanupDir, orphanName);
+    await fs.writeFile(orphanPath, "orphan");
+    await fs.utimes(orphanPath, oldDate, oldDate);
+
+    const recentName = `${randomUUID()}.pdf`;
+    const recentPath = path.join(cleanupDir, recentName);
+    await fs.writeFile(recentPath, "recent orphan");
+    const invalidPath = path.join(cleanupDir, "notes.txt");
+    await fs.writeFile(invalidPath, "leave unrelated files alone");
+    const linkPath = path.join(cleanupDir, `${randomUUID()}.pdf`);
+    await fs.symlink(orphanPath, linkPath);
+
+    const { removedCount } = await cleanupUnusedCvFiles({ storageDir: cleanupDir });
+    assert.equal(removedCount, 1);
+    await assert.rejects(fs.stat(orphanPath), (error) => error.code === "ENOENT");
+    for (const retainedPath of [referencedPath, recentPath, invalidPath, linkPath]) {
+      await fs.lstat(retainedPath);
+    }
+  });
+
   await t.test("company CRUD works with both URL forms", async () => {
     const company = await request("/api/companies", {
       method: "POST", cookie: adminCookie, body: { name: "Integration Company", location: "Paris" },
@@ -512,23 +791,110 @@ test("Lasry and Denis integration", {
   await t.test("applications use the session identity and reject invalid submissions", async () => {
     const body = { ad_id: publishedId, message: "I would like to join your team.", person_id: adminId };
     assert.equal((await request("/api/applications", { method: "POST", body })).status, 401);
-    const created = await request("/api/applications", { method: "POST", cookie: userCookie, body });
+    assert.equal((await request("/api/applications/today")).status, 401);
+    assert.equal((await request("/api/applications/today", { cookie: userCookie })).data.count, 0);
+    assert.equal((await request("/api/applications", {
+      method: "POST", cookie: userCookie, body: { ...body, project_ids: [projectId, projectId] },
+    })).status, 400);
+    assert.equal((await request("/api/applications", {
+      method: "POST", cookie: userCookie, body: { ...body, project_ids: [999999] },
+    })).status, 400);
+
+    const submittedBody = {
+      ...body,
+      project_ids: [projectId],
+      experience_ids: [experienceId],
+    };
+    const created = await request("/api/applications", { method: "POST", cookie: userCookie, body: submittedBody });
     assert.equal(created.status, 201);
     applicationId = created.data.id;
     assert.equal(created.data.status, "sent");
-    const saved = await pool.query("SELECT person_id, ad_id, message FROM applications WHERE id = $1", [created.data.id]);
+    const saved = await pool.query("SELECT person_id, ad_id, message, cv_document_id FROM applications WHERE id = $1", [created.data.id]);
     assert.equal(saved.rows[0].person_id, userId);
     assert.equal(saved.rows[0].ad_id, publishedId);
-    assert.equal(saved.rows[0].message, body.message);
-    assert.equal((await request("/api/applications", { method: "POST", cookie: userCookie, body })).status, 409);
+    assert.equal(saved.rows[0].message, submittedBody.message);
+    assert.equal(saved.rows[0].cv_document_id, null);
+    assert.equal((await request("/api/applications/today", { cookie: userCookie })).data.count, 1);
+    assert.equal((await pool.query("SELECT project_id FROM application_projects WHERE application_id = $1", [applicationId])).rows[0].project_id, projectId);
+    assert.equal((await pool.query("SELECT experience_id FROM application_experiences WHERE application_id = $1", [applicationId])).rows[0].experience_id, experienceId);
+    assert.equal((await request("/api/applications", { method: "POST", cookie: userCookie, body: submittedBody })).status, 409);
     for (const [adId, expectedStatus] of [[closedId, 409], [2147483647, 404], ["invalid", 400]]) {
       assert.equal((await request("/api/applications", {
-        method: "POST", cookie: userCookie, body: { ...body, ad_id: adId },
+        method: "POST", cookie: userCookie, body: { ...submittedBody, ad_id: adId },
       })).status, expectedStatus);
     }
     assert.equal((await request("/api/applications", {
-      method: "POST", cookie: userCookie, body: { ...body, message: " " },
+      method: "POST", cookie: userCookie, body: { ...submittedBody, message: " " },
     })).status, 400);
+
+    const optionalOffer = await request("/api/admin/ads", {
+      method: "POST", cookie: adminCookie,
+      body: { title: "Optional CV test", description: "A temporary application offer.", company_id: companyId, salary_period: "year", status: "published" },
+    });
+    assert.equal(optionalOffer.status, 201);
+    let attachedApplicationId;
+    try {
+      const foreignCv = await request("/api/applications", {
+        method: "POST", cookie: userCookie,
+        body: { ad_id: optionalOffer.data.id, cv_document_id: secondCvId, message: "CV d’un autre compte." },
+      });
+      assert.equal(foreignCv.status, 400);
+      assert.equal((await pool.query("SELECT id FROM applications WHERE ad_id = $1", [optionalOffer.data.id])).rowCount, 0);
+
+      const attachedApplication = await request("/api/applications", {
+        method: "POST", cookie: userCookie,
+        body: { ad_id: optionalOffer.data.id, cv_document_id: cvId, message: "Avec mon CV." },
+      });
+      assert.equal(attachedApplication.status, 201);
+      attachedApplicationId = attachedApplication.data.id;
+      assert.equal(attachedApplication.data.cv_document_id, cvId);
+      assert.equal((await request("/api/applications/today", { cookie: userCookie })).data.count, 2);
+    } finally {
+      if (attachedApplicationId) await pool.query("DELETE FROM applications WHERE id = $1", [attachedApplicationId]);
+      await pool.query("DELETE FROM ads WHERE id = $1", [optionalOffer.data.id]);
+    }
+    assert.equal((await request("/api/applications/today", { cookie: userCookie })).data.count, 1);
+  });
+
+  await t.test("D5.3 keeps legacy snapshots empty and enforces owned CV references", async () => {
+    const legacy = await pool.query(
+      "SELECT cv_document_id, submitted_snapshot FROM applications WHERE id = $1",
+      [applicationId],
+    );
+    assert.equal(legacy.rows[0].cv_document_id, null);
+    assert.equal(legacy.rows[0].submitted_snapshot, null);
+
+    await assert.rejects(
+      pool.query("UPDATE applications SET cv_document_id = $1 WHERE id = $2", [secondCvId, applicationId]),
+      (error) => error.code === "23503",
+    );
+    const snapshot = {
+      person: { first_name: "Integration", last_name: "Candidate", email: account.email, phone: null },
+      message: "Ma candidature figée.",
+      projects: [{ id: projectId, title: "Projet conservé", description: "Copié au dépôt." }],
+      experiences: [{ id: experienceId, company: "Entreprise", position: "Développeur" }],
+    };
+    await pool.query(
+      "UPDATE applications SET cv_document_id = $1, submitted_snapshot = $2 WHERE id = $3",
+      [cvId, JSON.stringify(snapshot), applicationId],
+    );
+    const saved = await pool.query(
+      "SELECT cv_document_id, submitted_snapshot FROM applications WHERE id = $1",
+      [applicationId],
+    );
+    assert.equal(saved.rows[0].cv_document_id, cvId);
+    assert.deepEqual(saved.rows[0].submitted_snapshot, snapshot);
+    await assert.rejects(
+      pool.query("UPDATE applications SET submitted_snapshot = $1 WHERE id = $2", [JSON.stringify(["pas", "un objet"]), applicationId]),
+      (error) => error.code === "23514",
+    );
+
+    assert.equal((await request("/api/cv-documents/current", { method: "DELETE", cookie: userCookie })).status, 204);
+    assert.equal((await request("/api/cv-documents/current", { cookie: userCookie })).data, null);
+    assert.equal((await pool.query("SELECT cv_document_id FROM applications WHERE id = $1", [applicationId])).rows[0].cv_document_id, cvId);
+    assert.equal((await request(`/api/cv-documents/${cvId}/file`, { cookie: userCookie })).status, 200);
+    assert.equal((await request(`/api/cv-documents/${cvId}/file`, { cookie: adminCookie })).status, 200);
+    assert.equal((await pool.query("SELECT is_current FROM cv_documents WHERE id = $1", [cvId])).rows[0].is_current, false);
   });
 
   await t.test("linked projects and experiences cannot be deleted", async (subtest) => {
@@ -536,17 +902,6 @@ test("Lasry and Denis integration", {
       subtest.skip("requires the application and candidate items to be created first");
       return;
     }
-    await pool.query(
-      `INSERT INTO application_projects (application_id, project_id, person_id)
-       VALUES ($1, $2, $3)`,
-      [applicationId, projectId, userId],
-    );
-    await pool.query(
-      `INSERT INTO application_experiences (application_id, experience_id, person_id)
-       VALUES ($1, $2, $3)`,
-      [applicationId, experienceId, userId],
-    );
-
     const projectDelete = await request(`/api/projects/${projectId}`, {
       method: "DELETE",
       cookie: userCookie,

@@ -1,5 +1,35 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 14 octobre 2026 : CV joints aux candidatures
+
+Le candidat peut conserver plusieurs PDF dans son profil, choisir un CV par défaut,
+puis sélectionner celui à envoyer avec chaque nouvelle candidature. L’API vérifie
+que ce document appartient au compte connecté. Le CV choisi apparaît dans le résumé,
+l’historique candidat et le suivi admin ; les fichiers sont toujours servis avec session.
+
+La migration additive `db/migrations/003_frozen_application_dossier.sql` ajoute la référence
+`applications.cv_document_id` et le champ nullable `submitted_snapshot`. La clé étrangère
+contrôle que le CV appartient au candidat. Les deux champs restent nuls pour ne pas invalider
+les anciennes candidatures ; `submitted_snapshot` n’est pas encore rempli par l’API. Sur une
+base déjà créée, appliquer les migrations `001`, `002`, puis `003`. Voir
+[docs/GUIDE-CV.md](docs/GUIDE-CV.md) pour les commandes et le parcours manuel.
+
+## Mise à jour du 14 octobre 2026 : D5.1 Denis
+
+Deux routes ajoutées : `POST /api/cv-documents` reçoit un unique fichier PDF de 5 Mo maximum ; `GET /api/cv-documents/:id/file` le sert au propriétaire ou à un ADMIN, avec `?download=1` pour télécharger. Le contenu est lu avant stockage, le propriétaire vient de la session et chaque dépôt crée une version indépendante.
+
+La table `cv_documents` est ajoutée au schéma neuf et par `db/migrations/001_cv_documents.sql` pour une base existante. Le volume Docker `cv_data` conserve les fichiers. Cette première livraison a ensuite été complétée par D5.2 et le lien candidature décrit dans la mise à jour ci-dessus.
+
+Guide actuel des CV, migrations et parcours : [docs/GUIDE-CV.md](docs/GUIDE-CV.md).
+
+## Mise à jour du 14 octobre 2026 : D5.2 Denis
+
+Le nouveau PDF devient le CV courant dans la transaction de dépôt ; l’ancienne version reste stockée. `GET /api/cv-documents/current` renvoie la version courante ou `null`. `DELETE` retire le statut courant sans effacer le fichier. Une contrainte SQL unique empêche deux CV courants pour un même compte.
+
+`frontend/src/components/profile/CvManager.jsx` est intégré dans `ProfilePage.jsx` : le candidat peut afficher, consulter, ajouter plusieurs CV et choisir celui par défaut, avec états de chargement, succès et erreur.
+
+Migration additive requise pour un volume PostgreSQL déjà créé : appliquer `001_cv_documents.sql`, `002_current_cv.sql`, puis `003_frozen_application_dossier.sql`. Le guide actuel est dans [docs/GUIDE-CV.md](docs/GUIDE-CV.md).
+
 ## Mise à jour du 13 octobre 2026 : étape 4 Lasry
 
 La branche `lasry` contient le profil éditable, les projets et les expériences. `/profile` charge trois sections depuis `GET/PATCH /api/people/me`, `GET/POST /api/projects` et `GET/POST /api/experiences`. Les éléments sont modifiables et supprimables via `PATCH/DELETE` sur leur identifiant.
@@ -20,7 +50,7 @@ La recherche publique utilise désormais PostgreSQL : texte, lieu, entreprise, c
 
 La fiche offre affiche description, site HTTP(S), localisation et logo de l’entreprise. Les écritures catalogue restent protégées par `requireAdmin`. Aucun changement SQL ni modification des modules profil/candidature de Lasry n’est nécessaire.
 
-Contrats et vérifications : [docs/ETAPE-4-DENIS.md](docs/ETAPE-4-DENIS.md). Le format historique de `GET /api/ads` reste un tableau sans paramètre de pagination ; `page` ou `page_size` active l’objet paginé. Swagger documente les critères et les deux nouveaux chemins de lecture. La branche d’intégration réunit maintenant le profil candidat de Lasry et la recherche/catalogue public de Denis. La prochaine étape est le CV à l’étape 5 V3.
+La recherche et le catalogue public restent documentés dans Swagger. Sans `page` ni `page_size`, `GET /api/ads` renvoie un tableau ; l’un de ces paramètres active la réponse paginée. Le profil candidat de Lasry et le catalogue public de Denis sont réunis sur cette branche.
 
 ## Mise à jour du 12 octobre 2026 : intégration des étapes 1 et 2
 
@@ -28,7 +58,7 @@ La branche `integration/etapes-1-2` réunit `origin/denis` (`e40c49d`) et `origi
 
 Le routeur commun est celui de Denis (`createBrowserRouter` + `RouterProvider`) pour conserver l’avertissement des modifications non enregistrées. Les pages auth et `AdminRoute` y sont intégrées. Les styles auth/candidature restent dans `styles/components.css` avec `@apply`, sur le même thème Tailwind que le catalogue.
 
-Les décisions de fusion, les fonctionnalités conservées et les commandes de vérification sont dans [docs/INTEGRATION-ETAPES-1-2.md](docs/INTEGRATION-ETAPES-1-2.md). La suite de Lasry est l’étape 3 : historique, statuts et utilisateurs admin.
+Les étapes 1 et 2 sont réunies sur la branche d’intégration. Les routes et leur contrat actuel sont documentés dans Swagger.
 
 **Les sections ci-dessous décrivent l’état historique du 9 octobre ; leurs mentions « non commité » ou « reste à développer » ne décrivent plus l’application intégrée.**
 

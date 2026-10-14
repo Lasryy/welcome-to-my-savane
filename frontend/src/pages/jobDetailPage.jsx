@@ -151,7 +151,7 @@ function JobDetail({ id }) {
           </div>
           {showApplicationForm && (
             <ApplicationForm
-              adId={ad.id}
+              ad={ad}
               onCancel={() => setShowApplicationForm(false)}
             />
           )}

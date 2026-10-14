@@ -149,6 +149,9 @@ CREATE TABLE applications (
         REFERENCES ads(id)
         ON DELETE RESTRICT,
 
+    cv_document_id INTEGER,
+    submitted_snapshot JSONB,
+
     message TEXT,
 
     status VARCHAR(30) NOT NULL DEFAULT 'sent'
@@ -163,7 +166,9 @@ CREATE TABLE applications (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     UNIQUE (person_id, ad_id),
-    UNIQUE (id, person_id)
+    UNIQUE (id, person_id),
+    CONSTRAINT applications_submitted_snapshot_object_check
+        CHECK (submitted_snapshot IS NULL OR jsonb_typeof(submitted_snapshot) = 'object')
 );
 
 
@@ -269,6 +274,39 @@ CREATE TABLE application_experiences (
         ON DELETE CASCADE
 );
 
+
+-- ============================================
+-- 10. CV_DOCUMENTS
+-- ============================================
+-- CV versions are stored separately from the candidate profile.
+CREATE TABLE cv_documents (
+    id SERIAL PRIMARY KEY,
+    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+    original_name VARCHAR(255) NOT NULL CHECK (BTRIM(original_name) <> ''),
+    storage_key VARCHAR(40) UNIQUE NOT NULL
+        CHECK (storage_key ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.pdf$'),
+    mime_type VARCHAR(50) NOT NULL CHECK (mime_type = 'application/pdf'),
+    size_bytes INTEGER NOT NULL CHECK (size_bytes > 0 AND size_bytes <= 5242880),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    is_current BOOLEAN NOT NULL DEFAULT FALSE,
+    UNIQUE (id, person_id)
+);
+
+CREATE INDEX idx_cv_documents_person_created
+ON cv_documents(person_id, created_at DESC, id DESC);
+
+CREATE UNIQUE INDEX idx_cv_documents_one_current_per_person
+ON cv_documents(person_id) WHERE is_current;
+
+-- The composite reference ensures a dossier can only point to its candidate's CV.
+ALTER TABLE applications
+ADD CONSTRAINT fk_applications_cv_document_owner
+FOREIGN KEY (cv_document_id, person_id)
+REFERENCES cv_documents(id, person_id)
+ON DELETE RESTRICT;
+
+CREATE INDEX idx_applications_cv_document
+ON applications(cv_document_id) WHERE cv_document_id IS NOT NULL;
 
 -- ============================================
 -- INDEXES

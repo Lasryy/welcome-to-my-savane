@@ -11,11 +11,32 @@
  *         size_bytes: { type: integer, example: 120000 }
  *         created_at: { type: string, format: date-time }
  *         file_url: { type: string, example: /api/cv-documents/1/file }
+ * /api/cv-documents/current:
+ *   get:
+ *     tags: [CV]
+ *     summary: Lire le CV courant du candidat connecté
+ *     description: Retourne les métadonnées et le lien protégé du CV courant, ou null si aucun CV n’est sélectionné.
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: CV courant, ou null quand le profil est vide. }
+ *       '401': { description: Connexion requise ou compte supprimé. }
+ *       '500': { description: Erreur de base de données. }
+ *   delete:
+ *     tags: [CV]
+ *     summary: Retirer le CV courant du profil
+ *     description: Le fichier et ses métadonnées sont conservés ; cette route enlève seulement son statut courant.
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '204': { description: CV courant retiré du profil. }
+ *       '401': { description: Connexion requise ou compte supprimé. }
+ *       '500': { description: Erreur de base de données. }
  * /api/cv-documents:
  *   post:
  *     tags: [CV]
  *     summary: Déposer une nouvelle version de CV PDF
- *     description: Un seul champ file, PDF lisible non chiffré avec au moins une page, maximum 5242880 octets (5 Mo). Le propriétaire vient de la session. Aucun CV courant ni lien de candidature n’est modifié à cette étape.
+ *     description: Un seul champ file, PDF lisible non chiffré avec au moins une page, maximum 5242880 octets (5 Mo). Le propriétaire vient de la session. L’ancien CV reste conservé comme version et le nouveau devient le CV courant dans une transaction SQL.
  *     security:
  *       - sessionCookie: []
  *     requestBody:

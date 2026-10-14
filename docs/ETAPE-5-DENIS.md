@@ -1,9 +1,9 @@
-# Étape 5 Denis - D5.1 : dépôt et lecture du CV PDF
+# Étape 5 Denis - D5.1 et D5.2 : gestion du CV PDF courant
 
-Cette première livraison ajoute le stockage des CV et deux routes protégées.
-D5.2 (CV courant et composants React), D5.3 (copie figée du dossier) et D5.4
-(conservation des versions jointes et nettoyage) restent à réaliser séparément.
-Les pages profil et candidature de Lasry gardent leur comportement actuel.
+Cette livraison ajoute le stockage protégé des CV, la gestion du CV courant et
+un composant React autonome. D5.3 (copie figée du dossier) et D5.4 (conservation
+des versions jointes et nettoyage) restent à réaliser séparément. Lasry monte
+le composant CV dans sa page Profil.
 
 ## Installation
 
@@ -11,12 +11,13 @@ Pour une base Docker existante, appliquer la migration additive avant de redéma
 
 ```sh
 docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/001_cv_documents.sql
-docker compose up -d --build backend
+docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/002_current_cv.sql
+docker compose up -d --build --renew-anon-volumes backend
 ```
 
-La migration crée seulement `cv_documents` et son index. Elle peut être réexécutée ;
-elle ne modifie ni les comptes ni les candidatures. Pour une installation neuve,
-`db/job_board_schema.sql` crée déjà cette table avant le chargement du seed.
+Les migrations créent seulement la table `cv_documents` et ses index. Elles peuvent
+être réexécutées et ne modifient ni les comptes ni les candidatures. Pour une installation neuve,
+`db/job_board_schema.sql` crée déjà cette table et le statut CV courant avant le chargement du seed.
 Les scripts d’initialisation Docker ne migrent pas les volumes PostgreSQL existants.
 
 Hors Docker : `npm --prefix backend ci`, puis `npm --prefix backend run dev`.
@@ -52,8 +53,20 @@ Réponse `201` :
 
 L’identité vient de la session. Le nom interne est un UUID généré par le serveur,
 indépendant du nom original. Le chemin interne et le propriétaire ne sont pas exposés.
-Chaque dépôt crée une version indépendante ; il ne désigne pas encore de CV courant
-et ne modifie aucune candidature.
+Chaque dépôt crée une version indépendante. Le nouveau fichier devient le CV courant ;
+l’ancien fichier et ses métadonnées restent enregistrés.
+
+### GET /api/cv-documents/current et DELETE /api/cv-documents/current
+
+Ces deux routes authentifiées n’utilisent que le compte de la session. GET retourne
+les métadonnées du CV courant et son `file_url`, ou `null` quand le profil ne contient
+pas de CV. DELETE retire le statut courant et répond `204`, même si aucun CV n’était
+sélectionné. La version et le fichier sont conservés pour qu’un futur dossier envoyé
+puisse s’y référer.
+
+À chaque nouveau POST, un verrou SQL sur le compte sérialise les dépôts concurrents.
+La transaction désélectionne l’ancienne version puis désigne la nouvelle comme courante.
+L’index unique SQL interdit plusieurs CV courants par candidat.
 
 Erreurs avec `{ "message": "…" }` : `400` fichier/formulaire invalide, `401` session
 absente ou compte supprimé, `413` trop volumineux, `415` mauvais type ou extension,
@@ -75,8 +88,9 @@ document d’un autre candidat ou fichier manquant, `500` erreur interne.
 ## SQL et persistance
 
 `cv_documents` contient `id`, `person_id`, `original_name`, `storage_key`, `mime_type`,
-`size_bytes` et `created_at`. Les contraintes vérifient le propriétaire, le nom de
-stockage, le type PDF et la taille. La paire `(id, person_id)` est unique pour préparer
+`size_bytes`, `created_at` et `is_current`. Les contraintes vérifient le propriétaire, le nom de
+stockage, le type PDF et la taille. L’index partiel unique n’autorise qu’un CV courant par
+candidat. La paire `(id, person_id)` est unique pour préparer
 les futures références de candidature contrôlant le propriétaire.
 
 Docker utilise le volume nommé `cv_data` monté à `/app/storage/cv`. Les PDF restent
@@ -96,14 +110,17 @@ disque ; leur nettoyage est prévu en D5.4. Ne pas lancer le seed pour migrer un
    `/api/cv-documents` (Body > form-data > file de type File dans Postman).
 3. Vérifier `201`, conserver l’identifiant et ouvrir `file_url` avec la même session.
    Vérifier la consultation, puis `?download=1`.
-4. Déposer un second PDF : nouvel identifiant, premier fichier toujours consultable.
-5. Tester un fichier texte renommé `.pdf`, un PDF chiffré, un fichier vide et un fichier
+4. Vérifier GET `/api/cv-documents/current`, déposer un second PDF et vérifier que son
+   identifiant devient courant pendant que le premier reste consultable.
+5. Retirer le CV courant avec DELETE `/api/cv-documents/current` : GET renvoie `null`
+   et les URLs des anciennes versions restent protégées et lisibles.
+6. Tester un fichier texte renommé `.pdf`, un PDF chiffré, un fichier vide et un fichier
    supérieur à 5 Mo : refus explicites, sans document SQL ni fichier supplémentaire.
-6. Reprendre l’URL sans connexion (`401`), avec un autre USER (`404`) et avec ADMIN (`200`).
-7. Faire `docker compose up -d --force-recreate backend`, se reconnecter et rouvrir
+7. Reprendre une URL CV sans connexion (`401`), avec un autre USER (`404`) et ADMIN (`200`).
+8. Faire `docker compose up -d --force-recreate backend`, se reconnecter et rouvrir
    le premier PDF : son contenu doit être identique.
-8. Vérifier les parcours existants : recherche, profil/projets/expériences, candidature
-   avec message, historique et administration. Le profil n’a pas encore de section CV.
+9. Vérifier les parcours existants : recherche, profil/projets/expériences, candidature
+   avec message, historique et administration. Lasry doit encore monter le composant CV dans le profil.
 
 Les routes et leurs formats sont documentés dans `/api-docs`.
 
@@ -118,11 +135,13 @@ du fichier lors d’un échec SQL forcé. Il vérifie aussi le contrat Swagger.
 
 Sans `RUN_INTEGRATION_TESTS=1`, `npm test` ignore le test d’intégration : cela ne valide
 pas les fonctionnalités. Avec une base isolée configurée, le résultat attendu est
-24 scénarios réussis, soit 25 tests en comptant le parent.
+25 scénarios réussis, soit 26 tests en comptant le parent.
 
 ## Suite pour Lasry
 
 `id` identifie une version du document et `file_url` permet sa lecture protégée.
-La sélection du CV courant, les composants React, le champ `cv_document_id` dans
+`frontend/src/components/profile/CvManager.jsx` fournit le composant React autonome
+de gestion du CV courant. Lasry peut le monter dans `ProfilePage.jsx`.
+Le champ `cv_document_id` dans
 les candidatures et la copie figée ne sont pas encore livrés. Attendre les contrats
-D5.2/D5.3 avant de brancher l’envoi du dossier complet.
+D5.3 avant de brancher l’envoi du dossier complet.

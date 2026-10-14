@@ -283,11 +283,15 @@ CREATE TABLE cv_documents (
     mime_type VARCHAR(50) NOT NULL CHECK (mime_type = 'application/pdf'),
     size_bytes INTEGER NOT NULL CHECK (size_bytes > 0 AND size_bytes <= 5242880),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    is_current BOOLEAN NOT NULL DEFAULT FALSE,
     UNIQUE (id, person_id)
 );
 
 CREATE INDEX idx_cv_documents_person_created
 ON cv_documents(person_id, created_at DESC, id DESC);
+
+CREATE UNIQUE INDEX idx_cv_documents_one_current_per_person
+ON cv_documents(person_id) WHERE is_current;
 
 -- ============================================
 -- INDEXES

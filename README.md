@@ -16,7 +16,7 @@ Job board full-stack en cours de développement.
 - Étape 4 Lasry : profil éditable sur `/profile`, avec gestion des projets et expériences du compte connecté. Les API vérifient le propriétaire, les champs autorisés, les URLs et les dates ; supprimer une preuve déjà liée à une candidature est refusé.
 - Étape 4 Denis (V3) : recherche SQL, filtres combinables, tri récent/salaire et pagination, choix conservés dans l’URL et présentation des entreprises sur les offres.
 - Docker Compose : PostgreSQL, API et frontend peuvent être lancés ensemble.
-- Étape 5 Denis, D5.1–D5.3 : dépôt et consultation de CV PDF (5 Mo), gestion transactionnelle du CV courant, composant React autonome et champs SQL pour figer le dossier et référencer sa version de CV. [Installation et tests](docs/ETAPE-5-DENIS.md).
+- CV : dépôt et consultation de PDF (5 Mo), gestion transactionnelle du CV courant, composant React autonome et champs SQL pour référencer la version de CV et conserver une copie du dossier.
 
 ## Technologies
 
@@ -95,8 +95,8 @@ backend/   API Express, contrôleurs, routes et connexion PostgreSQL (`pg`)
 
 ## Prochaines étapes
 
-Les deux parties de l’étape 4 et leurs contrats sont documentés : [recherche et catalogue public](docs/ETAPE-4-DENIS.md) et [profil candidat](docs/superpowers/specs/2026-10-13-etape-4-profil-candidat.md).
+La recherche publique et le profil candidat utilisent leurs API respectives.
 
-Le dépôt protégé, la gestion du CV courant et les champs SQL du dossier figé sont livrés en D5.1–D5.3. Une base existante nécessite les [migrations CV et dossier](docs/ETAPE-5-DENIS.md). Le composant React autonome est prêt à être monté par Lasry sur sa page Profil. D5.4 couvrira l’accès admin et le nettoyage des fichiers inutilisés. Lasry branchera la sélection des projets, expériences et CV aux candidatures.
+Le dépôt protégé, la gestion du CV courant et les champs SQL du dossier figé sont livrés. Une base existante nécessite les migrations dans `db/migrations/`. Le composant React autonome est prêt à être monté sur la page Profil. La sélection des projets, expériences et CV reste à brancher aux candidatures.
 
-La fusion des étapes 1 et 2 et les commandes de vérification sont décrites dans [le guide d’intégration](docs/INTEGRATION-ETAPES-1-2.md).
+Le dépôt réunit le parcours candidat et le catalogue administrable sur la même application.

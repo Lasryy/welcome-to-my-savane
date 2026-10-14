@@ -6,7 +6,7 @@ Deux routes ajoutées : `POST /api/cv-documents` reçoit un unique fichier PDF d
 
 La table `cv_documents` est ajoutée au schéma neuf et par `db/migrations/001_cv_documents.sql` pour une base existante. Le volume Docker `cv_data` conserve les fichiers. Aucun changement du profil, du formulaire, de l’historique ou des routes existantes. Le CV courant et les composants frontend attendent D5.2 ; les références de candidature et la copie figée attendent D5.3 et l’intégration Lasry.
 
-Contrats, installation et scénarios : [docs/ETAPE-5-DENIS.md](docs/ETAPE-5-DENIS.md).
+Les migrations correspondantes se trouvent dans `db/migrations/`.
 
 ## Mise à jour du 14 octobre 2026 : D5.2 Denis
 
@@ -20,7 +20,7 @@ Migration additive requise pour un volume PostgreSQL déjà créé : appliquer d
 
 La migration `003_frozen_application_dossier.sql` ajoute `applications.cv_document_id` (nullable) pour référencer la version de CV exacte et `applications.submitted_snapshot` (JSONB nullable) pour le contenu figé du dossier. Une clé étrangère composite garantit que le CV appartient au candidat. Les candidatures existantes sont conservées sans CV ni copie, avec ces deux champs à `NULL`.
 
-Contrat prévu pour Lasry : écrire message, associations choisies, référence CV et copie du contenu dans la même transaction de création. Construire la copie côté serveur depuis les données SQL appartenant au compte connecté. Structure JSON et migrations : [docs/ETAPE-5-DENIS.md](docs/ETAPE-5-DENIS.md).
+Contrat prévu pour Lasry : écrire message, associations choisies, référence CV et copie du contenu dans la même transaction de création. Construire la copie côté serveur depuis les données SQL appartenant au compte connecté. La migration correspondante est `db/migrations/003_frozen_application_dossier.sql`.
 
 ## Mise à jour du 13 octobre 2026 : étape 4 Lasry
 
@@ -42,7 +42,7 @@ La recherche publique utilise désormais PostgreSQL : texte, lieu, entreprise, c
 
 La fiche offre affiche description, site HTTP(S), localisation et logo de l’entreprise. Les écritures catalogue restent protégées par `requireAdmin`. Aucun changement SQL ni modification des modules profil/candidature de Lasry n’est nécessaire.
 
-Contrats et vérifications : [docs/ETAPE-4-DENIS.md](docs/ETAPE-4-DENIS.md). Le format historique de `GET /api/ads` reste un tableau sans paramètre de pagination ; `page` ou `page_size` active l’objet paginé. Swagger documente les critères et les deux nouveaux chemins de lecture. La branche d’intégration réunit maintenant le profil candidat de Lasry et la recherche/catalogue public de Denis. La prochaine étape est le CV à l’étape 5 V3.
+Le format historique de `GET /api/ads` reste un tableau sans paramètre de pagination ; `page` ou `page_size` active l’objet paginé. Swagger documente les critères et les deux nouveaux chemins de lecture. La branche d’intégration réunit le profil candidat de Lasry et la recherche/catalogue public de Denis.
 
 ## Mise à jour du 12 octobre 2026 : intégration des étapes 1 et 2
 
@@ -50,7 +50,7 @@ La branche `integration/etapes-1-2` réunit `origin/denis` (`e40c49d`) et `origi
 
 Le routeur commun est celui de Denis (`createBrowserRouter` + `RouterProvider`) pour conserver l’avertissement des modifications non enregistrées. Les pages auth et `AdminRoute` y sont intégrées. Les styles auth/candidature restent dans `styles/components.css` avec `@apply`, sur le même thème Tailwind que le catalogue.
 
-Les décisions de fusion, les fonctionnalités conservées et les commandes de vérification sont dans [docs/INTEGRATION-ETAPES-1-2.md](docs/INTEGRATION-ETAPES-1-2.md). La suite de Lasry est l’étape 3 : historique, statuts et utilisateurs admin.
+La branche réunit les fonctions des étapes 1 et 2. La suite de Lasry est l’historique, les statuts et les utilisateurs admin.
 
 **Les sections ci-dessous décrivent l’état historique du 9 octobre ; leurs mentions « non commité » ou « reste à développer » ne décrivent plus l’application intégrée.**
 

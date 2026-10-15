@@ -114,7 +114,7 @@ export default function CompanyDashboardPage() {
     <header className="bg-coral border-b border-ink">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5">
         <div><p className="text-xs font-bold uppercase tracking-widest">Espace entreprise</p><h1 className="text-3xl font-bold">{company?.name || "Recrutement"}</h1></div>
-        <div className="flex gap-4"><Link className="underline" to="/">Voir le site</Link><button className="underline" onClick={logout}>Déconnexion</button></div>
+        <div className="flex flex-wrap gap-4"><Link className="underline" to="/company/candidates">Annuaire de candidats</Link><Link className="underline" to="/">Voir le site</Link><button className="underline" onClick={logout}>Déconnexion</button></div>
       </div>
     </header>
     <main className="mx-auto max-w-6xl px-5 py-8">

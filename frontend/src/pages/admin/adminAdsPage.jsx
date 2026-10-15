@@ -201,6 +201,7 @@ export default function AdminAdsPage() {
               <p className="admin-salary font-bold tabular-nums">{formatSalary(ad)}</p>
               <div className="admin-actions flex flex-wrap items-center gap-3">
                 <Link className="admin-button primary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" to={`/admin/ads/${ad.id}/edit`}>Modifier l’offre</Link>
+                <Link className="admin-button secondary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" to={`/admin/applications?ad_id=${ad.id}`}>Voir les candidatures</Link>
                 <button className="admin-button secondary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" disabled={Boolean(pending)} onClick={() => changeStatus(ad)}>
                   {pending?.id === ad.id && pending.action === "status" ? "Mise à jour…" : ad.status === "published" ? "Fermer l’offre" : "Rouvrir l’offre"}
                 </button>

@@ -1216,15 +1216,44 @@
  *   get:
  *     tags: [Admin - Applications]
  *     summary: List applications for administrators
- *     description: Includes the offer, company, candidate name and email, submitted CV name and protected file URL, status and creation date.
+ *     description: Includes the offer, company, candidate name and email, submitted CV name and protected file URL, status and creation date. Results can be filtered by company_id, ad_id and status; closed offers remain included.
  *     security:
  *       - sessionCookie: []
+ *     parameters:
+ *       - in: query
+ *         name: company_id
+ *         schema: { type: integer, minimum: 1 }
+ *       - in: query
+ *         name: ad_id
+ *         schema: { type: integer, minimum: 1 }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [all, sent, in_progress, technical_test, accepted, rejected], default: all }
  *     responses:
  *       '200': { description: Array of applications. }
+ *       '400': { description: Invalid filter value. }
  *       '401': { description: Login required. }
  *       '403': { description: ADMIN role required. }
  *       '500': { description: Internal database error. }
  * /api/admin/applications/{id}:
+ *   get:
+ *     tags: [Admin - Applications]
+ *     summary: Read a complete application dossier
+ *     description: Returns the frozen identity, message, selected projects and experiences, plus the protected submitted CV. Legacy applications expose only currently available data and mark person_is_current=true.
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '200': { description: Complete application dossier for an administrator. }
+ *       '400': { description: Invalid application ID. }
+ *       '401': { description: Login required. }
+ *       '403': { description: ADMIN role required. }
+ *       '404': { description: Application not found. }
+ *       '500': { description: Internal database error. }
  *   patch:
  *     tags: [Admin - Applications]
  *     summary: Update an application status

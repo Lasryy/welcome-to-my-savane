@@ -882,6 +882,14 @@ test("Lasry and Denis integration", {
       assert.equal(legacyDetail.data.legacy_message, "Ancienne candidature");
       assert.equal(legacyDetail.data.legacy_items.projects[0].title, "Portfolio updated");
       assert.equal(legacyDetail.data.cv.id, cvId);
+      const adminLegacyDetail = await request(`/api/admin/applications/${legacyId}`, { cookie: adminCookie });
+      assert.equal(adminLegacyDetail.status, 200);
+      assert.equal(adminLegacyDetail.data.snapshot_available, false);
+      assert.equal(adminLegacyDetail.data.person_is_current, true);
+      assert.equal(adminLegacyDetail.data.message, "Ancienne candidature");
+      assert.equal(adminLegacyDetail.data.cv.file_url, `/api/cv-documents/${cvId}/file`);
+      const closedOfferApplications = await request(`/api/admin/applications?ad_id=${closedId}`, { cookie: adminCookie });
+      assert.ok(closedOfferApplications.data.some((application) => application.id === legacyId));
     } finally {
       await pool.query("DELETE FROM applications WHERE id = $1", [legacyId]);
     }
@@ -1047,6 +1055,37 @@ test("Lasry and Denis integration", {
     assert.equal((await request(`/api/cv-documents/${cvId}/file`, { cookie: userCookie })).status, 200);
     assert.equal((await request(`/api/cv-documents/${cvId}/file`, { cookie: adminCookie })).status, 200);
     assert.equal((await pool.query("SELECT is_current FROM cv_documents WHERE id = $1", [cvId])).rows[0].is_current, false);
+
+    assert.equal((await request(`/api/admin/applications/${applicationId}`)).status, 401);
+    assert.equal((await request(`/api/admin/applications/${applicationId}`, { cookie: userCookie })).status, 403);
+    assert.equal((await request("/api/admin/applications/not-an-id", { cookie: adminCookie })).status, 400);
+    assert.equal((await request("/api/admin/applications/2147483647", { cookie: adminCookie })).status, 404);
+
+    const adminDetail = await request(`/api/admin/applications/${applicationId}`, { cookie: adminCookie });
+    assert.equal(adminDetail.status, 200);
+    assert.equal(adminDetail.data.snapshot_available, true);
+    assert.equal(adminDetail.data.person.first_name, "Integration");
+    assert.equal(adminDetail.data.message, "Ma candidature figée.");
+    assert.equal(adminDetail.data.projects[0].title, "Projet conservé");
+    assert.equal(adminDetail.data.cv.id, cvId);
+    assert.equal(adminDetail.data.cv.file_url, `/api/cv-documents/${cvId}/file`);
+
+    const filtered = await request(
+      `/api/admin/applications?company_id=${companyId}&ad_id=${publishedId}&status=sent`,
+      { cookie: adminCookie },
+    );
+    assert.equal(filtered.status, 200);
+    assert.ok(filtered.data.some((application) => application.id === applicationId));
+    assert.equal((await request(`/api/admin/applications?ad_id=${closedId}`, { cookie: adminCookie })).data.length, 0);
+    assert.equal((await request(`/api/admin/applications?status=accepted`, { cookie: adminCookie })).data.length, 0);
+    for (const query of ["company_id=abc", "ad_id=0", "status=unknown", "status=sent&status=rejected"]) {
+      const invalidFilter = await request(`/api/admin/applications?${query}`, { cookie: adminCookie });
+      assert.equal(invalidFilter.status, 400, query);
+    }
+
+    const swagger = await request("/api-docs/openapi.json");
+    assert.ok(swagger.data.paths["/api/admin/applications"].get.parameters.some((parameter) => parameter.name === "company_id"));
+    assert.ok(swagger.data.paths["/api/admin/applications/{id}"].get.security);
   });
 
   await t.test("linked projects and experiences cannot be deleted", async (subtest) => {

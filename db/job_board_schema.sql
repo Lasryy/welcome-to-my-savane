@@ -19,13 +19,15 @@ CREATE TABLE people (
     password_hash VARCHAR(255) NOT NULL,
 
     role VARCHAR(20) NOT NULL DEFAULT 'USER'
-        CHECK (role IN ('USER', 'ADMIN')),
+        CHECK (role IN ('USER', 'COMPANY', 'ADMIN')),
+    company_id INTEGER,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CHECK (BTRIM(first_name) <> ''),
     CHECK (BTRIM(last_name) <> ''),
-    CHECK (email = BTRIM(email) AND email <> '')
+    CHECK (email = BTRIM(email) AND email <> ''),
+    CHECK ((role = 'COMPANY') = (company_id IS NOT NULL))
 );
 
 CREATE UNIQUE INDEX idx_people_email_unique
@@ -49,6 +51,12 @@ CREATE TABLE companies (
 
     CHECK (BTRIM(name) <> '')
 );
+
+ALTER TABLE people
+    ADD CONSTRAINT people_company_id_fkey
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE RESTRICT;
+
+CREATE INDEX idx_people_company_id ON people(company_id) WHERE company_id IS NOT NULL;
 
 
 -- ============================================

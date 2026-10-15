@@ -5,6 +5,7 @@ import CustomSelect from "../../components/CustomSelect";
 import { AdminFeedback, AdminListState } from "../../components/admin/adminUi";
 import { adminRequest } from "../../services/adminApi";
 import { formatDate } from "../../utils/adminUtils";
+import AdminPagination from "../../components/admin/AdminPagination";
 
 const STATUSES = [
   { value: "sent", label: "Envoyée" },
@@ -20,10 +21,15 @@ export default function AdminApplicationsPage() {
   const companyId = searchParams.get("company_id") || "";
   const adId = searchParams.get("ad_id") || "";
   const status = searchParams.get("status") || "all";
+  const page = Number(searchParams.get("page") || 1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const filterParams = new URLSearchParams();
   if (companyId) filterParams.set("company_id", companyId);
   if (adId) filterParams.set("ad_id", adId);
   if (status !== "all") filterParams.set("status", status);
+  filterParams.set("page", String(page));
+  filterParams.set("page_size", "20");
   const applicationQuery = filterParams.toString();
   const [applications, setApplications] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -42,14 +48,14 @@ export default function AdminApplicationsPage() {
       try {
         const [companyList, adList] = await Promise.all([
           adminRequest("/api/companies", { signal: controller.signal }),
-          adminRequest("/api/admin/ads", { signal: controller.signal }),
+          adminRequest("/api/admin/ads?page=1&page_size=100", { signal: controller.signal }),
         ]);
         if (controller.signal.aborted) return;
-        if (!Array.isArray(companyList) || !Array.isArray(adList)) {
+        if (!Array.isArray(companyList) || !Array.isArray(adList?.items)) {
           throw new Error("Les filtres reçus sont invalides.");
         }
         setCompanies(companyList);
-        setAds(adList);
+        setAds(adList.items);
       } catch (requestError) {
         if (!controller.signal.aborted) setError(requestError.message);
       }
@@ -66,9 +72,11 @@ export default function AdminApplicationsPage() {
     async function loadApplications() {
       try {
         const data = await adminRequest(`/api/admin/applications${suffix}`, { signal: controller.signal });
-        if (!Array.isArray(data)) throw new Error("La liste des candidatures reçue est invalide.");
+        if (!Array.isArray(data?.items)) throw new Error("La liste des candidatures reçue est invalide.");
         if (!controller.signal.aborted) {
-          setApplications(data);
+          setApplications(data.items);
+          setTotal(data.total);
+          setTotalPages(data.total_pages);
           setError("");
           setLoadedFilterQuery(applicationQuery);
         }
@@ -91,6 +99,7 @@ export default function AdminApplicationsPage() {
       const next = new URLSearchParams(current);
       if (value && value !== "all") next.set(name, value);
       else next.delete(name);
+      next.delete("page");
       return next;
     });
   }
@@ -113,6 +122,10 @@ export default function AdminApplicationsPage() {
           item.id === updated.id ? { ...item, status: updated.status } : item,
         );
       });
+      if (status !== "all" && updated.status !== status) {
+        setSearchParams((current) => { const next = new URLSearchParams(current); next.delete("page"); return next; });
+      }
+      setReloadKey((key) => key + 1);
       setFeedback({ type: "success", message: "Le statut de la candidature a été mis à jour." });
     } catch (requestError) {
       setFeedback({ type: "error", message: requestError.message });
@@ -129,7 +142,7 @@ export default function AdminApplicationsPage() {
       <div className="admin-toolbar mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2>Suivi des candidatures</h2>
-          <p aria-live="polite">{applications.length} candidature{applications.length !== 1 ? "s" : ""}</p>
+          <p aria-live="polite">{total} candidature{total !== 1 ? "s" : ""}</p>
         </div>
         <button
           className="admin-button secondary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none"
@@ -150,6 +163,7 @@ export default function AdminApplicationsPage() {
                 if (value) next.set("company_id", value);
                 else next.delete("company_id");
                 next.delete("ad_id");
+                next.delete("page");
                 return next;
               });
             }} placeholder="Toutes les entreprises" options={companies.map((company) => ({ value: company.id, label: company.name }))} />
@@ -206,6 +220,7 @@ export default function AdminApplicationsPage() {
           ))}
         </div>
       </AdminListState>
+      <AdminPagination page={page} totalPages={totalPages} total={total} onPageChange={(nextPage) => setSearchParams((current) => { const next = new URLSearchParams(current); next.set("page", String(nextPage)); return next; })} />
     </>
   );
 }

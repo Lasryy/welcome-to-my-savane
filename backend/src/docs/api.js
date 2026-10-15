@@ -647,6 +647,12 @@
  *       - in: query
  *         name: sort
  *         schema: { type: string, enum: [recent, oldest, title, company], default: recent }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1 }
+ *       - in: query
+ *         name: page_size
+ *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
  *     responses:
  *       '200':
  *         description: Filtered offers.
@@ -1229,6 +1235,12 @@
  *       - in: query
  *         name: status
  *         schema: { type: string, enum: [all, sent, in_progress, technical_test, accepted, rejected], default: all }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1 }
+ *       - in: query
+ *         name: page_size
+ *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
  *     responses:
  *       '200': { description: Array of applications. }
  *       '400': { description: Invalid filter value. }
@@ -1288,8 +1300,22 @@
  *   get:
  *     tags: [Admin - Users]
  *     summary: List accounts without password hashes
+ *     description: Supports q and role filters. With page or page_size, returns an items/page/page_size/total/total_pages envelope.
  *     security:
  *       - sessionCookie: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema: { type: string, maxLength: 200 }
+ *       - in: query
+ *         name: role
+ *         schema: { type: string, enum: [all, USER, COMPANY, ADMIN], default: all }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1 }
+ *       - in: query
+ *         name: page_size
+ *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
  *     responses:
  *       '200': { description: Array of accounts with ID, name, email, phone, role and creation date. }
  *       '401': { description: Login required. }
@@ -1320,7 +1346,8 @@
  *               last_name: { type: string, minLength: 1, maxLength: 100 }
  *               email: { type: string, format: email, maxLength: 255 }
  *               phone: { type: string, nullable: true, maxLength: 30 }
- *               role: { type: string, enum: [USER, ADMIN] }
+ *               role: { type: string, enum: [USER, COMPANY, ADMIN] }
+ *               company_id: { type: integer, nullable: true, minimum: 1, description: Required when role is COMPANY. Multiple accounts may share an existing company. }
  *           example: { first_name: Camille, phone: null }
  *     responses:
  *       '200': { description: Updated account without password hash. }

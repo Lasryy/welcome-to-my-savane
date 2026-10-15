@@ -12,6 +12,7 @@
 - Candidatures : message de motivation, choix des projets et expériences à présenter, puis récapitulatif avant l’envoi.
 - Historique des candidatures et suivi de leur statut.
 - Espace d’administration pour les offres, les entreprises, les catégories, les candidatures et les comptes.
+- Espace recruteur pour gérer les offres et candidatures de son entreprise ; les comptes recruteur sont attribués par un Admin.
 - Documentation interactive de l’API avec Swagger.
 - CV : bibliothèque de plusieurs CV PDF dans le Profil. Pour chaque candidature, le candidat choisit le CV envoyé ; le candidat et l’administration peuvent ensuite le consulter avec leur session.
 
@@ -145,7 +146,7 @@ frontend/  Interface React et styles Tailwind CSS
 
 Les routes de l’API sont documentées dans Swagger à l’adresse <http://localhost:3000/api-docs> lorsque Docker Compose est lancé.
 
-Une base déjà initialisée doit recevoir les migrations dans l’ordre : `001_cv_documents.sql`, `002_current_cv.sql`, puis `003_frozen_application_dossier.sql` (dans `db/migrations/`). Le [guide CV](docs/GUIDE-CV.md) explique le stockage, les routes et le CV joint à une candidature.
+Une base déjà initialisée doit recevoir les migrations dans l’ordre : `001_cv_documents.sql`, `002_current_cv.sql`, `003_frozen_application_dossier.sql`, puis `004_company_recruiters.sql` (dans `db/migrations/`). Cette dernière ajoute le rôle recruteur et le rattachement des comptes à une entreprise. Les nouveaux comptes recruteur sont attribués par un Admin depuis la page Utilisateurs. Le [guide CV](docs/GUIDE-CV.md) explique le stockage, les routes et le CV joint à une candidature.
 
 Pour les requêtes protégées, le backend identifie le compte à partir de la session. Le navigateur conserve un cookie de session ; le mot de passe est stocké sous forme de hash bcrypt.
 

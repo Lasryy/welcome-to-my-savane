@@ -1,7 +1,17 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Brand } from "../design-lab/components";
 
 export default function PublicLayout() {
+  const [role, setRole] = useState(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/auth/me", { credentials: "same-origin", signal: controller.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((user) => { if (!controller.signal.aborted) setRole(user?.role || "GUEST"); })
+      .catch(() => { if (!controller.signal.aborted) setRole("GUEST"); });
+    return () => controller.abort();
+  }, []);
   return (
     <div id="top" className="flex min-h-[100svh] flex-col bg-paper font-brand text-[14px] leading-[1.55] text-ink">
       <a className="absolute -left-[10000px] top-3 z-20 bg-paper p-3 focus:left-[12px]" href="#main-content">
@@ -12,9 +22,10 @@ export default function PublicLayout() {
           <Brand tailwind />
           <nav className="flex flex-wrap items-center gap-6 text-sm max-[760px]:gap-3 max-[760px]:text-xs" aria-label="Navigation principale">
             <NavLink className="border-b border-transparent py-2.5 hover:underline hover:underline-offset-4 [&[aria-current=page]]:border-ink [&[aria-current=page]]:font-bold" to="/" end>Les offres</NavLink>
-            <NavLink className="border-b border-transparent py-2.5 hover:underline hover:underline-offset-4 [&[aria-current=page]]:border-ink [&[aria-current=page]]:font-bold" to="/applications">Mes candidatures</NavLink>
-            <NavLink className="py-2.5 hover:underline hover:underline-offset-4" to="/profile">Mon compte</NavLink>
-            <Link className="py-2.5 hover:underline hover:underline-offset-4" to="/admin">Administration</Link>
+            {(role === "USER" || role === "GUEST") && <NavLink className="border-b border-transparent py-2.5 hover:underline hover:underline-offset-4 [&[aria-current=page]]:border-ink [&[aria-current=page]]:font-bold" to="/applications">Mes candidatures</NavLink>}
+            {(role === "USER" || role === "GUEST") && <NavLink className="py-2.5 hover:underline hover:underline-offset-4" to="/profile">Mon compte</NavLink>}
+            {role === "COMPANY" && <NavLink className="py-2.5 hover:underline hover:underline-offset-4" to="/company">Espace entreprise</NavLink>}
+            {role === "ADMIN" && <Link className="py-2.5 hover:underline hover:underline-offset-4" to="/admin">Administration</Link>}
           </nav>
         </div>
       </header>

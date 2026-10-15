@@ -29,6 +29,7 @@ const swaggerOptions = {
   apis: [
     path.resolve(__dirname, "../docs/api.js"),
     path.resolve(__dirname, "../docs/cv.js"),
+    path.resolve(__dirname, "../docs/company.js"),
   ],
 };
 

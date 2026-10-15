@@ -38,8 +38,7 @@ function validateCompany(body) {
 
 function sendDatabaseError(res, error, context) {
   if (error.code === "23503") {
-    // The schema restricts deleting a company that still owns job ads.
-    return res.status(409).json({ message: "Cette entreprise est liée à une ou plusieurs offres et ne peut pas être supprimée." });
+    return res.status(409).json({ message: "Cette entreprise est liée à des offres ou à des comptes recruteur et ne peut pas être supprimée." });
   }
 
   if (error.code === "23505") {

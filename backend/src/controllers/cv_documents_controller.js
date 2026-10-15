@@ -11,7 +11,7 @@ async function requireCvAccount(req, res, next) {
   }
 
   try {
-    const result = await pool.query("SELECT id, role FROM people WHERE id = $1", [req.session.userId]);
+    const result = await pool.query("SELECT id, role, company_id FROM people WHERE id = $1", [req.session.userId]);
     if (!result.rowCount) {
       return res.status(401).json({ message: "Compte introuvable. Reconnecte-toi." });
     }
@@ -194,9 +194,19 @@ async function getCvFile(req, res, next) {
   try {
     // Return the same 404 for a missing document and another candidate's document.
     const result = await pool.query(
-      `SELECT original_name, storage_key FROM cv_documents
-       WHERE id = $1 AND (person_id = $2 OR $3 = 'ADMIN')`,
-      [id, req.cvAccount.id, req.cvAccount.role],
+      `SELECT cv_documents.original_name, cv_documents.storage_key FROM cv_documents
+       WHERE cv_documents.id = $1 AND (
+         cv_documents.person_id = $2 OR $3 = 'ADMIN' OR (
+           $3 = 'COMPANY' AND EXISTS (
+             SELECT 1 FROM applications
+             JOIN ads ON ads.id = applications.ad_id
+             WHERE applications.cv_document_id = cv_documents.id
+               AND applications.person_id = cv_documents.person_id
+               AND ads.company_id = $4
+           )
+         )
+       )`,
+      [id, req.cvAccount.id, req.cvAccount.role, req.cvAccount.company_id],
     );
     if (!result.rowCount) {
       return res.status(404).json({ message: "CV introuvable." });

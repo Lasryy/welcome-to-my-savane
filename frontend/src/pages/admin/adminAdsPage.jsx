@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CustomSelect from "../../components/CustomSelect";
 import AdminCard from "../../components/admin/adminCard";
 import { AdminDeleteConfirmation, AdminFeedback, AdminListState } from "../../components/admin/adminUi";
 import { adminRequest } from "../../services/adminApi";
 import { contractLabels, formatDate, formatSalary } from "../../utils/adminUtils";
+import AdminPagination from "../../components/admin/AdminPagination";
 
 const sortLabels = {
   recent: "Plus récentes",
@@ -15,6 +16,9 @@ const sortLabels = {
 
 export default function AdminAdsPage() {
   const [ads, setAds] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [page, setPage] = useState(1);
   const [companies, setCompanies] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +44,8 @@ export default function AdminAdsPage() {
         method: "PATCH", body: { status: nextStatus },
       });
       setAds((current) => current.map((item) => item.id === ad.id ? updated : item));
+      setPage(1);
+      setReloadKey((key) => key + 1);
       setDeletingId(null);
       setFeedback({ type: "success", message: nextStatus === "closed" ? "L’offre a été fermée. Les nouvelles candidatures sont refusées." : "L’offre a été rouverte." });
     } catch (requestError) {
@@ -56,6 +62,8 @@ export default function AdminAdsPage() {
     try {
       await adminRequest(`/api/admin/ads/${ad.id}`, { method: "DELETE" });
       setAds((current) => current.filter((item) => item.id !== ad.id));
+      setPage(1);
+      setReloadKey((key) => key + 1);
       setDeletingId(null);
       setFeedback({ type: "success", message: "L’offre a été supprimée." });
     } catch (requestError) {
@@ -66,12 +74,14 @@ export default function AdminAdsPage() {
   }
 
   function clearFilters() {
-    setQuery("");
-    setStatus("all");
-    setCompanyId("");
-    setCategoryId("");
-    setContractType("");
-    setSort("recent");
+    setLoading(true);
+    setPage(1); setQuery(""); setStatus("all"); setCompanyId(""); setCategoryId(""); setContractType(""); setSort("recent");
+  }
+
+  function updateFilter(setter, value) {
+    setLoading(true);
+    setPage(1);
+    setter(value);
   }
 
   function retryLoading() {
@@ -83,14 +93,19 @@ export default function AdminAdsPage() {
     const controller = new AbortController();
     async function loadAdminData() {
       try {
+        const params = new URLSearchParams({ page: String(page), page_size: "20", status, sort });
+        if (query.trim()) params.set("q", query.trim());
+        if (companyId) params.set("company_id", companyId);
+        if (categoryId) params.set("category_id", categoryId);
+        if (contractType) params.set("contract_type", contractType);
         const [adList, companyList, categoryList] = await Promise.all([
-          adminRequest("/api/admin/ads", { signal: controller.signal }),
+          adminRequest(`/api/admin/ads?${params}`, { signal: controller.signal }),
           adminRequest("/api/companies", { signal: controller.signal }),
           adminRequest("/api/categories", { signal: controller.signal }),
         ]);
 
         const listsAreValid =
-          Array.isArray(adList) &&
+          Array.isArray(adList?.items) &&
           Array.isArray(companyList) &&
           Array.isArray(categoryList);
         if (!listsAreValid) {
@@ -100,7 +115,9 @@ export default function AdminAdsPage() {
           return;
         }
 
-        setAds(adList);
+        setAds(adList.items);
+        setTotal(adList.total);
+        setTotalPages(adList.total_pages);
         setCompanies(companyList);
         setCategories(categoryList);
         setError("");
@@ -117,78 +134,41 @@ export default function AdminAdsPage() {
 
     loadAdminData();
     return () => controller.abort();
-  }, [reloadKey]);
-
-  const filteredAds = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("fr");
-    const result = ads.filter((ad) => {
-      const searchableText = [ad.title, ad.company_name, ad.location, ad.short_description]
-        .filter(Boolean).join(" ").toLocaleLowerCase("fr");
-      const matchesQuery =
-        !normalizedQuery || searchableText.includes(normalizedQuery);
-      const matchesStatus = status === "all" || ad.status === status;
-      const matchesCompany = !companyId || String(ad.company_id) === companyId;
-      const matchesCategory = !categoryId || String(ad.category_id) === categoryId;
-      const matchesContract = !contractType || ad.contract_type === contractType;
-
-      return (
-        matchesQuery &&
-        matchesStatus &&
-        matchesCompany &&
-        matchesCategory &&
-        matchesContract
-      );
-    });
-    return result.sort((a, b) => {
-      if (sort === "oldest") {
-        return new Date(a.created_at) - new Date(b.created_at);
-      }
-      if (sort === "title") {
-        return a.title.localeCompare(b.title, "fr");
-      }
-      if (sort === "company") {
-        const firstCompany = a.company_name || "";
-        const secondCompany = b.company_name || "";
-        return firstCompany.localeCompare(secondCompany, "fr");
-      }
-
-      return new Date(b.created_at) - new Date(a.created_at);
-    });
-  }, [ads, categoryId, companyId, contractType, query, sort, status]);
+  }, [reloadKey, page, query, status, sort, companyId, categoryId, contractType]);
 
   return (
     <>
       <AdminFeedback feedback={feedback} />
       <div className="admin-toolbar mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div><h2>Offres publiées et fermées</h2><p aria-live="polite">{filteredAds.length} résultat{filteredAds.length !== 1 ? "s" : ""} sur {ads.length}</p></div>
+        <div><h2>Offres publiées et fermées</h2><p aria-live="polite">{total} résultat{total !== 1 ? "s" : ""}</p></div>
         <Link className="admin-button accent inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" to="/admin/ads/new">Créer une offre <span aria-hidden="true">＋</span></Link>
       </div>
       <section className="admin-filters mb-6 grid gap-4 p-5 [background:var(--admin-ink)] text-[var(--admin-paper)]" aria-label="Filtres des offres">
         <label className="admin-field grid min-w-0 gap-2" htmlFor="ads-search">Recherche
-          <input id="ads-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Titre, entreprise, ville…" />
+          <input id="ads-search" type="search" value={query} onChange={(event) => updateFilter(setQuery, event.target.value)} placeholder="Titre, entreprise, ville…" />
         </label>
         <div className="admin-filters-grid grid gap-4 [grid-template-columns:repeat(3,_minmax(0,_1fr))] admin-max-760:[grid-template-columns:repeat(2,_minmax(0,_1fr))] admin-max-480:[grid-template-columns:minmax(0,_1fr)]">
           <label className="admin-field grid min-w-0 gap-2" htmlFor="ads-status">Statut
-            <CustomSelect id="ads-status" value={status} onChange={setStatus} options={[{ value: "all", label: "Tous les statuts" }, { value: "published", label: "Publiées" }, { value: "closed", label: "Fermées" }]} />
+            <CustomSelect id="ads-status" value={status} onChange={(value) => updateFilter(setStatus, value)} options={[{ value: "all", label: "Tous les statuts" }, { value: "published", label: "Publiées" }, { value: "closed", label: "Fermées" }]} />
           </label>
           <label className="admin-field grid min-w-0 gap-2" htmlFor="ads-company">Entreprise
-            <CustomSelect id="ads-company" value={companyId} onChange={setCompanyId} placeholder="Toutes les entreprises" options={companies.map((company) => ({ value: company.id, label: company.name }))} />
+            <CustomSelect id="ads-company" value={companyId} onChange={(value) => updateFilter(setCompanyId, value)} placeholder="Toutes les entreprises" options={companies.map((company) => ({ value: company.id, label: company.name }))} />
           </label>
           <label className="admin-field grid min-w-0 gap-2" htmlFor="ads-category">Catégorie
-            <CustomSelect id="ads-category" value={categoryId} onChange={setCategoryId} placeholder="Toutes les catégories" options={categories.map((category) => ({ value: category.id, label: category.name }))} />
+            <CustomSelect id="ads-category" value={categoryId} onChange={(value) => updateFilter(setCategoryId, value)} placeholder="Toutes les catégories" options={categories.map((category) => ({ value: category.id, label: category.name }))} />
           </label>
           <label className="admin-field grid min-w-0 gap-2" htmlFor="ads-contract">Contrat
-            <CustomSelect id="ads-contract" value={contractType} onChange={setContractType} placeholder="Tous les contrats" options={Object.entries(contractLabels).map(([value, label]) => ({ value, label }))} />
+            <CustomSelect id="ads-contract" value={contractType} onChange={(value) => updateFilter(setContractType, value)} placeholder="Tous les contrats" options={Object.entries(contractLabels).map(([value, label]) => ({ value, label }))} />
           </label>
           <label className="admin-field grid min-w-0 gap-2" htmlFor="ads-sort">Trier par
-            <CustomSelect id="ads-sort" value={sort} onChange={setSort} options={Object.entries(sortLabels).map(([value, label]) => ({ value, label }))} />
+            <CustomSelect id="ads-sort" value={sort} onChange={(value) => updateFilter(setSort, value)} options={Object.entries(sortLabels).map(([value, label]) => ({ value, label }))} />
           </label>
         </div>
         <button className="admin-button secondary justify-self-start inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline" type="button" onClick={clearFilters}>Effacer les filtres</button>
       </section>
-      <AdminListState loading={loading} error={error} empty={!filteredAds.length} onRetry={retryLoading}>
+      <AdminListState loading={loading} error={error} empty={!ads.length} onRetry={retryLoading}>
         <div className="grid items-start gap-[22px] xl:grid-cols-2">
-          {filteredAds.map((ad, index) => (
+          {ads.map((ad, index) => (
             <AdminCard key={ad.id} title={ad.title} description={ad.short_description || ad.description} index={index}>
               <div className="admin-meta flex flex-wrap items-center justify-between gap-3 text-xs">
                 <span className={`admin-status status-${ad.status} inline-flex items-center px-2 py-1 text-xs font-bold [border:1px_solid_currentColor] `}>
@@ -214,6 +194,7 @@ export default function AdminAdsPage() {
           ))}
         </div>
       </AdminListState>
+      <AdminPagination page={page} totalPages={totalPages} total={total} onPageChange={(value) => { setLoading(true); setPage(value); }} />
     </>
   );
 }

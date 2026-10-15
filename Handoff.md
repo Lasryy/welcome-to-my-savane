@@ -1,5 +1,13 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 15 octobre 2026 : étape 6 Lasry
+
+À la création d’une candidature, l’API enregistre maintenant dans `submitted_snapshot` une copie des coordonnées, du message, des projets et expériences choisis, ainsi que la version du CV. Cette copie et les associations SQL sont écrites dans la même transaction. Les lignes de l’offre, du profil et des éléments sélectionnés sont verrouillées pendant l’envoi pour éviter qu’une fermeture ou une modification simultanée ne produise un dossier incohérent.
+
+`GET /api/applications/mine/:id` renvoie le dossier uniquement à son candidat. Le lien « Voir le dossier envoyé » dans l’historique ouvre `/applications/:id`. Pour les anciennes candidatures sans copie figée, la page affiche les informations encore disponibles avec un avertissement clair ; les projets et expériences liés sont signalés comme leurs versions actuelles. La route est documentée dans Swagger.
+
+La suite de l’étape 6 reste à réaliser par Denis côté consultation du dossier dans l’administration. Vérification de cette partie Lasry : 29 tests d’intégration backend, ESLint et build frontend réussis.
+
 ## Mise à jour du 14 octobre 2026 : CV joints aux candidatures
 
 Le candidat peut conserver plusieurs PDF dans son profil, choisir un CV par défaut,
@@ -9,8 +17,8 @@ l’historique candidat et le suivi admin ; les fichiers sont toujours servis av
 
 La migration additive `db/migrations/003_frozen_application_dossier.sql` ajoute la référence
 `applications.cv_document_id` et le champ nullable `submitted_snapshot`. La clé étrangère
-contrôle que le CV appartient au candidat. Les deux champs restent nuls pour ne pas invalider
-les anciennes candidatures ; `submitted_snapshot` n’est pas encore rempli par l’API. Sur une
+contrôle que le CV appartient au candidat. Les anciennes candidatures gardent ces champs à `NULL` ;
+les nouvelles enregistrent le CV choisi et leur copie figée dans `submitted_snapshot`. Sur une
 base déjà créée, appliquer les migrations `001`, `002`, puis `003`. Voir
 [docs/GUIDE-CV.md](docs/GUIDE-CV.md) pour les commandes et le parcours manuel.
 

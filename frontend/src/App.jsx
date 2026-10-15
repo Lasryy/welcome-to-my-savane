@@ -14,6 +14,7 @@ import AdminAdEditPage from "./pages/admin/adminAdEditPage";
 import AdminCompaniesPage from "./pages/admin/adminCompaniesPage";
 import AdminCategoriesPage from "./pages/admin/adminCategoriesPage";
 import ApplicationsHistoryPage from "./pages/applications/ApplicationsHistoryPage";
+import ApplicationDetailPage from "./pages/applications/ApplicationDetailPage";
 import AdminApplicationsPage from "./pages/admin/adminApplicationsPage";
 import AdminUsersPage from "./pages/admin/adminUsersPage";
 
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       { path: "/", element: <JobBoardPage /> },
       { path: "/jobs/:id", element: <JobDetailPage /> },
       { path: "/applications", element: <ApplicationsHistoryPage /> },
+      { path: "/applications/:id", element: <ApplicationDetailPage /> },
     ],
   },
   { path: "/login", element: <LoginPage /> },

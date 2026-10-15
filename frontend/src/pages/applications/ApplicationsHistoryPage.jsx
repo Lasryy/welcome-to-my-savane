@@ -92,6 +92,12 @@ export default function ApplicationsHistoryPage() {
                     </a>
                   </p>
                 )}
+                <Link
+                  className="mt-3 inline-flex font-bold underline underline-offset-4"
+                  to={`/applications/${application.id}`}
+                >
+                  Voir le dossier envoyé
+                </Link>
               </div>
               <span className="inline-flex w-fit border border-ink px-3 py-2 text-sm font-bold">
                 {STATUS_LABELS[application.status] || "Statut inconnu"}

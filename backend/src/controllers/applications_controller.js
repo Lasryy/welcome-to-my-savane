@@ -1,5 +1,6 @@
 const pool = require("../db/pool");
 const { isRecord, parseId } = require("./admin_validation");
+const { parsePagination, paginated } = require("./pagination");
 
 const APPLICATION_STATUSES = new Set([
   "sent",
@@ -374,6 +375,9 @@ async function getMyApplicationById(req, res) {
 
 // Lists applications for the admin page, including the candidate's name.
 async function getAdminApplications(req, res) {
+  const pagination = parsePagination(req.query);
+  if (pagination.error) return res.status(400).json({ message: pagination.error });
+  const { page, pageSize, offset } = pagination.value;
   const { company_id: companyIdQuery, ad_id: adIdQuery, status = "all" } = req.query;
   const companyId = parseOptionalFilterId(companyIdQuery, "company_id");
   const adId = parseOptionalFilterId(adIdQuery, "ad_id");
@@ -397,6 +401,10 @@ async function getAdminApplications(req, res) {
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
   try {
+    const count = await pool.query(
+      `SELECT COUNT(*)::int AS total FROM applications JOIN ads ON ads.id = applications.ad_id ${whereClause}`,
+      values,
+    );
     const result = await pool.query(
       `SELECT applications.id, applications.ad_id, ads.title,
               companies.name AS company_name,
@@ -412,8 +420,9 @@ async function getAdminApplications(req, res) {
          ON cv_documents.id = applications.cv_document_id
         AND cv_documents.person_id = applications.person_id
        ${whereClause}
-       ORDER BY applications.created_at DESC, applications.id DESC`,
-      values,
+       ORDER BY applications.created_at DESC, applications.id DESC
+       LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
+      [...values, pageSize, offset],
     );
 
     const applications = result.rows.map((application) => ({
@@ -422,7 +431,10 @@ async function getAdminApplications(req, res) {
         ? `/api/cv-documents/${application.cv_document_id}/file`
         : null,
     }));
-    return res.status(200).json(applications);
+    const hasPagination = req.query.page !== undefined || req.query.page_size !== undefined;
+    return res.status(200).json(hasPagination
+      ? paginated(applications, page, pageSize, count.rows[0].total)
+      : applications);
   } catch (error) {
     console.error("Error while fetching admin applications:", error);
     return res.status(500).json({ message: "Impossible de charger les candidatures." });

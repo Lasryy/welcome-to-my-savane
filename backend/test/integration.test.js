@@ -84,11 +84,22 @@ test("Lasry and Denis integration", {
   await t.test("registration, login and profile keep the default USER role", async () => {
     assert.equal((await request("/api/auth/me")).status, 401);
     assert.equal((await request("/api/auth/register", { method: "POST", body: {} })).status, 400);
+    await pool.query("ALTER TABLE people DROP COLUMN IF EXISTS is_visible_to_recruiters");
     const created = await request("/api/auth/register", { method: "POST", body: account });
     assert.equal(created.status, 201);
     assert.equal(created.data.role, "USER");
     assert.equal(created.data.password_hash, undefined);
     userId = created.data.id;
+    const visibilityMigration = await fs.readFile(
+      path.join(__dirname, "../../db/migrations/005_candidate_visibility.sql"),
+      "utf8",
+    );
+    await pool.query(visibilityMigration);
+    const migratedUser = await pool.query(
+      "SELECT is_visible_to_recruiters FROM people WHERE id = $1",
+      [userId],
+    );
+    assert.equal(migratedUser.rows[0].is_visible_to_recruiters, false);
     assert.equal((await request("/api/auth/register", { method: "POST", body: account })).status, 409);
     assert.equal((await request("/api/auth/login", {
       method: "POST", body: { ...account, password: "wrong-password" },
@@ -126,6 +137,10 @@ test("Lasry and Denis integration", {
     assert.equal(secondLogin.status, 200);
     secondUserCookie = secondLogin.cookie;
 
+    const secondProfile = await request("/api/people/me", { cookie: secondUserCookie });
+    assert.equal(secondProfile.status, 200);
+    assert.equal(secondProfile.data.is_visible_to_recruiters, false);
+
     const profile = await request("/api/people/me", { cookie: userCookie });
     assert.equal(profile.status, 200);
     assert.equal(profile.data.id, userId);
@@ -135,12 +150,37 @@ test("Lasry and Denis integration", {
     const updated = await request("/api/people/me", {
       method: "PATCH",
       cookie: userCookie,
-      body: { first_name: "Updated", phone: "0612345678" },
+      body: { first_name: "Updated", phone: "0612345678", is_visible_to_recruiters: true },
     });
     assert.equal(updated.status, 200);
     assert.equal(updated.data.first_name, "Updated");
     assert.equal(updated.data.phone, "0612345678");
     assert.equal(updated.data.role, "USER");
+    assert.equal(updated.data.is_visible_to_recruiters, true);
+    assert.equal((await request("/api/people/me", { cookie: userCookie })).data.is_visible_to_recruiters, true);
+
+    for (const body of [
+      { is_visible_to_recruiters: "true" },
+      { is_visible_to_recruiters: 1 },
+      { is_visible_to_recruiters: null },
+      { person_id: secondUserId, is_visible_to_recruiters: true },
+      { unknown_field: "value" },
+    ]) {
+      assert.equal((await request("/api/people/me", {
+        method: "PATCH",
+        cookie: userCookie,
+        body,
+      })).status, 400);
+    }
+
+    const visibilityOff = await request("/api/people/me", {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { is_visible_to_recruiters: false },
+    });
+    assert.equal(visibilityOff.status, 200);
+    assert.equal(visibilityOff.data.is_visible_to_recruiters, false);
+    assert.equal((await request("/api/people/me", { cookie: secondUserCookie })).data.is_visible_to_recruiters, false);
 
     assert.equal((await request("/api/people/me", {
       method: "PATCH",
@@ -635,6 +675,105 @@ test("Lasry and Denis integration", {
     });
     assert.equal(unused.status, 201);
     assert.equal((await request(`/api/companies/${unused.data.id}`, { method: "DELETE", cookie: adminCookie })).status, 204);
+  });
+
+  await t.test("company recruiters can search only opted-in candidate profiles", async () => {
+    assert.equal((await request("/api/company/candidates")).status, 401);
+    assert.equal((await request("/api/company/candidates", { cookie: userCookie })).status, 403);
+    assert.equal((await request("/api/company/candidates", { cookie: adminCookie })).status, 403);
+
+    const recruiterAccount = {
+      first_name: "Recruiter",
+      last_name: "Test",
+      email: `recruiter-${Date.now()}@example.com`,
+      password: "Integration2026!",
+    };
+    const recruiter = await request("/api/auth/register", {
+      method: "POST",
+      body: recruiterAccount,
+    });
+    assert.equal(recruiter.status, 201);
+    const assigned = await request(`/api/admin/users/${recruiter.data.id}`, {
+      method: "PATCH",
+      cookie: adminCookie,
+      body: { role: "COMPANY", company_id: companyId },
+    });
+    assert.equal(assigned.status, 200);
+
+    const recruiterLogin = await request("/api/auth/login", {
+      method: "POST",
+      body: recruiterAccount,
+    });
+    assert.equal(recruiterLogin.status, 200);
+    const recruiterCookie = recruiterLogin.cookie;
+
+    await request("/api/people/me", {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { is_visible_to_recruiters: true },
+    });
+
+    const list = await request("/api/company/candidates", { cookie: recruiterCookie });
+    assert.equal(list.status, 200);
+    assert.equal(list.data.page_size, 12);
+    assert.equal(list.data.total, 1);
+    assert.equal(list.data.items[0].id, userId);
+    assert.equal(list.data.items[0].project_count, 1);
+    assert.equal(list.data.items[0].experience_count, 1);
+    for (const privateField of ["email", "phone", "password", "password_hash", "cv", "cv_url"]) {
+      assert.equal(Object.hasOwn(list.data.items[0], privateField), false);
+    }
+
+    const matchingProject = await pool.query(
+      `INSERT INTO projects (person_id, title, description)
+       VALUES ($1, 'Searchable Portfolio', 'Portfolio search fixture') RETURNING id`,
+      [userId],
+    );
+    const matchingExperience = await pool.query(
+      `INSERT INTO experiences (person_id, company_name, job_title, description)
+       VALUES ($1, 'Searchable Studio', 'Searchable Developer', 'Portfolio search fixture') RETURNING id`,
+      [userId],
+    );
+    const duplicateMatches = await request("/api/company/candidates?q=Searchable", {
+      cookie: recruiterCookie,
+    });
+    assert.equal(duplicateMatches.status, 200);
+    assert.equal(duplicateMatches.data.total, 1);
+    assert.deepEqual(duplicateMatches.data.items.map((candidate) => candidate.id), [userId]);
+
+    const detail = await request(`/api/company/candidates/${userId}`, { cookie: recruiterCookie });
+    assert.equal(detail.status, 200);
+    assert.equal(detail.data.id, userId);
+    assert.equal(detail.data.projects.length, 2);
+    assert.equal(detail.data.experiences.length, 2);
+    for (const privateField of ["email", "phone", "password", "password_hash", "cv", "cv_url"]) {
+      assert.equal(Object.hasOwn(detail.data, privateField), false);
+    }
+    assert.equal((await request(`/api/company/candidates/${secondUserId}`, {
+      cookie: recruiterCookie,
+    })).status, 404);
+    assert.equal((await request("/api/company/candidates/not-an-id", {
+      cookie: recruiterCookie,
+    })).status, 400);
+    for (const query of ["page=0", "page_size=0", "page_size=101", `q=${"x".repeat(201)}`]) {
+      assert.equal((await request(`/api/company/candidates?${query}`, {
+        cookie: recruiterCookie,
+      })).status, 400, query);
+    }
+    assert.equal((await request("/api/company/candidates?page_size=5", {
+      cookie: recruiterCookie,
+    })).data.page_size, 5);
+    assert.equal((await request("/api/company/candidates?page_size=100", {
+      cookie: recruiterCookie,
+    })).data.page_size, 100);
+
+    await pool.query("DELETE FROM projects WHERE id = $1", [matchingProject.rows[0].id]);
+    await pool.query("DELETE FROM experiences WHERE id = $1", [matchingExperience.rows[0].id]);
+    await request("/api/people/me", {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { is_visible_to_recruiters: false },
+    });
   });
 
   await t.test("category CRUD validates names and persists renaming", async () => {

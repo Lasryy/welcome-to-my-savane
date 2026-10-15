@@ -1,5 +1,15 @@
 # Handoff — Welcome To My Savane
 
+## Mise à jour du 15 octobre 2026 : étape 7 Denis
+
+Le rôle `COMPANY` permet de rattacher plusieurs comptes à une entreprise existante. L’administration peut attribuer ce rôle et l’entreprise depuis la gestion des utilisateurs. La migration additive `db/migrations/004_company_recruiters.sql` ajoute cette relation aux bases déjà initialisées ; sur une nouvelle base, le schéma principal l’inclut.
+
+L’espace `/company` permet de créer, modifier, publier et fermer les offres de l’entreprise, de filtrer les candidatures, d’ouvrir leur dossier figé et de faire évoluer leur statut. L’API relit le rôle et l’entreprise depuis PostgreSQL à chaque requête et filtre par cette entreprise. Le CV joint reste protégé et n’est servi à un recruteur que si une candidature de son entreprise référence ce CV. Les comptes `COMPANY` ne peuvent pas utiliser les routes de profil candidat.
+
+Les listes Admin d’offres, candidatures et utilisateurs acceptent `page` et `page_size` et renvoient `items`, `page`, `page_size`, `total` et `total_pages`. Les filtres des offres, candidatures et utilisateurs s’appliquent côté API avant la pagination. Sans paramètres de pagination, les listes gardent leur ancien tableau JSON.
+
+La branche distante Lasry déjà présente dans l’historique de `denis` est `origin/lasry-etape-6` (`844d410`). Le fetch n’a montré aucun nouveau changement localement ; la vérification de toutes les branches GitHub n’a pas abouti, le DNS de GitHub étant indisponible. Validation locale : ESLint et build frontend réussis ; les tests n’ont pas été exécutés.
+
 ## Mise à jour du 15 octobre 2026 : étape 6 Lasry
 
 À la création d’une candidature, l’API enregistre maintenant dans `submitted_snapshot` une copie des coordonnées, du message, des projets et expériences choisis, ainsi que la version du CV. Cette copie et les associations SQL sont écrites dans la même transaction. Les lignes de l’offre, du profil et des éléments sélectionnés sont verrouillées pendant l’envoi pour éviter qu’une fermeture ou une modification simultanée ne produise un dossier incohérent.

@@ -78,8 +78,9 @@ async function login(req, res) {
 
   try {
     const result = await pool.query(
-      `SELECT id, first_name, last_name, email, phone, password_hash, role
+      `SELECT people.id, people.first_name, people.last_name, people.email, people.phone, people.password_hash, people.role, people.company_id, companies.name AS company_name
        FROM people
+       LEFT JOIN companies ON companies.id = people.company_id
        WHERE LOWER(email) = $1`,
       [email],
     );
@@ -111,6 +112,8 @@ async function login(req, res) {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        company_id: user.company_id,
+        company_name: user.company_name,
       });
     });
   } catch (error) {
@@ -127,9 +130,9 @@ async function getMe(req, res) {
 
   try {
     const result = await pool.query(
-      `SELECT id, first_name, last_name, email, phone, role
-       FROM people
-       WHERE id = $1`,
+      `SELECT people.id, people.first_name, people.last_name, people.email, people.phone, people.role, people.company_id, companies.name AS company_name
+       FROM people LEFT JOIN companies ON companies.id = people.company_id
+       WHERE people.id = $1`,
       [req.session.userId],
     );
 

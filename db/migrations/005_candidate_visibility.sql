@@ -1,0 +1,6 @@
+BEGIN;
+
+ALTER TABLE people
+    ADD COLUMN is_visible_to_recruiters BOOLEAN NOT NULL DEFAULT FALSE;
+
+COMMIT;

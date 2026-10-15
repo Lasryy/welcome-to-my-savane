@@ -18,6 +18,10 @@ import ApplicationDetailPage from "./pages/applications/ApplicationDetailPage";
 import AdminApplicationsPage from "./pages/admin/adminApplicationsPage";
 import AdminApplicationDetailPage from "./pages/admin/adminApplicationDetailPage";
 import AdminUsersPage from "./pages/admin/adminUsersPage";
+import CompanyRoute from "./pages/company/CompanyRoute";
+import CompanyDashboardPage from "./pages/company/CompanyDashboardPage";
+import CandidateDirectoryPage from "./pages/company/CandidateDirectoryPage";
+import CandidateProfilePage from "./pages/company/CandidateProfilePage";
 
 // This router also supports useBlocker in the admin's unsaved-change warning.
 const router = createBrowserRouter([
@@ -33,6 +37,14 @@ const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
   { path: "/profile", element: <ProfilePage /> },
+  {
+    element: <CompanyRoute />,
+    children: [
+      { path: "/company", element: <CompanyDashboardPage /> },
+      { path: "/company/candidates", element: <CandidateDirectoryPage /> },
+      { path: "/company/candidates/:personId", element: <CandidateProfilePage /> },
+    ],
+  },
   {
     element: <AdminRoute />,
     children: [

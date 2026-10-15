@@ -6,6 +6,7 @@ const {
   parseId,
   stringField,
 } = require("./admin_validation");
+const { parsePagination, paginated } = require("./pagination");
 
 const CONTRACT_TYPES = new Set(["internship", "apprenticeship", "permanent", "fixed_term", "other"]);
 const WORKING_TIMES = new Set(["full_time", "part_time"]);
@@ -134,6 +135,9 @@ function databaseError(res, error, context) {
 }
 
 async function getAdminAds(req, res) {
+  const pagination = parsePagination(req.query);
+  if (pagination.error) return res.status(400).json({ message: pagination.error });
+  const { page, pageSize, offset } = pagination.value;
   const { status = "all", q = "", contract_type: contractType } = req.query;
   if (!ADMIN_STATUSES.has(status)) {
     return res.status(400).json({ message: "Le filtre status accepte all, published ou closed." });
@@ -202,11 +206,19 @@ async function getAdminAds(req, res) {
   }
 
   try {
-    const result = await pool.query(
-      `${AD_SELECT} WHERE ${conditions.join(" AND ")} ORDER BY ${sortOptions[sort]}`,
+    const where = `WHERE ${conditions.join(" AND ")}`;
+    const count = await pool.query(
+      `SELECT COUNT(*)::int AS total FROM ads JOIN companies ON companies.id = ads.company_id LEFT JOIN categories ON categories.id = ads.category_id ${where}`,
       values,
     );
-    return res.status(200).json(result.rows);
+    const result = await pool.query(
+      `${AD_SELECT} ${where} ORDER BY ${sortOptions[sort]} LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
+      [...values, pageSize, offset],
+    );
+    const hasPagination = req.query.page !== undefined || req.query.page_size !== undefined;
+    return res.status(200).json(hasPagination
+      ? paginated(result.rows, page, pageSize, count.rows[0].total)
+      : result.rows);
   } catch (error) {
     return databaseError(res, error, "Error while fetching admin ads");
   }
@@ -309,4 +321,4 @@ async function deleteAdminAd(req, res) {
   }
 }
 
-module.exports = { getAdminAds, getAdminAdById, createAdminAd, updateAdminAd, deleteAdminAd };
+module.exports = { getAdminAds, getAdminAdById, createAdminAd, updateAdminAd, deleteAdminAd, validateAd };

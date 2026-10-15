@@ -151,6 +151,26 @@ function ProfilePage() {
     }
   }
 
+  async function saveRecruiterVisibility(isVisible) {
+    setError("");
+    setSuccess("");
+    setSaving("visibility");
+    try {
+      const updatedUser = await requestJson("/api/people/me", {
+        method: "PATCH",
+        body: JSON.stringify({ is_visible_to_recruiters: isVisible }),
+      });
+      setUser(updatedUser);
+      setSuccess(isVisible
+        ? "Ton profil est maintenant visible dans l’annuaire recruteur."
+        : "Ton profil n’apparaît plus dans l’annuaire recruteur.");
+    } catch (requestError) {
+      showRequestError(requestError);
+    } finally {
+      setSaving("");
+    }
+  }
+
   async function saveProject(event) {
     event.preventDefault();
     setError("");
@@ -321,6 +341,29 @@ function ProfilePage() {
               </button>
             </form>
           </section>
+
+          {user.role === "USER" && <section className="profile-section" aria-labelledby="profile-visibility-title">
+            <div className="profile-section-heading">
+              <div>
+                <h2 id="profile-visibility-title">Visibilité auprès des recruteurs</h2>
+                <p>Tu gardes le contrôle : tu peux activer ou désactiver cette option à tout moment.</p>
+              </div>
+            </div>
+            <label className="flex items-start gap-3">
+              <input
+                className="mt-1 h-5 w-5 accent-ink"
+                type="checkbox"
+                checked={Boolean(user.is_visible_to_recruiters)}
+                disabled={saving === "visibility"}
+                onChange={(event) => saveRecruiterVisibility(event.target.checked)}
+              />
+              <span>
+                <strong>Mon profil peut être consulté par les recruteurs</strong>
+                <span className="mt-1 block">Si tu actives l’option, ton nom, tes projets et tes expériences apparaissent aux recruteurs connectés. Ton e-mail, ton téléphone et tes CV restent privés.</span>
+                {saving === "visibility" && <span className="mt-1 block" role="status">Enregistrement…</span>}
+              </span>
+            </label>
+          </section>}
 
           <CvManager />
 

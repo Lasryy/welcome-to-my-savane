@@ -2,11 +2,18 @@ import { useEffect, useState } from "react";
 import AdminCard from "../../components/admin/adminCard";
 import { AdminFeedback, AdminField, AdminListState, AdminModal } from "../../components/admin/adminUi";
 import { adminRequest } from "../../services/adminApi";
+import AdminPagination from "../../components/admin/AdminPagination";
 
-const EMPTY_FORM = { first_name: "", last_name: "", email: "", phone: "", role: "USER" };
+const EMPTY_FORM = { first_name: "", last_name: "", email: "", phone: "", role: "USER", company_id: "" };
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [currentUserId, setCurrentUserId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -21,18 +28,26 @@ export default function AdminUsersPage() {
     const controller = new AbortController();
 
     async function loadData() {
+      setLoading(true);
       try {
-        const [userList, response] = await Promise.all([
-          adminRequest("/api/admin/users", { signal: controller.signal }),
+        const params = new URLSearchParams({ page: String(page), page_size: "20" });
+        if (query.trim()) params.set("q", query.trim());
+        if (roleFilter !== "all") params.set("role", roleFilter);
+        const [userList, companyList, response] = await Promise.all([
+          adminRequest(`/api/admin/users?${params}`, { signal: controller.signal }),
+          adminRequest("/api/companies", { signal: controller.signal }),
           fetch("/api/auth/me", { credentials: "same-origin", signal: controller.signal }),
         ]);
         const currentUser = await response.json();
-        if (!Array.isArray(userList) || !response.ok) {
+        if (!Array.isArray(userList?.items) || !Array.isArray(companyList) || !response.ok) {
           throw new Error("Impossible de charger les comptes utilisateurs.");
         }
 
         if (!controller.signal.aborted) {
-          setUsers(userList);
+          setUsers(userList.items);
+          setCompanies(companyList);
+          setTotal(userList.total);
+          setTotalPages(userList.total_pages);
           setCurrentUserId(currentUser.id);
           setError("");
         }
@@ -49,7 +64,7 @@ export default function AdminUsersPage() {
 
     loadData();
     return () => controller.abort();
-  }, [reloadKey]);
+  }, [reloadKey, page, query, roleFilter]);
 
   function editUser(user) {
     setEditingId(user.id);
@@ -59,6 +74,7 @@ export default function AdminUsersPage() {
       email: user.email,
       phone: user.phone || "",
       role: user.role,
+      company_id: user.company_id ? String(user.company_id) : "",
     });
     setFeedback(null);
   }
@@ -70,6 +86,12 @@ export default function AdminUsersPage() {
 
   function updateField(event) {
     setForm({ ...form, [event.target.name]: event.target.value });
+  }
+
+  function updateListFilter(update) {
+    setLoading(true);
+    setPage(1);
+    update();
   }
 
   async function saveUser(event) {
@@ -89,6 +111,7 @@ export default function AdminUsersPage() {
       };
       if (editingId !== currentUserId) {
         userChanges.role = form.role;
+        userChanges.company_id = form.role === "COMPANY" ? Number(form.company_id) : null;
       }
 
       const updatedUser = await adminRequest(`/api/admin/users/${editingId}`, {
@@ -96,6 +119,8 @@ export default function AdminUsersPage() {
         body: userChanges,
       });
       setUsers((current) => current.map((user) => user.id === updatedUser.id ? updatedUser : user));
+      setPage(1);
+      setReloadKey((key) => key + 1);
       setFeedback({ type: "success", message: "Le compte a été mis à jour." });
       resetForm();
     } catch (requestError) {
@@ -115,6 +140,8 @@ export default function AdminUsersPage() {
     try {
       await adminRequest(`/api/admin/users/${deletingUser.id}`, { method: "DELETE" });
       setUsers((current) => current.filter((user) => user.id !== deletingUser.id));
+      setPage(1);
+      setReloadKey((key) => key + 1);
       if (editingId === deletingUser.id) {
         resetForm();
       }
@@ -131,7 +158,7 @@ export default function AdminUsersPage() {
     <>
       <AdminFeedback feedback={feedback} />
       <div className="admin-toolbar mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div><h2>Comptes utilisateurs</h2><p aria-live="polite">{users.length} compte{users.length !== 1 ? "s" : ""}</p></div>
+        <div><h2>Comptes utilisateurs</h2><p aria-live="polite">{total} compte{total !== 1 ? "s" : ""}</p></div>
       </div>
 
       {editingId !== null && (
@@ -153,10 +180,18 @@ export default function AdminUsersPage() {
             <AdminField label="Rôle" name="user-role">
               <select id="user-role" name="role" value={form.role} onChange={updateField} disabled={editingId === currentUserId}>
                 <option value="USER">USER · Candidat</option>
+                <option value="COMPANY">COMPANY · Recruteur</option>
                 <option value="ADMIN">ADMIN · Administrateur</option>
               </select>
               {editingId === currentUserId && <p className="admin-help text-[12px]">Tu ne peux pas modifier ton propre rôle.</p>}
             </AdminField>
+            {editingId !== currentUserId && form.role === "COMPANY" && <AdminField label="Entreprise *" name="user-company">
+              <select id="user-company" name="company_id" value={form.company_id} onChange={updateField} required>
+                <option value="">Choisir une entreprise</option>
+                {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
+              </select>
+              <p className="admin-help text-[12px]">Plusieurs comptes recruteur peuvent être rattachés à la même entreprise.</p>
+            </AdminField>}
             <div className="admin-actions flex flex-wrap items-end gap-3">
               <button className="admin-button accent inline-flex min-h-10 items-center justify-center px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)]" type="submit" disabled={pending}>
                 {pending ? "Enregistrement…" : "Enregistrer"}
@@ -173,11 +208,21 @@ export default function AdminUsersPage() {
         empty={!users.length}
         onRetry={() => { setLoading(true); setReloadKey((key) => key + 1); }}
       >
+        <section className="admin-filters mb-6 grid gap-4 p-5 [background:var(--admin-ink)] text-[var(--admin-paper)]" aria-label="Filtres des comptes">
+          <label className="admin-field grid gap-2" htmlFor="users-search">Recherche
+            <input id="users-search" type="search" value={query} onChange={(event) => updateListFilter(() => setQuery(event.target.value))} placeholder="Nom, e-mail, entreprise…" />
+          </label>
+          <label className="admin-field grid gap-2" htmlFor="users-role">Rôle
+            <select id="users-role" value={roleFilter} onChange={(event) => updateListFilter(() => setRoleFilter(event.target.value))}>
+              <option value="all">Tous les rôles</option><option value="USER">Candidats</option><option value="COMPANY">Recruteurs</option><option value="ADMIN">Administrateurs</option>
+            </select>
+          </label>
+        </section>
         <div className="grid items-start gap-[22px] xl:grid-cols-2">
           {users.map((user, index) => (
             <AdminCard key={user.id} title={`${user.first_name} ${user.last_name}`} description={user.email} index={index}>
               <p>{user.phone || "Téléphone non renseigné"}</p>
-              <p><strong>Rôle :</strong> {user.role === "ADMIN" ? "Administrateur" : "Candidat"}</p>
+              <p><strong>Rôle :</strong> {user.role === "ADMIN" ? "Administrateur" : user.role === "COMPANY" ? `Recruteur · ${user.company_name}` : "Candidat"}</p>
               <div className="admin-actions flex flex-wrap gap-3">
                 <button className="admin-button primary inline-flex min-h-10 items-center justify-center px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)]" type="button" disabled={pending} onClick={() => editUser(user)}>Modifier</button>
                 <button className="admin-button secondary inline-flex min-h-10 items-center justify-center px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)]" type="button" disabled={pending || user.id === currentUserId} onClick={() => setDeletingUser(user)}>Supprimer</button>
@@ -185,6 +230,7 @@ export default function AdminUsersPage() {
             </AdminCard>
           ))}
         </div>
+        <AdminPagination page={page} totalPages={totalPages} total={total} onPageChange={(value) => { setLoading(true); setPage(value); }} />
       </AdminListState>
 
       {deletingUser && (

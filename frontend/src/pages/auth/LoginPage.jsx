@@ -33,9 +33,15 @@ function LoginPage() {
         return;
       }
 
-      // After login, return to the screen the user requested before opening /login.
-      const returnPath = location.state?.from || "/profile";
-      const returnState = location.state?.continueApplication
+      const defaultPath = data.role === "ADMIN" ? "/admin" : data.role === "COMPANY" ? "/company" : "/";
+      const requestedPath = location.state?.from;
+      const allowedReturnPath = requestedPath && (
+        (data.role === "ADMIN" && requestedPath.startsWith("/admin")) ||
+        (data.role === "COMPANY" && requestedPath.startsWith("/company")) ||
+        (data.role === "USER" && !requestedPath.startsWith("/admin") && !requestedPath.startsWith("/company"))
+      );
+      const returnPath = allowedReturnPath ? requestedPath : defaultPath;
+      const returnState = data.role === "USER" && location.state?.continueApplication
         ? { continueApplication: true }
         : null;
 

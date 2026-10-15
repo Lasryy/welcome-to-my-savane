@@ -1,7 +1,13 @@
 const pool = require("../db/pool");
 
-const PROFILE_FIELDS = new Set(["first_name", "last_name", "email", "phone"]);
-const PROFILE_COLUMNS = "id, first_name, last_name, email, phone, role";
+const PROFILE_FIELDS = new Set([
+  "first_name",
+  "last_name",
+  "email",
+  "phone",
+  "is_visible_to_recruiters",
+]);
+const PROFILE_COLUMNS = "id, first_name, last_name, email, phone, role, is_visible_to_recruiters";
 
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -20,6 +26,13 @@ function validateProfileChanges(body) {
   const values = {};
   for (const field of fields) {
     const value = body[field];
+    if (field === "is_visible_to_recruiters") {
+      if (typeof value !== "boolean") {
+        return { error: "Le champ is_visible_to_recruiters doit être un booléen." };
+      }
+      values[field] = value;
+      continue;
+    }
     if (field === "phone" && (value === null || value === "")) {
       values.phone = null;
       continue;

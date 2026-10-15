@@ -84,11 +84,22 @@ test("Lasry and Denis integration", {
   await t.test("registration, login and profile keep the default USER role", async () => {
     assert.equal((await request("/api/auth/me")).status, 401);
     assert.equal((await request("/api/auth/register", { method: "POST", body: {} })).status, 400);
+    await pool.query("ALTER TABLE people DROP COLUMN IF EXISTS is_visible_to_recruiters");
     const created = await request("/api/auth/register", { method: "POST", body: account });
     assert.equal(created.status, 201);
     assert.equal(created.data.role, "USER");
     assert.equal(created.data.password_hash, undefined);
     userId = created.data.id;
+    const visibilityMigration = await fs.readFile(
+      path.join(__dirname, "../../db/migrations/005_candidate_visibility.sql"),
+      "utf8",
+    );
+    await pool.query(visibilityMigration);
+    const migratedUser = await pool.query(
+      "SELECT is_visible_to_recruiters FROM people WHERE id = $1",
+      [userId],
+    );
+    assert.equal(migratedUser.rows[0].is_visible_to_recruiters, false);
     assert.equal((await request("/api/auth/register", { method: "POST", body: account })).status, 409);
     assert.equal((await request("/api/auth/login", {
       method: "POST", body: { ...account, password: "wrong-password" },
@@ -126,6 +137,10 @@ test("Lasry and Denis integration", {
     assert.equal(secondLogin.status, 200);
     secondUserCookie = secondLogin.cookie;
 
+    const secondProfile = await request("/api/people/me", { cookie: secondUserCookie });
+    assert.equal(secondProfile.status, 200);
+    assert.equal(secondProfile.data.is_visible_to_recruiters, false);
+
     const profile = await request("/api/people/me", { cookie: userCookie });
     assert.equal(profile.status, 200);
     assert.equal(profile.data.id, userId);
@@ -135,12 +150,37 @@ test("Lasry and Denis integration", {
     const updated = await request("/api/people/me", {
       method: "PATCH",
       cookie: userCookie,
-      body: { first_name: "Updated", phone: "0612345678" },
+      body: { first_name: "Updated", phone: "0612345678", is_visible_to_recruiters: true },
     });
     assert.equal(updated.status, 200);
     assert.equal(updated.data.first_name, "Updated");
     assert.equal(updated.data.phone, "0612345678");
     assert.equal(updated.data.role, "USER");
+    assert.equal(updated.data.is_visible_to_recruiters, true);
+    assert.equal((await request("/api/people/me", { cookie: userCookie })).data.is_visible_to_recruiters, true);
+
+    for (const body of [
+      { is_visible_to_recruiters: "true" },
+      { is_visible_to_recruiters: 1 },
+      { is_visible_to_recruiters: null },
+      { person_id: secondUserId, is_visible_to_recruiters: true },
+      { unknown_field: "value" },
+    ]) {
+      assert.equal((await request("/api/people/me", {
+        method: "PATCH",
+        cookie: userCookie,
+        body,
+      })).status, 400);
+    }
+
+    const visibilityOff = await request("/api/people/me", {
+      method: "PATCH",
+      cookie: userCookie,
+      body: { is_visible_to_recruiters: false },
+    });
+    assert.equal(visibilityOff.status, 200);
+    assert.equal(visibilityOff.data.is_visible_to_recruiters, false);
+    assert.equal((await request("/api/people/me", { cookie: secondUserCookie })).data.is_visible_to_recruiters, false);
 
     assert.equal((await request("/api/people/me", {
       method: "PATCH",

@@ -576,6 +576,7 @@ test("Lasry and Denis integration", {
     assert.ok(swagger.data.paths["/api/cv-documents/{id}/current"].put.security);
     assert.ok(swagger.data.paths["/api/cv-documents/{id}/file"].get.security);
     assert.ok(swagger.data.paths["/api/applications/today"].get.security);
+    assert.ok(swagger.data.paths["/api/applications/mine/{id}"].get.security);
     assert.deepEqual(swagger.data.paths["/api/applications"].post.requestBody.content["application/json"].schema.required, ["ad_id", "message"]);
     assert.ok(swagger.data.components.schemas.CvDocument);
   });
@@ -809,14 +810,90 @@ test("Lasry and Denis integration", {
     assert.equal(created.status, 201);
     applicationId = created.data.id;
     assert.equal(created.data.status, "sent");
-    const saved = await pool.query("SELECT person_id, ad_id, message, cv_document_id FROM applications WHERE id = $1", [created.data.id]);
+    const saved = await pool.query("SELECT person_id, ad_id, message, cv_document_id, submitted_snapshot FROM applications WHERE id = $1", [created.data.id]);
     assert.equal(saved.rows[0].person_id, userId);
     assert.equal(saved.rows[0].ad_id, publishedId);
     assert.equal(saved.rows[0].message, submittedBody.message);
     assert.equal(saved.rows[0].cv_document_id, null);
+    assert.deepEqual(saved.rows[0].submitted_snapshot.person, {
+      first_name: "Updated",
+      last_name: "Candidate",
+      email: account.email,
+      phone: "0612345678",
+    });
+    assert.equal(saved.rows[0].submitted_snapshot.message, submittedBody.message);
+    assert.equal(saved.rows[0].submitted_snapshot.projects[0].title, "Portfolio updated");
+    assert.equal(saved.rows[0].submitted_snapshot.experiences[0].job_title, "Senior Developer");
     assert.equal((await request("/api/applications/today", { cookie: userCookie })).data.count, 1);
     assert.equal((await pool.query("SELECT project_id FROM application_projects WHERE application_id = $1", [applicationId])).rows[0].project_id, projectId);
     assert.equal((await pool.query("SELECT experience_id FROM application_experiences WHERE application_id = $1", [applicationId])).rows[0].experience_id, experienceId);
+
+    assert.equal((await request(`/api/applications/mine/${applicationId}`)).status, 401);
+    const privateDetail = await request(`/api/applications/mine/${applicationId}`, { cookie: secondUserCookie });
+    assert.equal(privateDetail.status, 404);
+    assert.equal((await request("/api/applications/mine/not-an-id", { cookie: userCookie })).status, 400);
+
+    const detail = await request(`/api/applications/mine/${applicationId}`, { cookie: userCookie });
+    assert.equal(detail.status, 200);
+    assert.equal(detail.data.snapshot_available, true);
+    assert.equal(detail.data.submitted_snapshot.person.first_name, "Updated");
+    assert.equal(detail.data.submitted_snapshot.projects[0].title, "Portfolio updated");
+    assert.equal(detail.data.cv, null);
+
+    await request("/api/people/me", {
+      method: "PATCH", cookie: userCookie, body: { first_name: "Changed later" },
+    });
+    await request(`/api/projects/${projectId}`, {
+      method: "PATCH", cookie: userCookie, body: { title: "Changed later" },
+    });
+    await request(`/api/experiences/${experienceId}`, {
+      method: "PATCH", cookie: userCookie, body: { job_title: "Changed later" },
+    });
+    const unchangedDetail = await request(`/api/applications/mine/${applicationId}`, { cookie: userCookie });
+    assert.equal(unchangedDetail.data.submitted_snapshot.person.first_name, "Updated");
+    assert.equal(unchangedDetail.data.submitted_snapshot.projects[0].title, "Portfolio updated");
+    assert.equal(unchangedDetail.data.submitted_snapshot.experiences[0].job_title, "Senior Developer");
+
+    await request("/api/people/me", {
+      method: "PATCH", cookie: userCookie, body: { first_name: "Updated" },
+    });
+    await request(`/api/projects/${projectId}`, {
+      method: "PATCH", cookie: userCookie, body: { title: "Portfolio updated" },
+    });
+    await request(`/api/experiences/${experienceId}`, {
+      method: "PATCH", cookie: userCookie, body: { job_title: "Senior Developer" },
+    });
+
+    const legacyResult = await pool.query(
+      `INSERT INTO applications (person_id, ad_id, message, cv_document_id)
+       VALUES ($1, $2, 'Ancienne candidature', $3) RETURNING id`,
+      [userId, closedId, cvId],
+    );
+    const legacyId = legacyResult.rows[0].id;
+    try {
+      await pool.query(
+        `INSERT INTO application_projects (application_id, project_id, person_id)
+         VALUES ($1, $2, $3)`,
+        [legacyId, projectId, userId],
+      );
+      const legacyDetail = await request(`/api/applications/mine/${legacyId}`, { cookie: userCookie });
+      assert.equal(legacyDetail.status, 200);
+      assert.equal(legacyDetail.data.snapshot_available, false);
+      assert.equal(legacyDetail.data.legacy_message, "Ancienne candidature");
+      assert.equal(legacyDetail.data.legacy_items.projects[0].title, "Portfolio updated");
+      assert.equal(legacyDetail.data.cv.id, cvId);
+      const adminLegacyDetail = await request(`/api/admin/applications/${legacyId}`, { cookie: adminCookie });
+      assert.equal(adminLegacyDetail.status, 200);
+      assert.equal(adminLegacyDetail.data.snapshot_available, false);
+      assert.equal(adminLegacyDetail.data.person_is_current, true);
+      assert.equal(adminLegacyDetail.data.message, "Ancienne candidature");
+      assert.equal(adminLegacyDetail.data.cv.file_url, `/api/cv-documents/${cvId}/file`);
+      const closedOfferApplications = await request(`/api/admin/applications?ad_id=${closedId}`, { cookie: adminCookie });
+      assert.ok(closedOfferApplications.data.some((application) => application.id === legacyId));
+    } finally {
+      await pool.query("DELETE FROM applications WHERE id = $1", [legacyId]);
+    }
+
     assert.equal((await request("/api/applications", { method: "POST", cookie: userCookie, body: submittedBody })).status, 409);
     for (const [adId, expectedStatus] of [[closedId, 409], [2147483647, 404], ["invalid", 400]]) {
       assert.equal((await request("/api/applications", {
@@ -848,21 +925,104 @@ test("Lasry and Denis integration", {
       assert.equal(attachedApplication.status, 201);
       attachedApplicationId = attachedApplication.data.id;
       assert.equal(attachedApplication.data.cv_document_id, cvId);
+      const attachedRow = await pool.query(
+        "SELECT submitted_snapshot FROM applications WHERE id = $1",
+        [attachedApplicationId],
+      );
+      assert.equal(attachedRow.rows[0].submitted_snapshot.cv.id, cvId);
+      assert.equal(attachedRow.rows[0].submitted_snapshot.cv.original_name, "CV été.pdf");
+      const attachedDetail = await request(`/api/applications/mine/${attachedApplicationId}`, { cookie: userCookie });
+      assert.equal(attachedDetail.data.cv.id, cvId);
+      assert.equal(attachedDetail.data.cv.file_url, `/api/cv-documents/${cvId}/file`);
       assert.equal((await request("/api/applications/today", { cookie: userCookie })).data.count, 2);
     } finally {
       if (attachedApplicationId) await pool.query("DELETE FROM applications WHERE id = $1", [attachedApplicationId]);
       await pool.query("DELETE FROM ads WHERE id = $1", [optionalOffer.data.id]);
     }
+
+    const raceOffer = await request("/api/admin/ads", {
+      method: "POST", cookie: adminCookie,
+      body: { title: "Concurrent application test", description: "Only one application should be saved.", company_id: companyId, salary_period: "year", status: "published" },
+    });
+    assert.equal(raceOffer.status, 201);
+    try {
+      const concurrentRequests = await Promise.all([
+        request("/api/applications", {
+          method: "POST", cookie: userCookie,
+          body: { ad_id: raceOffer.data.id, message: "Envoi concurrent numéro un." },
+        }),
+        request("/api/applications", {
+          method: "POST", cookie: userCookie,
+          body: { ad_id: raceOffer.data.id, message: "Envoi concurrent numéro deux." },
+        }),
+      ]);
+      assert.deepEqual(concurrentRequests.map((response) => response.status).sort(), [201, 409]);
+      assert.equal((await pool.query(
+        "SELECT id FROM applications WHERE ad_id = $1",
+        [raceOffer.data.id],
+      )).rowCount, 1);
+    } finally {
+      await pool.query("DELETE FROM applications WHERE ad_id = $1", [raceOffer.data.id]);
+      await pool.query("DELETE FROM ads WHERE id = $1", [raceOffer.data.id]);
+    }
+
+    const closingOffer = await request("/api/admin/ads", {
+      method: "POST", cookie: adminCookie,
+      body: { title: "Offer closing test", description: "Cannot accept an application after closing.", company_id: companyId, salary_period: "year", status: "published" },
+    });
+    assert.equal(closingOffer.status, 201);
+    const lockClient = await pool.connect();
+    let lockTransactionOpen = false;
+    try {
+      await lockClient.query("BEGIN");
+      lockTransactionOpen = true;
+      await lockClient.query("SELECT id FROM ads WHERE id = $1 FOR UPDATE", [closingOffer.data.id]);
+
+      const pendingApplication = request("/api/applications", {
+        method: "POST", cookie: userCookie,
+        body: { ad_id: closingOffer.data.id, message: "Je postule pendant la fermeture." },
+      });
+      let waitsForOfferLock = false;
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        const waitingQuery = await pool.query(
+          `SELECT 1
+           FROM pg_stat_activity
+           WHERE datname = current_database()
+             AND pid <> pg_backend_pid()
+             AND wait_event_type = 'Lock'
+             AND query LIKE 'SELECT id, status FROM ads%'
+           LIMIT 1`,
+        );
+        if (waitingQuery.rowCount) {
+          waitsForOfferLock = true;
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      assert.equal(waitsForOfferLock, true, "the application must wait for the offer update lock");
+
+      await lockClient.query("UPDATE ads SET status = 'closed' WHERE id = $1", [closingOffer.data.id]);
+      await lockClient.query("COMMIT");
+      lockTransactionOpen = false;
+      assert.equal((await pendingApplication).status, 409);
+      assert.equal((await pool.query("SELECT id FROM applications WHERE ad_id = $1", [closingOffer.data.id])).rowCount, 0);
+    } finally {
+      if (lockTransactionOpen) await lockClient.query("ROLLBACK");
+      lockClient.release();
+      await pool.query("DELETE FROM applications WHERE ad_id = $1", [closingOffer.data.id]);
+      await pool.query("DELETE FROM ads WHERE id = $1", [closingOffer.data.id]);
+    }
+
     assert.equal((await request("/api/applications/today", { cookie: userCookie })).data.count, 1);
   });
 
-  await t.test("D5.3 keeps legacy snapshots empty and enforces owned CV references", async () => {
-    const legacy = await pool.query(
+  await t.test("submitted dossiers stay frozen and enforce owned CV references", async () => {
+    const savedApplication = await pool.query(
       "SELECT cv_document_id, submitted_snapshot FROM applications WHERE id = $1",
       [applicationId],
     );
-    assert.equal(legacy.rows[0].cv_document_id, null);
-    assert.equal(legacy.rows[0].submitted_snapshot, null);
+    assert.equal(savedApplication.rows[0].cv_document_id, null);
+    assert.ok(savedApplication.rows[0].submitted_snapshot);
 
     await assert.rejects(
       pool.query("UPDATE applications SET cv_document_id = $1 WHERE id = $2", [secondCvId, applicationId]),
@@ -895,6 +1055,37 @@ test("Lasry and Denis integration", {
     assert.equal((await request(`/api/cv-documents/${cvId}/file`, { cookie: userCookie })).status, 200);
     assert.equal((await request(`/api/cv-documents/${cvId}/file`, { cookie: adminCookie })).status, 200);
     assert.equal((await pool.query("SELECT is_current FROM cv_documents WHERE id = $1", [cvId])).rows[0].is_current, false);
+
+    assert.equal((await request(`/api/admin/applications/${applicationId}`)).status, 401);
+    assert.equal((await request(`/api/admin/applications/${applicationId}`, { cookie: userCookie })).status, 403);
+    assert.equal((await request("/api/admin/applications/not-an-id", { cookie: adminCookie })).status, 400);
+    assert.equal((await request("/api/admin/applications/2147483647", { cookie: adminCookie })).status, 404);
+
+    const adminDetail = await request(`/api/admin/applications/${applicationId}`, { cookie: adminCookie });
+    assert.equal(adminDetail.status, 200);
+    assert.equal(adminDetail.data.snapshot_available, true);
+    assert.equal(adminDetail.data.person.first_name, "Integration");
+    assert.equal(adminDetail.data.message, "Ma candidature figée.");
+    assert.equal(adminDetail.data.projects[0].title, "Projet conservé");
+    assert.equal(adminDetail.data.cv.id, cvId);
+    assert.equal(adminDetail.data.cv.file_url, `/api/cv-documents/${cvId}/file`);
+
+    const filtered = await request(
+      `/api/admin/applications?company_id=${companyId}&ad_id=${publishedId}&status=sent`,
+      { cookie: adminCookie },
+    );
+    assert.equal(filtered.status, 200);
+    assert.ok(filtered.data.some((application) => application.id === applicationId));
+    assert.equal((await request(`/api/admin/applications?ad_id=${closedId}`, { cookie: adminCookie })).data.length, 0);
+    assert.equal((await request(`/api/admin/applications?status=accepted`, { cookie: adminCookie })).data.length, 0);
+    for (const query of ["company_id=abc", "ad_id=0", "status=unknown", "status=sent&status=rejected"]) {
+      const invalidFilter = await request(`/api/admin/applications?${query}`, { cookie: adminCookie });
+      assert.equal(invalidFilter.status, 400, query);
+    }
+
+    const swagger = await request("/api-docs/openapi.json");
+    assert.ok(swagger.data.paths["/api/admin/applications"].get.parameters.some((parameter) => parameter.name === "company_id"));
+    assert.ok(swagger.data.paths["/api/admin/applications/{id}"].get.security);
   });
 
   await t.test("linked projects and experiences cannot be deleted", async (subtest) => {

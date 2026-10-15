@@ -9,6 +9,8 @@ const APPLICATION_STATUSES = new Set([
   "rejected",
 ]);
 
+const APPLICATION_FILTER_STATUSES = new Set(["all", ...APPLICATION_STATUSES]);
+
 function readSelectedIds(value, fieldName) {
   if (value === undefined) {
     return { value: [] };
@@ -106,9 +108,41 @@ async function createApplication(req, res) {
     await client.query("BEGIN");
     transactionStarted = true;
 
-    // Only profile items owned by the logged-in person can be attached.
+    // Lock the offer so it cannot close while the application is being saved.
+    const adResult = await client.query(
+      "SELECT id, status FROM ads WHERE id = $1 FOR UPDATE",
+      [adId],
+    );
+    if (!adResult.rowCount) {
+      await client.query("ROLLBACK");
+      transactionStarted = false;
+      return res.status(404).json({ error: "Cette offre est introuvable." });
+    }
+    if (adResult.rows[0].status !== "published") {
+      await client.query("ROLLBACK");
+      transactionStarted = false;
+      return res.status(409).json({ error: "Cette offre est fermée. Tu ne peux plus y postuler." });
+    }
+
+    const personResult = await client.query(
+      `SELECT first_name, last_name, email, phone
+       FROM people
+       WHERE id = $1
+       FOR SHARE`,
+      [personId],
+    );
+    if (!personResult.rowCount) {
+      await client.query("ROLLBACK");
+      transactionStarted = false;
+      return res.status(401).json({ error: "Ton compte n’est plus disponible." });
+    }
+
+    // Save the selected profile information while it is locked against edits.
     const projectResult = await client.query(
-      "SELECT id FROM projects WHERE person_id = $1 AND id = ANY($2::int[])",
+      `SELECT id, title, description, project_url, repository_url
+       FROM projects
+       WHERE person_id = $1 AND id = ANY($2::int[])
+       FOR SHARE`,
       [personId, selectedProjects.value],
     );
     if (projectResult.rowCount !== selectedProjects.value.length) {
@@ -120,7 +154,10 @@ async function createApplication(req, res) {
     }
 
     const experienceResult = await client.query(
-      "SELECT id FROM experiences WHERE person_id = $1 AND id = ANY($2::int[])",
+      `SELECT id, company_name, job_title, description, start_date, end_date
+       FROM experiences
+       WHERE person_id = $1 AND id = ANY($2::int[])
+       FOR SHARE`,
       [personId, selectedExperiences.value],
     );
     if (experienceResult.rowCount !== selectedExperiences.value.length) {
@@ -132,9 +169,13 @@ async function createApplication(req, res) {
     }
 
     // A candidate can attach only one of their own saved CVs; a CV is optional.
+    let cv = null;
     if (cvDocumentId !== null) {
       const cvResult = await client.query(
-        "SELECT id FROM cv_documents WHERE id = $1 AND person_id = $2",
+        `SELECT id, original_name, created_at
+         FROM cv_documents
+         WHERE id = $1 AND person_id = $2
+         FOR SHARE`,
         [cvDocumentId, personId],
       );
       if (!cvResult.rowCount) {
@@ -142,35 +183,24 @@ async function createApplication(req, res) {
         transactionStarted = false;
         return res.status(400).json({ error: "Le CV choisi n’appartient pas à ton profil." });
       }
+      cv = cvResult.rows[0];
     }
 
-    // The application is inserted only if the offer is still published.
+    const submittedSnapshot = {
+      person: personResult.rows[0],
+      message,
+      projects: projectResult.rows,
+      experiences: experienceResult.rows,
+      cv,
+    };
+
     const result = await client.query(
-      `INSERT INTO applications (person_id, ad_id, message, cv_document_id)
-       SELECT $1, ads.id, $3, $4
-       FROM ads
-       WHERE ads.id = $2 AND ads.status = 'published'
+      `INSERT INTO applications
+         (person_id, ad_id, message, cv_document_id, submitted_snapshot)
+       VALUES ($1, $2, $3, $4, $5::jsonb)
        RETURNING id, ad_id, message, cv_document_id, status, created_at`,
-      [personId, adId, message, cvDocumentId],
+      [personId, adId, message, cvDocumentId, JSON.stringify(submittedSnapshot)],
     );
-
-    if (result.rows.length === 0) {
-      const adResult = await client.query(
-        "SELECT status FROM ads WHERE id = $1",
-        [adId],
-      );
-
-      await client.query("ROLLBACK");
-      transactionStarted = false;
-
-      if (adResult.rows.length === 0) {
-        return res.status(404).json({ error: "Cette offre est introuvable." });
-      }
-
-      return res.status(409).json({
-        error: "Cette offre est fermée. Tu ne peux plus y postuler.",
-      });
-    }
 
     const application = result.rows[0];
 
@@ -249,8 +279,123 @@ async function getMyApplications(req, res) {
   }
 }
 
+// Returns the submitted dossier only to the candidate who owns it.
+async function getMyApplicationById(req, res) {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: "Connecte-toi pour voir cette candidature." });
+  }
+
+  const id = parseId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ error: "L’identifiant de la candidature est invalide." });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT applications.id, applications.ad_id, ads.title,
+              companies.name AS company_name, ads.location,
+              applications.message, applications.submitted_snapshot,
+              applications.cv_document_id,
+              cv_documents.original_name AS cv_original_name,
+              cv_documents.created_at AS cv_created_at,
+              applications.status, applications.created_at
+       FROM applications
+       JOIN ads ON ads.id = applications.ad_id
+       JOIN companies ON companies.id = ads.company_id
+       LEFT JOIN cv_documents
+         ON cv_documents.id = applications.cv_document_id
+        AND cv_documents.person_id = applications.person_id
+       WHERE applications.id = $1 AND applications.person_id = $2`,
+      [id, req.session.userId],
+    );
+
+    if (!result.rowCount) {
+      return res.status(404).json({ error: "Candidature introuvable." });
+    }
+
+    const application = result.rows[0];
+    const snapshot = application.submitted_snapshot;
+    let legacyItems = null;
+
+    if (!snapshot) {
+      const [projects, experiences] = await Promise.all([
+        pool.query(
+          `SELECT projects.id, projects.title, projects.description,
+                  projects.project_url, projects.repository_url
+           FROM application_projects
+           JOIN projects ON projects.id = application_projects.project_id
+           WHERE application_projects.application_id = $1
+             AND application_projects.person_id = $2
+           ORDER BY projects.id`,
+          [id, req.session.userId],
+        ),
+        pool.query(
+          `SELECT experiences.id, experiences.company_name, experiences.job_title,
+                  experiences.description, experiences.start_date, experiences.end_date
+           FROM application_experiences
+           JOIN experiences ON experiences.id = application_experiences.experience_id
+           WHERE application_experiences.application_id = $1
+             AND application_experiences.person_id = $2
+           ORDER BY experiences.id`,
+          [id, req.session.userId],
+        ),
+      ]);
+      legacyItems = { projects: projects.rows, experiences: experiences.rows };
+    }
+
+    const cv = application.cv_document_id
+      ? {
+          id: application.cv_document_id,
+          original_name: application.cv_original_name || snapshot?.cv?.original_name || "CV envoyé",
+          created_at: application.cv_created_at || snapshot?.cv?.created_at || null,
+          file_url: `/api/cv-documents/${application.cv_document_id}/file`,
+        }
+      : null;
+
+    return res.status(200).json({
+      id: application.id,
+      ad_id: application.ad_id,
+      title: application.title,
+      company_name: application.company_name,
+      location: application.location,
+      status: application.status,
+      created_at: application.created_at,
+      snapshot_available: Boolean(snapshot),
+      submitted_snapshot: snapshot,
+      legacy_message: snapshot ? null : application.message,
+      legacy_items: legacyItems,
+      cv,
+    });
+  } catch (error) {
+    console.error("Error while fetching application details:", error);
+    return res.status(500).json({ error: "Impossible de charger le détail de cette candidature." });
+  }
+}
+
 // Lists applications for the admin page, including the candidate's name.
 async function getAdminApplications(req, res) {
+  const { company_id: companyIdQuery, ad_id: adIdQuery, status = "all" } = req.query;
+  const companyId = parseOptionalFilterId(companyIdQuery, "company_id");
+  const adId = parseOptionalFilterId(adIdQuery, "ad_id");
+  if (companyId.error || adId.error) {
+    return res.status(400).json({ message: companyId.error || adId.error });
+  }
+  if (typeof status !== "string" || !APPLICATION_FILTER_STATUSES.has(status)) {
+    return res.status(400).json({ message: "Le filtre status est invalide." });
+  }
+
+  const conditions = [];
+  const values = [];
+  function addFilter(column, value) {
+    values.push(value);
+    conditions.push(`${column} = $${values.length}`);
+  }
+
+  if (companyId.value !== null) addFilter("ads.company_id", companyId.value);
+  if (adId.value !== null) addFilter("applications.ad_id", adId.value);
+  if (status !== "all") addFilter("applications.status", status);
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
   try {
     const result = await pool.query(
       `SELECT applications.id, applications.ad_id, ads.title,
@@ -266,7 +411,9 @@ async function getAdminApplications(req, res) {
        LEFT JOIN cv_documents
          ON cv_documents.id = applications.cv_document_id
         AND cv_documents.person_id = applications.person_id
+       ${whereClause}
        ORDER BY applications.created_at DESC, applications.id DESC`,
+      values,
     );
 
     const applications = result.rows.map((application) => ({
@@ -279,6 +426,114 @@ async function getAdminApplications(req, res) {
   } catch (error) {
     console.error("Error while fetching admin applications:", error);
     return res.status(500).json({ message: "Impossible de charger les candidatures." });
+  }
+}
+
+function parseOptionalFilterId(value, field) {
+  if (value === undefined || value === "") return { value: null };
+  if (typeof value !== "string" || !/^\d+$/.test(value)) {
+    return { error: `Le filtre ${field} est invalide.` };
+  }
+  const id = parseId(value);
+  return id === null ? { error: `Le filtre ${field} est invalide.` } : { value: id };
+}
+
+// Returns the full submitted dossier to an administrator.
+async function getAdminApplicationById(req, res) {
+  const id = parseId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ message: "L’identifiant de la candidature est invalide." });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT applications.id, applications.person_id, applications.ad_id, ads.title,
+              companies.name AS company_name, ads.location,
+              applications.message, applications.submitted_snapshot,
+              applications.cv_document_id,
+              cv_documents.original_name AS cv_original_name,
+              cv_documents.created_at AS cv_created_at,
+              applications.status, applications.created_at,
+              people.first_name, people.last_name, people.email, people.phone
+       FROM applications
+       JOIN people ON people.id = applications.person_id
+       JOIN ads ON ads.id = applications.ad_id
+       JOIN companies ON companies.id = ads.company_id
+       LEFT JOIN cv_documents
+         ON cv_documents.id = applications.cv_document_id
+        AND cv_documents.person_id = applications.person_id
+       WHERE applications.id = $1`,
+      [id],
+    );
+
+    if (!result.rowCount) {
+      return res.status(404).json({ message: "Candidature introuvable." });
+    }
+
+    const application = result.rows[0];
+    const snapshot = application.submitted_snapshot;
+    let legacyItems = { projects: [], experiences: [] };
+
+    if (!snapshot) {
+      const [projects, experiences] = await Promise.all([
+        pool.query(
+          `SELECT projects.id, projects.title, projects.description,
+                  projects.project_url, projects.repository_url
+           FROM application_projects
+           JOIN projects ON projects.id = application_projects.project_id
+           WHERE application_projects.application_id = $1
+             AND application_projects.person_id = $2
+           ORDER BY projects.id`,
+          [id, application.person_id],
+        ),
+        pool.query(
+          `SELECT experiences.id, experiences.company_name, experiences.job_title,
+                  experiences.description, experiences.start_date, experiences.end_date
+           FROM application_experiences
+           JOIN experiences ON experiences.id = application_experiences.experience_id
+           WHERE application_experiences.application_id = $1
+             AND application_experiences.person_id = $2
+           ORDER BY experiences.id`,
+          [id, application.person_id],
+        ),
+      ]);
+      legacyItems = { projects: projects.rows, experiences: experiences.rows };
+    }
+
+    const savedCv = snapshot?.cv || null;
+    const cv = application.cv_document_id
+      ? {
+          id: application.cv_document_id,
+          original_name: application.cv_original_name || savedCv?.original_name || "CV envoyé",
+          created_at: application.cv_created_at || savedCv?.created_at || null,
+          file_url: `/api/cv-documents/${application.cv_document_id}/file`,
+        }
+      : null;
+
+    return res.status(200).json({
+      id: application.id,
+      ad_id: application.ad_id,
+      title: application.title,
+      company_name: application.company_name,
+      location: application.location,
+      status: application.status,
+      created_at: application.created_at,
+      snapshot_available: Boolean(snapshot),
+      person: snapshot?.person || {
+        first_name: application.first_name,
+        last_name: application.last_name,
+        email: application.email,
+        phone: application.phone,
+      },
+      person_is_current: !snapshot,
+      message: snapshot?.message ?? application.message,
+      projects: snapshot?.projects || legacyItems.projects,
+      experiences: snapshot?.experiences || legacyItems.experiences,
+      cv,
+    });
+  } catch (error) {
+    console.error("Error while fetching admin application details:", error);
+    return res.status(500).json({ message: "Impossible de charger le dossier de candidature." });
   }
 }
 
@@ -321,6 +576,8 @@ module.exports = {
   createApplication,
   getTodayApplicationCount,
   getMyApplications,
+  getMyApplicationById,
   getAdminApplications,
+  getAdminApplicationById,
   updateApplicationStatus,
 };

@@ -14,7 +14,9 @@ import AdminAdEditPage from "./pages/admin/adminAdEditPage";
 import AdminCompaniesPage from "./pages/admin/adminCompaniesPage";
 import AdminCategoriesPage from "./pages/admin/adminCategoriesPage";
 import ApplicationsHistoryPage from "./pages/applications/ApplicationsHistoryPage";
+import ApplicationDetailPage from "./pages/applications/ApplicationDetailPage";
 import AdminApplicationsPage from "./pages/admin/adminApplicationsPage";
+import AdminApplicationDetailPage from "./pages/admin/adminApplicationDetailPage";
 import AdminUsersPage from "./pages/admin/adminUsersPage";
 
 // This router also supports useBlocker in the admin's unsaved-change warning.
@@ -25,6 +27,7 @@ const router = createBrowserRouter([
       { path: "/", element: <JobBoardPage /> },
       { path: "/jobs/:id", element: <JobDetailPage /> },
       { path: "/applications", element: <ApplicationsHistoryPage /> },
+      { path: "/applications/:id", element: <ApplicationDetailPage /> },
     ],
   },
   { path: "/login", element: <LoginPage /> },
@@ -44,6 +47,7 @@ const router = createBrowserRouter([
           { path: "companies", element: <AdminCompaniesPage /> },
           { path: "categories", element: <AdminCategoriesPage /> },
           { path: "applications", element: <AdminApplicationsPage /> },
+          { path: "applications/:id", element: <AdminApplicationDetailPage /> },
           { path: "users", element: <AdminUsersPage /> },
         ],
       },

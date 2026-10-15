@@ -1140,6 +1140,42 @@
  *       '200': { description: Array of applications belonging to the logged-in account. }
  *       '401': { description: Login required. }
  *       '500': { description: Internal database error. }
+ * /api/applications/mine/{id}:
+ *   get:
+ *     tags: [Applications]
+ *     summary: Read one application dossier owned by the current account
+ *     description: New applications include a frozen copy of the profile, message, selected projects and experiences, and CV version. Older applications return the data still available and snapshot_available=false.
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '200':
+ *         description: The application dossier. Only its owner can read it.
+ *         content:
+ *           application/json:
+ *             example:
+ *               id: 41
+ *               ad_id: 12
+ *               title: Développeur junior
+ *               company_name: Savane Tech
+ *               location: Lyon
+ *               status: sent
+ *               snapshot_available: true
+ *               submitted_snapshot:
+ *                 person: { first_name: Camille, last_name: Petit, email: camille@example.com, phone: '0612345678' }
+ *                 message: Je souhaite rejoindre votre équipe.
+ *                 projects: [{ id: 3, title: Portfolio, description: Mon projet, project_url: 'https://example.com', repository_url: 'https://github.com/example' }]
+ *                 experiences: [{ id: 8, company_name: Savane Tech, job_title: Développeuse, description: Première expérience, start_date: '2024-01-01', end_date: null }]
+ *                 cv: { id: 4, original_name: CV.pdf, created_at: '2026-01-15T10:00:00.000Z' }
+ *               cv: { id: 4, original_name: CV.pdf, file_url: /api/cv-documents/4/file }
+ *       '400': { description: Invalid application ID. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Application does not exist or belongs to another account. }
+ *       '500': { description: Internal database error. }
  * /api/people/me:
  *   get:
  *     tags: [Profile]
@@ -1180,15 +1216,44 @@
  *   get:
  *     tags: [Admin - Applications]
  *     summary: List applications for administrators
- *     description: Includes the offer, company, candidate name and email, submitted CV name and protected file URL, status and creation date.
+ *     description: Includes the offer, company, candidate name and email, submitted CV name and protected file URL, status and creation date. Results can be filtered by company_id, ad_id and status; closed offers remain included.
  *     security:
  *       - sessionCookie: []
+ *     parameters:
+ *       - in: query
+ *         name: company_id
+ *         schema: { type: integer, minimum: 1 }
+ *       - in: query
+ *         name: ad_id
+ *         schema: { type: integer, minimum: 1 }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [all, sent, in_progress, technical_test, accepted, rejected], default: all }
  *     responses:
  *       '200': { description: Array of applications. }
+ *       '400': { description: Invalid filter value. }
  *       '401': { description: Login required. }
  *       '403': { description: ADMIN role required. }
  *       '500': { description: Internal database error. }
  * /api/admin/applications/{id}:
+ *   get:
+ *     tags: [Admin - Applications]
+ *     summary: Read a complete application dossier
+ *     description: Returns the frozen identity, message, selected projects and experiences, plus the protected submitted CV. Legacy applications expose only currently available data and mark person_is_current=true.
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '200': { description: Complete application dossier for an administrator. }
+ *       '400': { description: Invalid application ID. }
+ *       '401': { description: Login required. }
+ *       '403': { description: ADMIN role required. }
+ *       '404': { description: Application not found. }
+ *       '500': { description: Internal database error. }
  *   patch:
  *     tags: [Admin - Applications]
  *     summary: Update an application status

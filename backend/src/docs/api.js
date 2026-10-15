@@ -1189,13 +1189,13 @@
  *     security:
  *       - sessionCookie: []
  *     responses:
- *       '200': { description: Account ID, first and last name, email, phone and role. Password hash is never returned. }
+ *       '200': { description: Account ID, first and last name, email, phone, role, and is_visible_to_recruiters. Password hash is never returned. }
  *       '401': { description: Login required or account not found. }
  *       '500': { description: Internal database error. }
  *   patch:
  *     tags: [Profile]
  *     summary: Update editable fields on the current account
- *     description: The role and password cannot be changed through this route. Empty phone clears the optional number.
+ *     description: The role and password cannot be changed through this route. Empty phone clears the optional number. Candidates can opt in to the recruiter directory; visibility is off by default.
  *     security:
  *       - sessionCookie: []
  *     requestBody:
@@ -1211,7 +1211,8 @@
  *               last_name: { type: string, minLength: 1, maxLength: 100 }
  *               email: { type: string, format: email, maxLength: 255 }
  *               phone: { type: string, nullable: true, maxLength: 30 }
- *           example: { first_name: Camille, phone: '0612345678' }
+ *               is_visible_to_recruiters: { type: boolean, description: When true, the candidate's name, projects and experiences are visible to authenticated recruiters. Contact details and CVs stay private. }
+ *           example: { first_name: Camille, is_visible_to_recruiters: true }
  *     responses:
  *       '200': { description: Updated public account without password hash. }
  *       '400': { description: Empty, unknown, or invalid profile fields. }

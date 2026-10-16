@@ -10,6 +10,7 @@ const EMPTY_PAGE = { items: [], page: 1, total: 0, total_pages: 0 };
 export default function CandidateDirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
+  const companyId = searchParams.get("company_id") || "";
   const page = Number(searchParams.get("page") || 1);
   const [results, setResults] = useState(EMPTY_PAGE);
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,7 @@ export default function CandidateDirectoryPage() {
         page_size: "12",
       });
       if (query) params.set("q", query);
+      if (companyId) params.set("company_id", companyId);
 
       try {
         const data = await adminRequest(`/api/company/candidates?${params}`, {
@@ -42,7 +44,7 @@ export default function CandidateDirectoryPage() {
 
     loadCandidates();
     return () => controller.abort();
-  }, [page, query, reloadKey]);
+  }, [page, query, reloadKey, companyId]);
 
   function updateSearch(event) {
     event.preventDefault();
@@ -67,6 +69,8 @@ export default function CandidateDirectoryPage() {
     <CompanyLayout
       title="Annuaire de candidats"
       description="Découvre les projets et les expériences des candidats ouverts aux recruteurs."
+      companyId={companyId}
+      adminView={Boolean(companyId)}
     >
       <div className="mx-auto max-w-6xl">
         <form
@@ -96,7 +100,7 @@ export default function CandidateDirectoryPage() {
               <button
                 className="rounded border border-ink px-5 py-3"
                 type="button"
-                onClick={() => setSearchParams({})}
+                onClick={() => setSearchParams(companyId ? { company_id: companyId } : {})}
               >
                 Effacer
               </button>

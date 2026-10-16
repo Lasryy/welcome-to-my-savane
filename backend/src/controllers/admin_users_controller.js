@@ -1,9 +1,10 @@
+const bcrypt = require("bcrypt");
 const pool = require("../db/pool");
 const { isRecord, parseId } = require("./admin_validation");
 const { parsePagination, paginated } = require("./pagination");
 
 const USER_ROLES = new Set(["USER", "COMPANY", "ADMIN"]);
-const USER_FIELDS = new Set(["first_name", "last_name", "email", "phone", "role", "company_id"]);
+const USER_FIELDS = new Set(["first_name", "last_name", "email", "phone", "role", "company_id", "password"]);
 const USER_COLUMNS = "people.id, people.first_name, people.last_name, people.email, people.phone, people.role, people.company_id, companies.name AS company_name, people.created_at";
 
 function validateUserChanges(body) {
@@ -19,6 +20,13 @@ function validateUserChanges(body) {
   const values = {};
   for (const field of fields) {
     const value = body[field];
+    if (field === "password") {
+      if (typeof value !== "string" || value.length < 8 || Buffer.byteLength(value, "utf8") > 72) {
+        return { error: "Le nouveau mot de passe doit contenir entre 8 et 72 octets." };
+      }
+      values.password = value;
+      continue;
+    }
     if (field === "phone" && (value === null || value === "")) {
       values.phone = null;
       continue;
@@ -80,15 +88,22 @@ async function getAdminUsers(req, res) {
   const { page, pageSize, offset } = pagination.value;
   const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
   const role = req.query.role || "all";
+  const companyId = req.query.company_id === undefined
+    ? null
+    : parseId(req.query.company_id);
   if (typeof req.query.q !== "undefined" && (typeof req.query.q !== "string" || q.length > 200)) {
     return res.status(400).json({ message: "Le texte de recherche est invalide." });
   }
   if (!new Set(["all", ...USER_ROLES]).has(role)) {
     return res.status(400).json({ message: "Le filtre de rôle est invalide." });
   }
+  if (req.query.company_id !== undefined && companyId === null) {
+    return res.status(400).json({ message: "Le filtre d’entreprise est invalide." });
+  }
   const filters = [];
   const values = [];
   if (role !== "all") { values.push(role); filters.push(`people.role = $${values.length}`); }
+  if (companyId !== null) { values.push(companyId); filters.push(`people.company_id = $${values.length}`); }
   if (q) {
     values.push(`%${q}%`);
     filters.push(`(people.first_name ILIKE $${values.length} OR people.last_name ILIKE $${values.length} OR people.email ILIKE $${values.length} OR companies.name ILIKE $${values.length})`);
@@ -112,6 +127,41 @@ async function getAdminUsers(req, res) {
   }
 }
 
+async function createAdminUser(req, res) {
+  const body = req.body;
+  if (!isRecord(body)) return res.status(400).json({ message: "Le corps de la requête doit être un objet JSON." });
+  const { password, ...userFields } = body;
+  const requiredFields = ["first_name", "last_name", "email", "role", "company_id"];
+  if (requiredFields.some((field) => !Object.hasOwn(userFields, field))) {
+    return res.status(400).json({ message: "Prénom, nom, e-mail, rôle et entreprise sont obligatoires." });
+  }
+  const { value, error } = validateUserChanges(userFields);
+  if (error) return res.status(400).json({ message: error });
+  if (typeof password !== "string" || password.length < 8 || Buffer.byteLength(password, "utf8") > 72) {
+    return res.status(400).json({ message: "Le mot de passe initial doit contenir entre 8 et 72 octets." });
+  }
+
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      `INSERT INTO people (first_name, last_name, email, phone, role, company_id, password_hash)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [value.first_name, value.last_name, value.email, value.phone ?? null,
+        value.role, value.company_id ?? null, passwordHash],
+    );
+    const created = await pool.query(
+      `SELECT ${USER_COLUMNS} FROM people LEFT JOIN companies ON companies.id = people.company_id WHERE people.id = $1`,
+      [result.rows[0].id],
+    );
+    return res.status(201).json(created.rows[0]);
+  } catch (requestError) {
+    if (requestError.code === "23505") return res.status(409).json({ message: "Cette adresse e-mail est déjà utilisée." });
+    if (requestError.code === "23503") return res.status(409).json({ message: "L’entreprise sélectionnée n’existe plus." });
+    console.error("Error while creating admin user:", requestError);
+    return res.status(500).json({ message: "Impossible de créer le compte." });
+  }
+}
+
 async function updateAdminUser(req, res) {
   const id = parseId(req.params.id);
   if (id === null) {
@@ -127,8 +177,13 @@ async function updateAdminUser(req, res) {
     return res.status(409).json({ message: "Tu ne peux pas modifier ton propre rôle." });
   }
 
-  const fields = Object.keys(value);
-  const values = fields.map((field) => value[field]);
+  const { password, ...userValues } = value;
+  const fields = Object.keys(userValues);
+  const values = fields.map((field) => userValues[field]);
+  if (password !== undefined) {
+    values.push(await bcrypt.hash(password, 10));
+    fields.push("password_hash");
+  }
   values.push(id);
   const assignments = fields.map((field, index) => `${field} = $${index + 1}`).join(", ");
   const client = await pool.connect();
@@ -231,4 +286,4 @@ async function deleteAdminUser(req, res) {
   }
 }
 
-module.exports = { getAdminUsers, updateAdminUser, deleteAdminUser };
+module.exports = { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser };

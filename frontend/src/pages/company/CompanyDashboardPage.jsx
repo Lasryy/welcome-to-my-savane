@@ -1,11 +1,13 @@
 import Pagination from "../../components/ui/Pagination";
 import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import CompanyLayout from "./CompanyLayout";
 import CompanyOfferForm from "./CompanyOfferForm";
 import CompanyApplicationDossier from "./CompanyApplicationDossier";
 import UiIcon from "../../components/ui/UiIcon";
 import PersonAvatar from "../../components/PersonAvatar";
 import { adminRequest } from "../../services/adminApi";
+import CompanyUsersPanel from "./CompanyUsersPanel";
 
 const EMPTY_AD = {
   title: "",
@@ -36,7 +38,14 @@ const STATUS_LABELS = {
 };
 const EMPTY_PAGE = { items: [], page: 1, total: 0, total_pages: 0 };
 
+function scopedCompanyPath(path, companyId, adminView) {
+  if (!adminView) return path;
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}company_id=${encodeURIComponent(companyId)}`;
+}
+
 export default function CompanyDashboardPage() {
+  const [, setSearchParams] = useSearchParams();
   const [company, setCompany] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -56,19 +65,48 @@ export default function CompanyDashboardPage() {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [selectedAdId, setSelectedAdId] = useState("");
   const [search, setSearch] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
     adminRequest("/api/public/categories")
       .then(setCategories)
       .catch(() => setCategories([]));
-    adminRequest("/api/company")
-      .then(setCompany)
-      .catch((requestError) => setError(requestError.message));
+    adminRequest("/api/auth/me")
+      .then(async (user) => {
+        if (cancelled) return;
+        if (user.role === "ADMIN") {
+          setIsAdmin(true);
+          const list = await adminRequest("/api/companies");
+          if (cancelled) return;
+          setCompanies(list);
+          const requestedId = new URLSearchParams(window.location.search).get("company_id");
+          const selected = list.find((item) => String(item.id) === requestedId) || list[0];
+          if (selected) {
+            setSelectedCompanyId(String(selected.id));
+            setCompany(selected);
+          }
+        } else {
+          const data = await adminRequest("/api/company");
+          if (!cancelled) {
+            setCompany(data);
+            setSelectedCompanyId(String(data.id));
+          }
+        }
+      })
+      .catch((requestError) => { if (!cancelled) setError(requestError.message); });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
     const controller = new AbortController();
     async function load() {
+      if (!selectedCompanyId || tab === "users") {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       const params = new URLSearchParams({
         page: String(page),
@@ -79,10 +117,13 @@ export default function CompanyDashboardPage() {
       if (tab === "applications" && selectedAdId)
         params.set("ad_id", selectedAdId);
       try {
-        const endpoint =
+        const endpoint = scopedCompanyPath(
           tab === "ads"
             ? `/api/company/ads?${params}`
-            : `/api/company/applications?${params}`;
+            : `/api/company/applications?${params}`,
+          selectedCompanyId,
+          isAdmin,
+        );
         const result = await adminRequest(endpoint, {
           signal: controller.signal,
         });
@@ -99,7 +140,7 @@ export default function CompanyDashboardPage() {
     }
     load();
     return () => controller.abort();
-  }, [tab, page, statusFilter, search, selectedAdId, reloadKey]);
+  }, [tab, page, statusFilter, search, selectedAdId, reloadKey, selectedCompanyId, isAdmin]);
 
   function switchTab(nextTab) {
     setTab(nextTab);
@@ -139,7 +180,7 @@ export default function CompanyDashboardPage() {
     setFeedbackType("success");
     try {
       await adminRequest(
-        editingId ? `/api/company/ads/${editingId}` : "/api/company/ads",
+        scopedCompanyPath(editingId ? `/api/company/ads/${editingId}` : "/api/company/ads", selectedCompanyId, isAdmin),
         {
           method: editingId ? "PATCH" : "POST",
           body: {
@@ -169,7 +210,7 @@ export default function CompanyDashboardPage() {
     setFeedback("");
     setFeedbackType("success");
     try {
-      await adminRequest(`/api/company/ads/${ad.id}`, {
+      await adminRequest(scopedCompanyPath(`/api/company/ads/${ad.id}`, selectedCompanyId, isAdmin), {
         method: "PATCH",
         body: { status: ad.status === "published" ? "closed" : "published" },
       });
@@ -191,7 +232,7 @@ export default function CompanyDashboardPage() {
     setSelectedApplication({ loading: true, id: application.id });
     try {
       const result = await adminRequest(
-        `/api/company/applications/${application.id}`,
+        scopedCompanyPath(`/api/company/applications/${application.id}`, selectedCompanyId, isAdmin),
       );
       setSelectedApplication((current) =>
         current?.id === application.id ? result : current,
@@ -209,7 +250,7 @@ export default function CompanyDashboardPage() {
     setFeedback("");
     setFeedbackType("success");
     try {
-      await adminRequest(`/api/company/applications/${id}`, {
+      await adminRequest(scopedCompanyPath(`/api/company/applications/${id}`, selectedCompanyId, isAdmin), {
         method: "PATCH",
         body: { status },
       });
@@ -230,7 +271,29 @@ export default function CompanyDashboardPage() {
       headingTone="coral"
       title={company?.name || "Mes recrutements"}
       description="Publie tes offres, retrouve les candidatures et fais avancer tes recrutements."
+      companyId={selectedCompanyId}
+      adminView={isAdmin}
     >
+      {isAdmin && (
+        <label className="mb-5 grid max-w-xl gap-2 font-bold">
+          Entreprise à consulter
+          <select
+            className="rounded border border-ink bg-white p-3"
+            value={selectedCompanyId}
+            onChange={(event) => {
+              const nextId = event.target.value;
+              setSelectedCompanyId(nextId);
+              setCompany(companies.find((item) => String(item.id) === nextId) || null);
+              setSearchParams(nextId ? { company_id: nextId } : {});
+              setPage(1);
+              setSelectedApplication(null);
+            }}
+          >
+            <option value="">Choisir une entreprise</option>
+            {companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
+        </label>
+      )}
       <div
         className="company-tabs"
         role="group"
@@ -244,6 +307,9 @@ export default function CompanyDashboardPage() {
           onClick={() => switchTab("applications")}
         >
           Candidatures reçues
+        </button>
+        <button aria-pressed={tab === "users"} onClick={() => switchTab("users")}>
+          Utilisateurs de l’entreprise
         </button>
         {tab === "ads" && (
           <button
@@ -259,6 +325,9 @@ export default function CompanyDashboardPage() {
           </button>
         )}
       </div>
+      {tab === "users" && selectedCompanyId && (
+        <CompanyUsersPanel companyId={selectedCompanyId} adminView={isAdmin} />
+      )}
       {feedback && (
         <p
           className={`mb-4 ${feedbackType === "error" ? "form-error" : "form-success"}`}
@@ -308,7 +377,7 @@ export default function CompanyDashboardPage() {
           </button>
         </div>
       )}
-      <section
+      {tab !== "users" && <section
         aria-label={tab === "ads" ? "Mes offres" : "Candidatures reçues"}
       >
         <div className="company-list-toolbar">
@@ -443,7 +512,7 @@ export default function CompanyDashboardPage() {
                     >
                       Ouvrir le dossier
                     </button>
-                    <select
+                    {!isAdmin ? <select
                       aria-label={`Statut de ${item.first_name} ${item.last_name}`}
                       value={item.status}
                       disabled={pending}
@@ -457,7 +526,7 @@ export default function CompanyDashboardPage() {
                           {STATUS_LABELS[status]}
                         </option>
                       ))}
-                    </select>
+                    </select> : <Link className="underline" to={`/admin/applications/${item.id}`}>Modifier avec confirmation</Link>}
                   </div>
                 </article>
               ),
@@ -472,7 +541,7 @@ export default function CompanyDashboardPage() {
             onPageChange={setPage}
           />
         )}
-      </section>
+      </section>}
       {tab === "applications" && selectedApplication && (
         <CompanyApplicationDossier
           dossier={selectedApplication}
@@ -480,6 +549,7 @@ export default function CompanyDashboardPage() {
           feedback={{ type: feedbackType, message: feedback }}
           onClose={() => setSelectedApplication(null)}
           onStatusChange={changeApplicationStatus}
+          adminView={isAdmin}
         />
       )}
     </CompanyLayout>

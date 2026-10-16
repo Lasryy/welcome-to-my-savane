@@ -7,7 +7,12 @@ export default function CompanyLayout({
   description,
   children,
   headingTone = "mint",
+  companyId = "",
+  adminView = false,
 }) {
+  const candidatesPath = adminView && companyId
+    ? `/company/candidates?company_id=${encodeURIComponent(companyId)}`
+    : "/company/candidates";
   return (
     <div className="app-page">
       <SiteHeader />
@@ -19,10 +24,11 @@ export default function CompanyLayout({
               <UiIcon name="briefcase" />
               Mes recrutements
             </NavLink>
-            <NavLink to="/company/candidates">
+            <NavLink to={candidatesPath}>
               <UiIcon name="user" />
               Annuaire de candidats
             </NavLink>
+            {adminView && <NavLink to="/admin">Administration</NavLink>}
           </nav>
           <p className="sidebar-note">
             Les offres et les candidatures de ton entreprise, au même endroit.

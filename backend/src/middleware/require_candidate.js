@@ -5,7 +5,9 @@ async function requireCandidate(req, res, next) {
   try {
     const result = await pool.query("SELECT role FROM people WHERE id = $1", [req.session.userId]);
     if (!result.rowCount) return res.status(401).json({ message: "Compte introuvable. Reconnectez-vous." });
-    if (result.rows[0].role !== "USER") return res.status(403).json({ message: "Cette action est réservée aux comptes candidats." });
+    if (!new Set(["USER", "ADMIN"]).has(result.rows[0].role)) {
+      return res.status(403).json({ message: "Cette action est réservée aux candidats et à l’administration." });
+    }
     return next();
   } catch (error) {
     console.error("Error while checking candidate access:", error);

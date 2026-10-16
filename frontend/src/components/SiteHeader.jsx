@@ -71,13 +71,15 @@ export default function SiteHeader() {
       <NavLink to="/" end>
         Les offres
       </NavLink>
-      {user?.role === "USER" && (
+      {(user?.role === "USER" || user?.role === "ADMIN") && (
         <>
           <NavLink to="/applications">Mes candidatures</NavLink>
           <NavLink to="/profile">Mon profil</NavLink>
         </>
       )}
-      {user?.role === "ADMIN" && <NavLink to="/admin">Administration</NavLink>}
+      {user?.role === "ADMIN" && (
+        <NavLink to="/admin">Administration</NavLink>
+      )}
       {user?.role === "COMPANY" && (
         <NavLink to="/company">Espace recruteur</NavLink>
       )}

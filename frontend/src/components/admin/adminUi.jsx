@@ -1,13 +1,13 @@
 import Modal from "../ui/Modal";
 import Icon from "../../design-lab/Icon";
 
-export function AdminField({ label, name, help, children }) {
+export function AdminField({ label, name, help, helpClassName = "", children }) {
   return (
     <div className="admin-field grid min-w-0 gap-2">
       <label htmlFor={name}>{label}</label>
       {children}
       {help && (
-        <p id={`${name}-help`} className="admin-help text-[12px] leading-[1.5]">
+        <p id={`${name}-help`} className={`admin-help text-[12px] leading-[1.5] ${helpClassName}`}>
           {help}
         </p>
       )}

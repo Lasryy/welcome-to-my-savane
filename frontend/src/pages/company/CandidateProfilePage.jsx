@@ -14,6 +14,7 @@ function formatDate(date) {
 export default function CandidateProfilePage() {
   const { personId } = useParams();
   const [searchParams] = useSearchParams();
+  const companyId = searchParams.get("company_id") || "";
   const [result, setResult] = useState(null);
   const candidate = result?.id === personId ? result.data : null;
   const error = result?.id === personId ? result.error : "";
@@ -22,7 +23,10 @@ export default function CandidateProfilePage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    adminRequest(`/api/company/candidates/${personId}`, {
+    const endpoint = companyId
+      ? `/api/company/candidates/${personId}?company_id=${encodeURIComponent(companyId)}`
+      : `/api/company/candidates/${personId}`;
+    adminRequest(endpoint, {
       signal: controller.signal,
     })
       .then((data) => setResult({ id: personId, data, error: "" }))
@@ -32,12 +36,14 @@ export default function CandidateProfilePage() {
         }
       });
     return () => controller.abort();
-  }, [personId]);
+  }, [personId, companyId]);
 
   return (
     <CompanyLayout
       title="Profil candidat"
       description="Un aperçu des réalisations et du parcours de ce candidat."
+      companyId={companyId}
+      adminView={Boolean(companyId)}
     >
       <div className="mx-auto max-w-4xl">
         <Link className="underline" to={backToDirectory}>

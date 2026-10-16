@@ -12,6 +12,12 @@ const {
   getCompanyCandidates,
   getCompanyCandidate,
 } = require("../controllers/company_candidates_controller");
+const {
+  getCompanyUsers,
+  createCompanyUser,
+  updateCompanyUser,
+  deleteCompanyUser,
+} = require("../controllers/company_users_controller");
 
 const router = express.Router();
 
@@ -24,5 +30,9 @@ router.get("/applications/:id", getCompanyApplication);
 router.patch("/applications/:id", updateCompanyApplicationStatus);
 router.get("/candidates", getCompanyCandidates);
 router.get("/candidates/:personId", getCompanyCandidate);
+router.get("/users", getCompanyUsers);
+router.post("/users", createCompanyUser);
+router.patch("/users/:id", updateCompanyUser);
+router.delete("/users/:id", deleteCompanyUser);
 
 module.exports = router;

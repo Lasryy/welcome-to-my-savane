@@ -11,6 +11,7 @@ function RegisterPage() {
     email: "",
     phone: "",
     password: "",
+    password_confirmation: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -23,6 +24,11 @@ function RegisterPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (form.password !== form.password_confirmation) {
+      setError("Les mots de passe ne correspondent pas.");
+      return;
+    }
 
     setError("");
     setSuccess("");
@@ -138,6 +144,19 @@ function RegisterPage() {
         <p id="password-help" className="-mt-2 text-xs text-ink/70">
           Utilise au moins 8 caractères.
         </p>
+        <div className="form-field">
+          <label htmlFor="register-password-confirmation">Confirmer le mot de passe</label>
+          <PasswordInput
+            id="register-password-confirmation"
+            className="form-input"
+            name="password_confirmation"
+            autoComplete="new-password"
+            value={form.password_confirmation}
+            onChange={handleChange}
+            minLength={8}
+            required
+          />
+        </div>
         {error && (
           <p className="form-error" role="alert">
             {error}

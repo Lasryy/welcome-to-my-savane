@@ -11,6 +11,7 @@ import {
 import useAdminCollection from "../../hooks/useAdminCollection";
 import { isWebUrl } from "../../utils/adminUtils";
 import CompanyLogo from "../../components/CompanyLogo";
+import AdminCompanyUsersModal from "./AdminCompanyUsersModal";
 
 const emptyCompany = {
   name: "",
@@ -36,6 +37,7 @@ function AdminCompaniesPage() {
   const [deletingId, setDeletingId] = useState(null);
   const nameInput = useRef(null);
   const [showForm, setShowForm] = useState(false);
+  const [managedCompany, setManagedCompany] = useState(null);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const filteredItems = items
@@ -312,6 +314,13 @@ function AdminCompaniesPage() {
                     </button>
                     <button
                       type="button"
+                      className="admin-button accent inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline"
+                      onClick={() => setManagedCompany(company)}
+                    >
+                      Gérer les utilisateurs
+                    </button>
+                    <button
+                      type="button"
                       className="admin-button secondary inline-flex min-h-10 items-center justify-center gap-2 px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)] rounded-none no-underline"
                       disabled={pending}
                       onClick={() => setDeletingId(company.id)}
@@ -341,6 +350,12 @@ function AdminCompaniesPage() {
           )}
         </section>
       </div>
+      {managedCompany && (
+        <AdminCompanyUsersModal
+          company={managedCompany}
+          onClose={() => setManagedCompany(null)}
+        />
+      )}
     </>
   );
 }

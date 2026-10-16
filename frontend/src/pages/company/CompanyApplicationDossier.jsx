@@ -1,4 +1,5 @@
 import Modal from "../../components/ui/Modal";
+import { Link } from "react-router-dom";
 import { formatDate } from "../../utils/adminUtils";
 
 const STATUS_LABELS = {
@@ -15,6 +16,7 @@ export default function CompanyApplicationDossier({
   feedback,
   onClose,
   onStatusChange,
+  adminView = false,
 }) {
   return (
     <Modal
@@ -154,23 +156,28 @@ export default function CompanyApplicationDossier({
               <p>{dossier.cv?.original_name || "Aucun CV joint."}</p>
             )}
           </section>
-          <label className="form-field mt-6">
-            Statut du dossier
-            <select
-              className="form-input"
-              value={dossier.status}
-              disabled={pending}
-              onChange={(event) =>
-                onStatusChange(dossier.id, event.target.value)
-              }
-            >
-              {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
+          {adminView ? (
+            <div className="mt-6 grid gap-3">
+              <p><strong>Statut du dossier :</strong> {STATUS_LABELS[dossier.status] || dossier.status}</p>
+              <Link className="button button-primary w-fit" to={`/admin/applications/${dossier.id}`}>
+                Modifier avec confirmation
+              </Link>
+            </div>
+          ) : (
+            <label className="form-field mt-6">
+              Statut du dossier
+              <select
+                className="form-input"
+                value={dossier.status}
+                disabled={pending}
+                onChange={(event) => onStatusChange(dossier.id, event.target.value)}
+              >
+                {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </label>
+          )}
         </>
       )}
     </Modal>

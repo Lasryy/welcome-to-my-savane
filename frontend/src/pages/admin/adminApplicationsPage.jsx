@@ -6,6 +6,7 @@ import { AdminFeedback, AdminListState } from "../../components/admin/adminUi";
 import { adminRequest } from "../../services/adminApi";
 import { formatDate } from "../../utils/adminUtils";
 import AdminPagination from "../../components/admin/AdminPagination";
+import Modal from "../../components/ui/Modal";
 
 const STATUSES = [
   { value: "sent", label: "Envoyée" },
@@ -39,6 +40,7 @@ export default function AdminApplicationsPage() {
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState(null);
   const [pendingId, setPendingId] = useState(null);
+  const [statusChange, setStatusChange] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -105,7 +107,7 @@ export default function AdminApplicationsPage() {
   }
 
   async function changeStatus(application, nextStatus) {
-    if (nextStatus === application.status) return;
+    if (nextStatus === application.status) return true;
 
     setPendingId(application.id);
     setFeedback(null);
@@ -127,11 +129,19 @@ export default function AdminApplicationsPage() {
       }
       setReloadKey((key) => key + 1);
       setFeedback({ type: "success", message: "Le statut de la candidature a été mis à jour." });
+      return true;
     } catch (requestError) {
       setFeedback({ type: "error", message: requestError.message });
+      return false;
     } finally {
       setPendingId(null);
     }
+  }
+
+  async function confirmStatusChange() {
+    if (!statusChange) return;
+    const saved = await changeStatus(statusChange.application, statusChange.nextStatus);
+    if (saved) setStatusChange(null);
   }
 
   const visibleAds = companyId ? ads.filter((ad) => String(ad.company_id) === companyId) : ads;
@@ -209,7 +219,9 @@ export default function AdminApplicationsPage() {
                   <CustomSelect
                     id={`application-status-${application.id}`}
                     value={application.status}
-                    onChange={(nextStatus) => changeStatus(application, nextStatus)}
+                    onChange={(nextStatus) => {
+                      if (nextStatus !== application.status) setStatusChange({ application, nextStatus });
+                    }}
                     options={STATUSES}
                     disabled={pendingId === application.id}
                   />
@@ -221,6 +233,24 @@ export default function AdminApplicationsPage() {
         </div>
       </AdminListState>
       <AdminPagination page={page} totalPages={totalPages} total={total} onPageChange={(nextPage) => setSearchParams((current) => { const next = new URLSearchParams(current); next.set("page", String(nextPage)); return next; })} />
+      {statusChange && (
+        <Modal
+          title="Confirmer le changement de statut"
+          description={`Tu vas modifier le statut de la candidature de ${statusChange.application.first_name} ${statusChange.application.last_name}.`}
+          onClose={() => { if (pendingId === null) setStatusChange(null); }}
+        >
+          <div className="grid gap-4 p-5">
+            <AdminFeedback feedback={feedback?.type === "error" ? feedback : null} />
+            <p><strong>Avant :</strong> {STATUSES.find((item) => item.value === statusChange.application.status)?.label}</p>
+            <p><strong>Après :</strong> {STATUSES.find((item) => item.value === statusChange.nextStatus)?.label}</p>
+            <p>La candidature ne sera modifiée qu’après confirmation.</p>
+            <div className="flex flex-wrap gap-3">
+              <button className="admin-button accent px-5 py-3 text-[13px] font-bold" type="button" disabled={pendingId !== null} onClick={confirmStatusChange}>{pendingId !== null ? "Enregistrement…" : "Confirmer la modification"}</button>
+              <button className="admin-button secondary px-5 py-3 text-[13px] font-bold" type="button" disabled={pendingId !== null} onClick={() => setStatusChange(null)}>Annuler</button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

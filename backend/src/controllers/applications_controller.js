@@ -584,6 +584,139 @@ async function updateApplicationStatus(req, res) {
   }
 }
 
+function normalizeApplicationText(value, field, maxLength, { optional = false } = {}) {
+  if (optional && value === null) return { value: null };
+  if (typeof value !== "string") return { error: `Le champ ${field} doit être du texte.` };
+  const trimmed = value.trim();
+  if (!optional && !trimmed) return { error: `Le champ ${field} ne peut pas être vide.` };
+  if (trimmed.length > maxLength) return { error: `Le champ ${field} dépasse ${maxLength} caractères.` };
+  return { value: trimmed || null };
+}
+
+function validateApplicationDossierChanges(body) {
+  if (!isRecord(body)) return { error: "Le corps de la requête doit être un objet JSON." };
+  const allowed = new Set(["status", "message", "person", "projects", "experiences"]);
+  const fields = Object.keys(body);
+  if (!fields.length || fields.some((field) => !allowed.has(field))) {
+    return { error: "Indique les champs de candidature autorisés à modifier." };
+  }
+  const value = {};
+  if (Object.hasOwn(body, "status")) {
+    if (!APPLICATION_STATUSES.has(body.status)) return { error: "Le statut demandé n’est pas autorisé." };
+    value.status = body.status;
+  }
+  if (Object.hasOwn(body, "message")) {
+    const message = normalizeApplicationText(body.message, "message", 5000, { optional: true });
+    if (message.error) return message;
+    value.message = message.value;
+  }
+  if (Object.hasOwn(body, "person")) {
+    if (!isRecord(body.person)) return { error: "Les coordonnées doivent être un objet." };
+    const keys = new Set(["first_name", "last_name", "email", "phone"]);
+    if (Object.keys(body.person).some((field) => !keys.has(field))) return { error: "Les coordonnées contiennent un champ interdit." };
+    const person = {};
+    for (const field of keys) {
+      if (!Object.hasOwn(body.person, field)) continue;
+      const fieldResult = normalizeApplicationText(body.person[field] ?? "", field, ({ first_name: 100, last_name: 100, email: 255, phone: 30 })[field], { optional: field === "phone" });
+      if (fieldResult.error) return fieldResult;
+      person[field] = fieldResult.value;
+    }
+    if (["first_name", "last_name", "email"].some((field) => !person[field])) return { error: "Prénom, nom et e-mail sont obligatoires." };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(person.email)) return { error: "Adresse e-mail invalide." };
+    value.person = person;
+  }
+  for (const collection of ["projects", "experiences"]) {
+    if (!Object.hasOwn(body, collection)) continue;
+    if (!Array.isArray(body[collection]) || body[collection].length > 30) return { error: `La liste ${collection} est invalide.` };
+    const fieldsForCollection = collection === "projects"
+      ? ["id", "title", "description", "project_url", "repository_url"]
+      : ["id", "company_name", "job_title", "description", "start_date", "end_date"];
+    const requiredText = collection === "projects" ? ["title"] : ["company_name", "job_title"];
+    const maxLengths = { title: 200, description: 5000, project_url: 500, repository_url: 500, company_name: 150, job_title: 150, start_date: 10, end_date: 10 };
+    const normalized = [];
+    for (const item of body[collection]) {
+      if (!isRecord(item) || Object.keys(item).some((field) => !fieldsForCollection.includes(field))) return { error: `Un élément de ${collection} contient des champs invalides.` };
+      const next = {};
+      if (item.id !== undefined && item.id !== null) {
+        const itemId = parseId(item.id);
+        if (itemId === null) return { error: `Un identifiant de ${collection} est invalide.` };
+        next.id = itemId;
+      }
+      for (const field of fieldsForCollection.filter((name) => name !== "id")) {
+        if (!Object.hasOwn(item, field)) continue;
+        const result = normalizeApplicationText(item[field] ?? "", field, maxLengths[field], { optional: !requiredText.includes(field) });
+        if (result.error) return result;
+        next[field] = result.value;
+      }
+      if (requiredText.some((field) => !next[field])) return { error: `Les champs principaux de ${collection} sont obligatoires.` };
+      normalized.push(next);
+    }
+    value[collection] = normalized;
+  }
+  return { value };
+}
+
+// Saves administrator corrections on the frozen application dossier, not on the candidate's live profile.
+async function updateAdminApplication(req, res) {
+  const id = parseId(req.params.id);
+  if (id === null) return res.status(400).json({ message: "L’identifiant de la candidature est invalide." });
+  const { value, error } = validateApplicationDossierChanges(req.body);
+  if (error) return res.status(400).json({ message: error });
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const current = await client.query(
+      `SELECT applications.id, applications.person_id, applications.message,
+              applications.status, applications.submitted_snapshot,
+              people.first_name, people.last_name, people.email, people.phone
+       FROM applications JOIN people ON people.id = applications.person_id
+       WHERE applications.id = $1 FOR UPDATE OF applications`,
+      [id],
+    );
+    if (!current.rowCount) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "Candidature introuvable." });
+    }
+
+    const row = current.rows[0];
+    let snapshot = row.submitted_snapshot;
+    if (!snapshot) {
+      const [projectResult, experienceResult, cvResult] = await Promise.all([
+        client.query(`SELECT projects.id, projects.title, projects.description, projects.project_url, projects.repository_url FROM application_projects JOIN projects ON projects.id = application_projects.project_id WHERE application_projects.application_id = $1 ORDER BY projects.id`, [id]),
+        client.query(`SELECT experiences.id, experiences.company_name, experiences.job_title, experiences.description, experiences.start_date, experiences.end_date FROM application_experiences JOIN experiences ON experiences.id = application_experiences.experience_id WHERE application_experiences.application_id = $1 ORDER BY experiences.id`, [id]),
+        client.query(`SELECT id, original_name, created_at FROM cv_documents WHERE id = (SELECT cv_document_id FROM applications WHERE id = $1)`, [id]),
+      ]);
+      snapshot = {
+        person: { first_name: row.first_name, last_name: row.last_name, email: row.email, phone: row.phone },
+        message: row.message,
+        projects: projectResult.rows,
+        experiences: experienceResult.rows,
+        cv: cvResult.rows[0] || null,
+      };
+    }
+    const nextSnapshot = { ...snapshot };
+    if (value.person) nextSnapshot.person = { ...snapshot.person, ...value.person };
+    if (Object.hasOwn(value, "message")) nextSnapshot.message = value.message;
+    if (Object.hasOwn(value, "projects")) nextSnapshot.projects = value.projects;
+    if (Object.hasOwn(value, "experiences")) nextSnapshot.experiences = value.experiences;
+    const nextMessage = Object.hasOwn(value, "message") ? value.message : row.message;
+    const nextStatus = Object.hasOwn(value, "status") ? value.status : row.status;
+    await client.query(
+      `UPDATE applications SET message = $1, status = $2, submitted_snapshot = $3::jsonb WHERE id = $4`,
+      [nextMessage, nextStatus, JSON.stringify(nextSnapshot), id],
+    );
+    await client.query("COMMIT");
+    return res.status(200).json({ id, status: nextStatus, message: "Les informations de la candidature ont été enregistrées." });
+  } catch (requestError) {
+    await client.query("ROLLBACK");
+    console.error("Error while updating admin application dossier:", requestError);
+    return res.status(500).json({ message: "Impossible de modifier la candidature." });
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   createApplication,
   getTodayApplicationCount,
@@ -592,4 +725,5 @@ module.exports = {
   getAdminApplications,
   getAdminApplicationById,
   updateApplicationStatus,
+  updateAdminApplication,
 };

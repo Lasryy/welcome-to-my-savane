@@ -9,6 +9,7 @@ import {
 import { adminRequest } from "../../services/adminApi";
 import AdminPagination from "../../components/admin/AdminPagination";
 import PersonAvatar from "../../components/PersonAvatar";
+import AdminCreateUserModal from "./AdminCreateUserModal";
 
 const EMPTY_FORM = {
   first_name: "",
@@ -18,7 +19,6 @@ const EMPTY_FORM = {
   role: "USER",
   company_id: "",
 };
-
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -36,6 +36,7 @@ export default function AdminUsersPage() {
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -201,7 +202,26 @@ export default function AdminUsersPage() {
             {total} compte{total !== 1 ? "s" : ""}
           </p>
         </div>
+        <button
+          className="admin-button accent inline-flex min-h-10 items-center justify-center px-5 py-3 text-[13px] font-bold [border:1px_solid_var(--admin-ink)]"
+          type="button"
+          onClick={() => { setFeedback(null); setCreating(true); }}
+        >
+          Créer un compte
+        </button>
       </div>
+
+      {creating && (
+        <AdminCreateUserModal
+          companies={companies}
+          onClose={() => setCreating(false)}
+          onCreated={() => {
+            setPage(1);
+            setReloadKey((key) => key + 1);
+            setFeedback({ type: "success", message: "Le compte a été créé." });
+          }}
+        />
+      )}
 
       {editingId !== null && (
         <AdminModal

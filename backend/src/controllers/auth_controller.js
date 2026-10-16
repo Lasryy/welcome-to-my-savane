@@ -12,13 +12,20 @@ async function register(req, res) {
   const email =
     typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
+  const passwordConfirmation = typeof body.password_confirmation === "string"
+    ? body.password_confirmation
+    : "";
   const phone =
     typeof body.phone === "string" ? body.phone.trim() || null : null;
 
-  if (!firstName || !lastName || !email || !password) {
+  if (!firstName || !lastName || !email || !password || !passwordConfirmation) {
     return res.status(400).json({
-      error: "Prénom, nom, e-mail et mot de passe obligatoires.",
+      error: "Prénom, nom, e-mail et confirmation du mot de passe obligatoires.",
     });
+  }
+
+  if (password !== passwordConfirmation) {
+    return res.status(400).json({ error: "Les mots de passe ne correspondent pas." });
   }
 
   if (firstName.length > 100 || lastName.length > 100 || email.length > 255) {

@@ -134,6 +134,9 @@ async function getCompanyApplication(req, res) {
 }
 
 async function updateCompanyApplicationStatus(req, res) {
+  if (req.isAdminCompanyView) {
+    return res.status(403).json({ message: "Utilise la fiche d’administration pour confirmer cette modification." });
+  }
   const id = parseId(req.params.id);
   const status = req.body?.status;
   if (id === null) return res.status(400).json({ message: "L’identifiant de la candidature est invalide." });

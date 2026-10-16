@@ -989,18 +989,20 @@
  *         application/json:
  *           schema:
  *             type: object
- *             required: [first_name, last_name, email, password]
+ *             required: [first_name, last_name, email, password, password_confirmation]
  *             properties:
  *               first_name: { type: string, maxLength: 100 }
  *               last_name: { type: string, maxLength: 100 }
  *               email: { type: string, format: email, maxLength: 255 }
  *               password: { type: string, format: password, minLength: 8, maxLength: 72 }
+ *               password_confirmation: { type: string, format: password, minLength: 8, maxLength: 72 }
  *               phone: { type: string, nullable: true, maxLength: 30 }
  *           example:
  *             first_name: Alice
  *             last_name: Martin
  *             email: alice@example.com
  *             password: JobBoardDemo2026!
+ *             password_confirmation: JobBoardDemo2026!
  *             phone: '+33123456789'
  *     responses:
  *       '201':
@@ -1008,7 +1010,7 @@
  *         content:
  *           application/json:
  *             example: { id: 5, first_name: Alice, last_name: Martin, email: alice@example.com, phone: '+33123456789', role: USER }
- *       '400': { description: Required field, length, email, or password validation error. }
+ *       '400': { description: Required field, length, email, password, or password confirmation validation error. }
  *       '409': { description: Email address already exists. }
  *       '500': { description: Internal server error. }
  * /api/auth/login:
@@ -1269,7 +1271,8 @@
  *       '500': { description: Internal database error. }
  *   patch:
  *     tags: [Admin - Applications]
- *     summary: Update an application status
+ *     summary: Update an application status or its submitted dossier
+ *     description: Corrections update the frozen application copy and do not modify the candidate's live profile. Supports status, message, person, projects and experiences.
  *     security:
  *       - sessionCookie: []
  *     parameters:
@@ -1284,14 +1287,23 @@
  *           schema:
  *             type: object
  *             additionalProperties: false
- *             required: [status]
  *             properties:
  *               status:
  *                 type: string
  *                 enum: [sent, in_progress, technical_test, accepted, rejected]
- *           example: { status: in_progress }
+ *               message: { type: string, nullable: true, maxLength: 5000 }
+ *               person:
+ *                 type: object
+ *                 properties:
+ *                   first_name: { type: string, maxLength: 100 }
+ *                   last_name: { type: string, maxLength: 100 }
+ *                   email: { type: string, format: email, maxLength: 255 }
+ *                   phone: { type: string, nullable: true, maxLength: 30 }
+ *               projects: { type: array, items: { type: object } }
+ *               experiences: { type: array, items: { type: object } }
+ *           example: { status: in_progress, message: Message corrigé }
  *     responses:
- *       '200': { description: Updated application ID and status. }
+ *       '200': { description: Updated application dossier. }
  *       '400': { description: Invalid ID or status, or unexpected fields. }
  *       '401': { description: Login required. }
  *       '403': { description: ADMIN role required. }
@@ -1322,6 +1334,34 @@
  *       '401': { description: Login required. }
  *       '403': { description: ADMIN role required. }
  *       '500': { description: Internal database error. }
+ *   post:
+ *     tags: [Admin - Users]
+ *     summary: Create a user or company employee account
+ *     description: Passwords are hashed and never returned. Company accounts require company_id.
+ *     security:
+ *       - sessionCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [first_name, last_name, email, role, company_id, password]
+ *             properties:
+ *               first_name: { type: string, maxLength: 100 }
+ *               last_name: { type: string, maxLength: 100 }
+ *               email: { type: string, format: email, maxLength: 255 }
+ *               phone: { type: string, nullable: true, maxLength: 30 }
+ *               role: { type: string, enum: [USER, COMPANY, ADMIN] }
+ *               company_id: { type: integer, nullable: true, minimum: 1 }
+ *               password: { type: string, format: password, minLength: 8, maxLength: 72 }
+ *     responses:
+ *       '201': { description: Created account without password hash. }
+ *       '400': { description: Invalid account fields. }
+ *       '401': { description: Login required. }
+ *       '403': { description: ADMIN role required. }
+ *       '409': { description: Email conflict or invalid company. }
+ *       '500': { description: Internal database error. }
  * /api/admin/users/{id}:
  *   patch:
  *     tags: [Admin - Users]
@@ -1349,6 +1389,7 @@
  *               phone: { type: string, nullable: true, maxLength: 30 }
  *               role: { type: string, enum: [USER, COMPANY, ADMIN] }
  *               company_id: { type: integer, nullable: true, minimum: 1, description: Required when role is COMPANY. Multiple accounts may share an existing company. }
+ *               password: { type: string, minLength: 8, maxLength: 72, description: Optional new password, limited to 72 UTF-8 bytes. }
  *           example: { first_name: Camille, phone: null }
  *     responses:
  *       '200': { description: Updated account without password hash. }

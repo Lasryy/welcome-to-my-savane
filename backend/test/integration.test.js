@@ -64,6 +64,7 @@ test("Lasry and Denis integration", {
     last_name: "Candidate",
     email: `candidate-${Date.now()}@example.com`,
     password: "Integration2026!",
+    password_confirmation: "Integration2026!",
     role: "ADMIN",
   };
   let userId;
@@ -123,6 +124,7 @@ test("Lasry and Denis integration", {
       last_name: "Candidate",
       email: `other-${Date.now()}@example.com`,
       password: "Integration2026!",
+      password_confirmation: "Integration2026!",
     };
     const secondCreated = await request("/api/auth/register", {
       method: "POST",
@@ -680,13 +682,14 @@ test("Lasry and Denis integration", {
   await t.test("company recruiters can search only opted-in candidate profiles", async () => {
     assert.equal((await request("/api/company/candidates")).status, 401);
     assert.equal((await request("/api/company/candidates", { cookie: userCookie })).status, 403);
-    assert.equal((await request("/api/company/candidates", { cookie: adminCookie })).status, 403);
+    assert.equal((await request("/api/company/candidates", { cookie: adminCookie })).status, 400);
 
     const recruiterAccount = {
       first_name: "Recruiter",
       last_name: "Test",
       email: `recruiter-${Date.now()}@example.com`,
       password: "Integration2026!",
+      password_confirmation: "Integration2026!",
     };
     const recruiter = await request("/api/auth/register", {
       method: "POST",

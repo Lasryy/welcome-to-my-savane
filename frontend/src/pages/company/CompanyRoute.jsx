@@ -11,7 +11,7 @@ export default function CompanyRoute() {
         if (response.status === 401) return "login";
         const user = await response.json();
         if (!response.ok) return "error";
-        return user.role === "COMPANY" ? "allowed" : "forbidden";
+        return user.role === "COMPANY" || user.role === "ADMIN" ? "allowed" : "forbidden";
       })
       .then((result) => { if (!controller.signal.aborted) setAccess(result); })
       .catch((error) => { if (error.name !== "AbortError") setAccess("error"); });

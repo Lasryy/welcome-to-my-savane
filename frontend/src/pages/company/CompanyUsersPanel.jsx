@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Modal from "../../components/ui/Modal";
 import Pagination from "../../components/ui/Pagination";
 import { adminRequest } from "../../services/adminApi";
+import { generateSecurePassword } from "../../utils/securePassword";
 
 const EMPTY_FORM = { first_name: "", last_name: "", email: "", phone: "", password: "" };
 
@@ -28,6 +29,7 @@ export default function CompanyUsersPanel({ companyId, adminView }) {
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const lastGeneratedPassword = useRef("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -51,6 +53,17 @@ export default function CompanyUsersPanel({ companyId, adminView }) {
     setEditing(null);
     setCreating(false);
     setForm(EMPTY_FORM);
+  }
+
+  function proposePassword() {
+    try {
+      const password = generateSecurePassword(lastGeneratedPassword.current);
+      lastGeneratedPassword.current = password;
+      setForm((current) => ({ ...current, password }));
+      setError("");
+    } catch (requestError) {
+      setError(requestError.message || "Impossible de générer un mot de passe sécurisé.");
+    }
   }
 
   async function saveUser(event) {
@@ -145,7 +158,7 @@ export default function CompanyUsersPanel({ companyId, adminView }) {
       {!loading && totalPages > 1 && <Pagination page={page} totalPages={totalPages} total={total} onPageChange={(nextPage) => { setLoading(true); setPage(nextPage); }} />}
       {creating && !editing && (
         <Modal title="Créer un compte employé" description="Le compte sera rattaché à cette entreprise." onClose={() => { if (!pending) resetForm(); }}>
-          <EmployeeForm form={form} pending={pending} error={error} onChange={(event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))} onSubmit={saveUser} onCancel={resetForm} creating />
+          <EmployeeForm form={form} pending={pending} error={error} onChange={(event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))} onGeneratePassword={proposePassword} onSubmit={saveUser} onCancel={resetForm} creating />
         </Modal>
       )}
       {editing && (
@@ -176,7 +189,7 @@ export default function CompanyUsersPanel({ companyId, adminView }) {
   );
 }
 
-function EmployeeForm({ form, pending, error, onChange, onSubmit, onCancel, creating = false }) {
+function EmployeeForm({ form, pending, error, onChange, onGeneratePassword, onSubmit, onCancel, creating = false }) {
   return (
     <form className="grid gap-4 p-5 sm:grid-cols-2" onSubmit={onSubmit}>
       {[["first_name", "Prénom", 100], ["last_name", "Nom", 100], ["email", "E-mail", 255], ["phone", "Téléphone", 30]].map(([name, label, maxLength]) => (
@@ -185,8 +198,9 @@ function EmployeeForm({ form, pending, error, onChange, onSubmit, onCancel, crea
         ) : <input type={name === "phone" ? "tel" : "text"} name={name} maxLength={maxLength} value={form[name]} onChange={onChange} required={name !== "phone"} />}</label>
       ))}
       {creating && <label className="grid gap-2 sm:col-span-2">Mot de passe initial
-        <input type="password" name="password" autoComplete="new-password" minLength={8} value={form.password} onChange={onChange} required />
-        <span className="text-sm">Au moins 8 caractères. Il sera affiché une seule fois après la création.</span>
+        <input type="password" name="password" autoComplete="new-password" minLength={8} maxLength={72} value={form.password} onChange={onChange} required />
+        <button className="button button-secondary w-fit" type="button" disabled={pending} onClick={onGeneratePassword}>Générer un mot de passe sécurisé</button>
+        <span className="text-sm">Au moins 8 caractères. Il sera affiché une seule fois après la création, avec l’adresse e-mail à copier.</span>
       </label>}
       {error && <p className="form-error sm:col-span-2" role="alert">{error}</p>}
       <div className="flex flex-wrap gap-3 sm:col-span-2">

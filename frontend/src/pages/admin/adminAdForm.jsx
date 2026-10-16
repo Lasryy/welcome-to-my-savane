@@ -240,8 +240,8 @@ function AdForm({ adId }) {
     <>
       <Link to="/admin/ads" className="admin-card-link mb-6 inline-flex items-center gap-3 pt-3 font-bold">← Retour aux offres</Link>
       <AdminFeedback feedback={feedback} />
-      <section className="admin-panel [border:1px_solid_var(--admin-rule)] rounded-[0_18px_0_0] overflow-hidden [background:var(--admin-paper)]" aria-labelledby="ad-form-title">
-        <div className="admin-panel-title p-[20px] [background:var(--admin-ink)] text-[var(--admin-paper)]"><h2 id="ad-form-title">{formTitle}</h2></div>
+      <section className="admin-panel [border:1px_solid_var(--admin-rule)] rounded-[0_18px_0_0] overflow-visible [background:var(--admin-paper)]" aria-labelledby="ad-form-title">
+        <div className="admin-panel-title [border-top-right-radius:17px] p-[20px] [background:var(--admin-ink)] text-[var(--admin-paper)]"><h2 id="ad-form-title">{formTitle}</h2></div>
         <form className="admin-form grid gap-5 p-[20px]" onSubmit={handleFormSubmit}>
           <fieldset disabled={pending || created} className="contents">
             <AdminField label="Titre du poste *" name="ad-title"><input id="ad-title" name="title" required maxLength={200} value={form.title} onChange={update} /></AdminField>

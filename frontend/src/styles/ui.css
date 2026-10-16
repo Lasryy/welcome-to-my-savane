@@ -444,27 +444,6 @@ button:disabled {
   border-radius: 8px;
   padding: 22px;
 }
-.home-hero-layout {
-  display: grid;
-  min-height: 405px;
-  grid-template-columns: minmax(0, 1.25fr) minmax(390px, 0.9fr);
-  align-items: center;
-  gap: 28px;
-  padding-block: 38px;
-}
-.home-lion {
-  width: min(100%, 520px);
-  justify-self: end;
-  margin: 0;
-  pointer-events: none;
-}
-.home-lion img {
-  display: block;
-  width: 100%;
-  max-height: 430px;
-  object-fit: contain;
-  object-position: bottom;
-}
 .job-empty-state,
 .illustrated-empty-state {
   display: flex;
@@ -923,31 +902,6 @@ button:disabled {
   padding-top: 14px;
   font-size: 14px;
 }
-.job-search {
-  border-radius: 12px;
-  padding: 22px;
-}
-.job-search > label {
-  font-size: 13px;
-}
-.job-search .search-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.job-search button[type="submit"] {
-  background: var(--color-sun);
-  color: var(--color-ink);
-}
-.job-search button[type="button"] {
-  background: transparent;
-  border-color: #82869a;
-  color: var(--color-paper);
-}
-.job-search .salary-help {
-  color: #d9dbe4;
-  font-size: 11px;
-}
 .history-page {
   max-width: 1060px;
 }
@@ -1273,9 +1227,6 @@ button:disabled {
   .job-detail-body {
     padding: 22px;
   }
-  .job-search {
-    padding: 18px;
-  }
   .history-page li {
     padding: 21px;
   }
@@ -1300,33 +1251,6 @@ button:disabled {
 }
 .password-field button:hover {
   background: #efeee5;
-}
-.search-more {
-  border-top: 1px solid #6e7288;
-  padding-top: 12px;
-  margin-top: 4px;
-}
-.search-more summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  list-style: none;
-}
-.search-more summary::after {
-  content: "+";
-  font-size: 18px;
-  margin-left: auto;
-}
-.search-more[open] summary::after {
-  content: "−";
-}
-.search-more summary span {
-  color: var(--color-sun);
-}
-.search-more select {
-  color: var(--color-ink);
 }
 .dossier-dialog .dialog-content {
   line-height: 1.75;
@@ -1444,9 +1368,6 @@ button:disabled {
 }
 .admin-directory > a:nth-child(4) .directory-icon {
   background: var(--color-coral);
-}
-.job-search button {
-  border-radius: 8px;
 }
 .job-card > header p > span {
   background: transparent;
@@ -1625,22 +1546,6 @@ button:disabled {
 }
 
 @media (max-width: 760px) {
-  .home-hero-layout {
-    min-height: 0;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-    padding-block: 30px 24px;
-  }
-  .home-hero-copy {
-    max-width: 100%;
-  }
-  .home-lion {
-    width: min(48vw, 245px);
-    justify-self: end;
-  }
-  .home-lion img {
-    max-height: 230px;
-  }
   .job-empty-state,
   .illustrated-empty-state {
     gap: 14px;
@@ -1656,16 +1561,7 @@ button:disabled {
   }
 }
 
-@media (min-width: 761px) and (max-width: 1000px) {
-  .home-hero-layout {
-    min-height: 360px;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.75fr);
-    gap: 24px;
-  }
-  .home-lion {
-    width: min(100%, 380px);
-  }
-}
+
 
 @media (max-width: 480px) {
   .job-empty-state,

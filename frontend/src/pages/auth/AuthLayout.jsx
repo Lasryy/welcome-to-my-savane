@@ -18,7 +18,7 @@ export default function AuthLayout({ title, description, children, footer, varia
       <header className="auth-brand-header">
         <div className="auth-entry-header page-container">
           <SiteBrand />
-          <Link className="text-link" to="/">
+          <Link className="text-link" to="/jobs">
             Retour aux offres <span aria-hidden="true">↗</span>
           </Link>
         </div>

@@ -1,3 +1,4 @@
+import PasswordInput from "../../components/ui/PasswordInput";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
@@ -55,12 +56,15 @@ function RegisterPage() {
 
   return (
     <AuthLayout
+      variant="register"
       title="Créer un compte."
       description="Quelques informations pour commencer ton parcours."
       footer={
         <>
           Tu as déjà un compte ?{" "}
-          <Link to="/login" state={location.state}>Se connecter</Link>
+          <Link to="/login" state={location.state}>
+            Se connecter
+          </Link>
         </>
       }
     >
@@ -116,20 +120,24 @@ function RegisterPage() {
           />
         </label>
 
-        <label className="form-field">
-          Mot de passe
-          <input
+        <div className="form-field">
+          <label htmlFor="register-password">Mot de passe</label>
+          <PasswordInput
+            id="register-password"
             className="form-input"
-            type="password"
             name="password"
             autoComplete="new-password"
             value={form.password}
             onChange={handleChange}
             minLength={8}
+            aria-describedby="password-help"
             required
           />
-        </label>
+        </div>
 
+        <p id="password-help" className="-mt-2 text-xs text-ink/70">
+          Utilise au moins 8 caractères.
+        </p>
         {error && (
           <p className="form-error" role="alert">
             {error}
@@ -138,11 +146,22 @@ function RegisterPage() {
 
         {success && (
           <p className="form-success" role="status">
-            {success}
+            {success}{" "}
+            <Link
+              className="mt-2 block font-bold underline"
+              to="/login"
+              state={location.state}
+            >
+              Me connecter
+            </Link>
           </p>
         )}
 
-        <button className="primary-button mt-1" type="submit" disabled={isLoading}>
+        <button
+          className="primary-button mt-1"
+          type="submit"
+          disabled={isLoading || Boolean(success)}
+        >
           {isLoading ? "Création…" : "Créer mon compte"}
         </button>
       </form>

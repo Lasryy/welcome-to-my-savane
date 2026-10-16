@@ -99,7 +99,7 @@ async function getCompanyApplications(req, res) {
   const where = `WHERE ${filters.join(" AND ")}`;
   try {
     const count = await pool.query(`SELECT COUNT(*)::int AS total FROM applications JOIN ads ON ads.id = applications.ad_id ${where}`, values);
-    const result = await pool.query(`SELECT applications.id, applications.ad_id, ads.title, people.first_name, people.last_name, applications.status, applications.created_at FROM applications JOIN ads ON ads.id = applications.ad_id JOIN people ON people.id = applications.person_id ${where} ORDER BY applications.created_at DESC, applications.id DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`, [...values, pageSize, offset]);
+    const result = await pool.query(`SELECT applications.id, applications.person_id, applications.ad_id, ads.title, people.first_name, people.last_name, applications.status, applications.created_at FROM applications JOIN ads ON ads.id = applications.ad_id JOIN people ON people.id = applications.person_id ${where} ORDER BY applications.created_at DESC, applications.id DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`, [...values, pageSize, offset]);
     return res.status(200).json(paginated(result.rows, page, pageSize, count.rows[0].total));
   } catch (error) {
     console.error("Error while fetching company applications:", error);

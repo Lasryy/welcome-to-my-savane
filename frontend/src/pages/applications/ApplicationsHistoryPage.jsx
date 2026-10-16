@@ -1,3 +1,4 @@
+import Pagination from "../../components/ui/Pagination";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDate } from "../../utils/adminUtils";
@@ -11,6 +12,8 @@ const STATUS_LABELS = {
 };
 
 export default function ApplicationsHistoryPage() {
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,7 +35,9 @@ export default function ApplicationsHistoryPage() {
           return;
         }
         if (!response.ok || !Array.isArray(data)) {
-          throw new Error(data.error || "Impossible de charger tes candidatures.");
+          throw new Error(
+            data.error || "Impossible de charger tes candidatures.",
+          );
         }
 
         setApplications(data);
@@ -51,43 +56,117 @@ export default function ApplicationsHistoryPage() {
     return () => controller.abort();
   }, []);
 
-  return (
-    <section className="mx-auto w-[calc(100%_-_40px)] max-w-[1000px] py-12" aria-labelledby="applications-title">
-      <p className="mb-3 text-xs font-bold tracking-[.08em]">WELCOME TO MY SAVANE · CANDIDAT</p>
-      <h1 id="applications-title" className="mb-3 text-4xl font-extrabold">Mes candidatures</h1>
-      <p className="mb-8 max-w-[60ch]">Retrouve les offres auxquelles tu as postulé et suis leur avancement.</p>
+  const filteredApplications = applications.filter(
+    (application) =>
+      statusFilter === "all" || application.status === statusFilter,
+  );
+  const totalPages = Math.max(1, Math.ceil(filteredApplications.length / 10));
+  const currentPage = Math.min(page, totalPages);
+  const visibleApplications = filteredApplications.slice(
+    (currentPage - 1) * 10,
+    currentPage * 10,
+  );
 
+  return (
+    <section
+      className="history-page page-container py-10"
+      aria-labelledby="applications-title"
+    >
+      <header className="page-heading page-heading-banner page-heading-lavender">
+        <h1 id="applications-title">Mes candidatures</h1>
+        <p>
+          Retrouve les offres auxquelles tu as postulé et suis leur avancement.
+        </p>
+      </header>
+
+      {!loading && !isLoggedOut && !error && applications.length > 0 && (
+        <label className="form-field mb-6 max-w-xs">
+          Filtrer par statut
+          <select
+            className="form-input"
+            value={statusFilter}
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="all">Tous les statuts</option>
+            {Object.entries(STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {loading && <p role="status">Chargement de tes candidatures…</p>}
-      {error && <p className="border border-ink p-4" role="alert">{error}</p>}
+      {error && (
+        <p className="border border-ink p-4" role="alert">
+          {error}
+        </p>
+      )}
       {isLoggedOut && (
         <div className="border border-ink bg-white p-6">
-          <p className="mb-4">Connecte-toi pour consulter ton historique de candidatures.</p>
-          <Link className="font-bold underline" to="/login" state={{ from: "/applications" }}>Se connecter</Link>
+          <p className="mb-4">
+            Connecte-toi pour consulter ton historique de candidatures.
+          </p>
+          <Link
+            className="font-bold underline"
+            to="/login"
+            state={{ from: "/applications" }}
+          >
+            Se connecter
+          </Link>
         </div>
       )}
       {!loading && !error && !isLoggedOut && applications.length === 0 && (
-        <div className="border border-rule bg-white p-6">
-          <h2 className="mb-2 text-xl font-bold">Tu n’as pas encore postulé.</h2>
-          <p className="mb-4">Parcours les offres et envoie ta première candidature.</p>
-          <Link className="font-bold underline" to="/">Voir les offres</Link>
+        <div className="illustrated-empty-state border border-rule bg-white p-6">
+          <img src="/illustrations/applications-elephant-brand.webp" alt="" aria-hidden="true" />
+          <div>
+            <h2 className="mb-2 text-xl font-bold">
+              Tu n’as pas encore postulé.
+            </h2>
+            <p className="mb-4">
+              Parcours les offres et envoie ta première candidature.
+            </p>
+            <Link className="font-bold underline" to="/">
+              Voir les offres
+            </Link>
+          </div>
         </div>
       )}
       {!loading && !error && applications.length > 0 && (
         <ul className="grid list-none gap-4 p-0">
-          {applications.map((application) => (
-            <li key={application.id} className="grid gap-3 border border-rule bg-white p-5 sm:grid-cols-[1fr_auto] sm:items-center">
+          {visibleApplications.map((application) => (
+            <li
+              key={application.id}
+              className="grid gap-3 border border-rule bg-white p-5 sm:grid-cols-[1fr_auto] sm:items-center"
+            >
               <div>
                 <h2 className="mb-1 text-xl font-bold">
-                  <Link className="underline underline-offset-4" to={`/jobs/${application.ad_id}`}>
+                  <Link
+                    className="underline underline-offset-4"
+                    to={`/jobs/${application.ad_id}`}
+                  >
                     {application.title}
                   </Link>
                 </h2>
-                <p>{application.company_name}{application.location ? ` · ${application.location}` : ""}</p>
-                <p className="mt-1 text-sm">Envoyée le {formatDate(application.created_at)}</p>
+                <p>
+                  {application.company_name}
+                  {application.location ? ` · ${application.location}` : ""}
+                </p>
+                <p className="mt-1 text-sm">
+                  Envoyée le {formatDate(application.created_at)}
+                </p>
                 {application.cv_file_url && (
                   <p className="mt-2 text-sm">
                     CV envoyé :{" "}
-                    <a className="font-bold underline underline-offset-4" href={application.cv_file_url} target="_blank" rel="noreferrer">
+                    <a
+                      className="font-bold underline underline-offset-4"
+                      href={application.cv_file_url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       {application.cv_original_name || "Consulter le CV"}
                     </a>
                   </p>
@@ -99,12 +178,26 @@ export default function ApplicationsHistoryPage() {
                   Voir le dossier envoyé
                 </Link>
               </div>
-              <span className="inline-flex w-fit border border-ink px-3 py-2 text-sm font-bold">
+              <span className={`status-badge status-${application.status}`}>
                 {STATUS_LABELS[application.status] || "Statut inconnu"}
               </span>
             </li>
           ))}
         </ul>
+      )}
+      {!loading && !error && !isLoggedOut && applications.length > 0 && (
+        <>
+          {filteredApplications.length === 0 && (
+            <p className="profile-empty">Aucune candidature avec ce statut.</p>
+          )}
+          <Pagination
+            page={currentPage}
+            totalPages={totalPages}
+            total={filteredApplications.length}
+            label="Pagination de mes candidatures"
+            onPageChange={setPage}
+          />
+        </>
       )}
     </section>
   );

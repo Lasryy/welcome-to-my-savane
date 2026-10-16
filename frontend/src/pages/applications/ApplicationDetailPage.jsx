@@ -37,7 +37,9 @@ export default function ApplicationDetailPage() {
         if (requestError.status === 401) {
           setIsLoggedOut(true);
         } else {
-          setError(requestError.message || "Impossible de charger cette candidature.");
+          setError(
+            requestError.message || "Impossible de charger cette candidature.",
+          );
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -49,21 +51,37 @@ export default function ApplicationDetailPage() {
   }, [id]);
 
   const snapshot = application?.submitted_snapshot;
-  const projects = snapshot?.projects || application?.legacy_items?.projects || [];
-  const experiences = snapshot?.experiences || application?.legacy_items?.experiences || [];
+  const projects =
+    snapshot?.projects || application?.legacy_items?.projects || [];
+  const experiences =
+    snapshot?.experiences || application?.legacy_items?.experiences || [];
 
   return (
-    <section className="mx-auto w-[calc(100%_-_40px)] max-w-[1000px] py-12" aria-labelledby="application-title">
-      <Link className="mb-6 inline-flex font-bold underline underline-offset-4" to="/applications">
+    <section
+      className="page-container dossier-page py-10"
+      aria-labelledby="application-title"
+    >
+      <Link
+        className="mb-6 inline-flex font-bold underline underline-offset-4"
+        to="/applications"
+      >
         ← Retour à mes candidatures
       </Link>
 
       {loading && <p role="status">Chargement du dossier…</p>}
-      {error && <p className="border border-ink bg-white p-5" role="alert">{error}</p>}
+      {error && (
+        <p className="border border-ink bg-white p-5" role="alert">
+          {error}
+        </p>
+      )}
       {isLoggedOut && (
         <div className="border border-rule bg-white p-6">
           <p className="mb-4">Connecte-toi pour consulter ce dossier.</p>
-          <Link className="font-bold underline underline-offset-4" to="/login" state={{ from: `/applications/${id}` }}>
+          <Link
+            className="font-bold underline underline-offset-4"
+            to="/login"
+            state={{ from: `/applications/${id}` }}
+          >
             Se connecter
           </Link>
         </div>
@@ -72,8 +90,11 @@ export default function ApplicationDetailPage() {
       {!loading && !error && !isLoggedOut && application && (
         <div className="grid gap-5">
           <header className="rounded-[24px] border border-rule bg-white p-6 sm:p-8">
-            <p className="mb-2 text-xs font-bold tracking-[.08em]">WELCOME TO MY SAVANE · DOSSIER ENVOYÉ</p>
-            <h1 id="application-title" className="mb-2 text-3xl font-extrabold sm:text-4xl">
+            <p className="mb-2 text-sm text-ink/70">Dossier envoyé</p>
+            <h1
+              id="application-title"
+              className="mb-2 text-3xl font-extrabold sm:text-4xl"
+            >
               {application.title}
             </h1>
             <p className="mb-5">
@@ -89,41 +110,91 @@ export default function ApplicationDetailPage() {
           </header>
 
           {!application.snapshot_available && (
-            <aside className="rounded-[20px] border border-rule bg-[#fff3d9] p-5" role="note">
-              <h2 className="mb-2 font-bold">Dossier envoyé avant l’archivage détaillé</h2>
+            <aside
+              className="rounded-[20px] border border-rule bg-[#fff3d9] p-5"
+              role="note"
+            >
+              <h2 className="mb-2 font-bold">
+                Dossier envoyé avant l’archivage détaillé
+              </h2>
               <p>
-                Le message et les éléments encore liés sont affichés ci-dessous. Les projets et expériences montrent leur version actuelle, pas forcément celle qui existait au moment de l’envoi.
+                Le message et les éléments encore liés sont affichés ci-dessous.
+                Les projets et expériences montrent leur version actuelle, pas
+                forcément celle qui existait au moment de l’envoi.
               </p>
             </aside>
           )}
 
           {snapshot?.person && (
-            <section className="rounded-[20px] border border-rule bg-white p-6" aria-labelledby="candidate-title">
-              <h2 id="candidate-title" className="mb-4 text-xl font-bold">Tes coordonnées à l’envoi</h2>
-              <p>{snapshot.person.first_name} {snapshot.person.last_name}</p>
+            <section
+              className="rounded-[20px] border border-rule bg-white p-6"
+              aria-labelledby="candidate-title"
+            >
+              <h2 id="candidate-title" className="mb-4 text-xl font-bold">
+                Tes coordonnées à l’envoi
+              </h2>
+              <p>
+                {snapshot.person.first_name} {snapshot.person.last_name}
+              </p>
               <p>{snapshot.person.email}</p>
               <p>{snapshot.person.phone || "Téléphone non renseigné"}</p>
             </section>
           )}
 
-          <section className="rounded-[20px] border border-rule bg-white p-6" aria-labelledby="message-title">
-            <h2 id="message-title" className="mb-3 text-xl font-bold">Message de motivation</h2>
-            <p className="whitespace-pre-wrap">{snapshot?.message || application.legacy_message || "Aucun message conservé."}</p>
+          <section
+            className="rounded-[20px] border border-rule bg-white p-6"
+            aria-labelledby="message-title"
+          >
+            <h2 id="message-title" className="mb-3 text-xl font-bold">
+              Message de motivation
+            </h2>
+            <p className="whitespace-pre-wrap">
+              {snapshot?.message ||
+                application.legacy_message ||
+                "Aucun message conservé."}
+            </p>
           </section>
 
-          <section className="rounded-[20px] border border-rule bg-white p-6" aria-labelledby="projects-title">
-            <h2 id="projects-title" className="mb-4 text-xl font-bold">Projets présentés</h2>
+          <section
+            className="rounded-[20px] border border-rule bg-white p-6"
+            aria-labelledby="projects-title"
+          >
+            <h2 id="projects-title" className="mb-4 text-xl font-bold">
+              Projets présentés
+            </h2>
             {projects.length === 0 ? (
               <p>Aucun projet n’était associé à ce dossier.</p>
             ) : (
               <ul className="grid list-none gap-4 p-0">
                 {projects.map((project) => (
-                  <li key={project.id} className="border-l-4 border-[#f09169] pl-4">
+                  <li key={project.id} className="border-t border-rule/30 pt-4">
                     <h3 className="font-bold">{project.title}</h3>
-                    {project.description && <p className="mt-1 whitespace-pre-wrap">{project.description}</p>}
+                    {project.description && (
+                      <p className="mt-1 whitespace-pre-wrap">
+                        {project.description}
+                      </p>
+                    )}
                     <div className="mt-2 flex flex-wrap gap-4 text-sm">
-                      {project.project_url && <a className="font-bold underline" href={project.project_url} target="_blank" rel="noreferrer">Voir le projet</a>}
-                      {project.repository_url && <a className="font-bold underline" href={project.repository_url} target="_blank" rel="noreferrer">Voir le dépôt</a>}
+                      {project.project_url && (
+                        <a
+                          className="font-bold underline"
+                          href={project.project_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Voir le projet
+                        </a>
+                      )}
+                      {project.repository_url && (
+                        <a
+                          className="font-bold underline"
+                          href={project.repository_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Voir le dépôt
+                        </a>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -131,27 +202,53 @@ export default function ApplicationDetailPage() {
             )}
           </section>
 
-          <section className="rounded-[20px] border border-rule bg-white p-6" aria-labelledby="experiences-title">
-            <h2 id="experiences-title" className="mb-4 text-xl font-bold">Expériences présentées</h2>
+          <section
+            className="rounded-[20px] border border-rule bg-white p-6"
+            aria-labelledby="experiences-title"
+          >
+            <h2 id="experiences-title" className="mb-4 text-xl font-bold">
+              Expériences présentées
+            </h2>
             {experiences.length === 0 ? (
               <p>Aucune expérience n’était associée à ce dossier.</p>
             ) : (
               <ul className="grid list-none gap-4 p-0">
                 {experiences.map((experience) => (
-                  <li key={experience.id} className="border-l-4 border-[#bedbc7] pl-4">
-                    <h3 className="font-bold">{experience.job_title} · {experience.company_name}</h3>
-                    <p className="mt-1 text-sm">{formatPeriod(experience.start_date, experience.end_date)}</p>
-                    {experience.description && <p className="mt-2 whitespace-pre-wrap">{experience.description}</p>}
+                  <li
+                    key={experience.id}
+                    className="border-t border-rule/30 pt-4"
+                  >
+                    <h3 className="font-bold">
+                      {experience.job_title} · {experience.company_name}
+                    </h3>
+                    <p className="mt-1 text-sm">
+                      {formatPeriod(experience.start_date, experience.end_date)}
+                    </p>
+                    {experience.description && (
+                      <p className="mt-2 whitespace-pre-wrap">
+                        {experience.description}
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
           </section>
 
-          <section className="rounded-[20px] border border-rule bg-white p-6" aria-labelledby="cv-title">
-            <h2 id="cv-title" className="mb-3 text-xl font-bold">CV joint</h2>
+          <section
+            className="rounded-[20px] border border-rule bg-white p-6"
+            aria-labelledby="cv-title"
+          >
+            <h2 id="cv-title" className="mb-3 text-xl font-bold">
+              CV joint
+            </h2>
             {application.cv ? (
-              <a className="font-bold underline underline-offset-4" href={application.cv.file_url} target="_blank" rel="noreferrer">
+              <a
+                className="font-bold underline underline-offset-4"
+                href={application.cv.file_url}
+                target="_blank"
+                rel="noreferrer"
+              >
                 Consulter {application.cv.original_name}
               </a>
             ) : (

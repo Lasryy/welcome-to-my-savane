@@ -1,53 +1,57 @@
-/** Shared layout for the login and registration pages. */
-export default function AuthLayout({
-  title,
-  description,
-  children,
-  footer,
-  wide = false,
-}) {
+import { Link } from "react-router-dom";
+import { SiteBrand } from "../../components/SiteHeader";
+
+/** The same entry layout is used for login and registration. */
+export default function AuthLayout({ title, description, children, footer, variant = "login" }) {
+  const illustration = variant === "register"
+    ? {
+        src: "/illustrations/auth-meerkat-approved.webp",
+        alt: "Suricate avec un carnet de profil, prêt à commencer son parcours.",
+      }
+    : {
+        src: "/illustrations/auth-warthog-approved.webp",
+        alt: "Phacochère souriant, illustré aux couleurs de la savane.",
+      };
+
   return (
-    <main className="auth-page">
-      <header className="auth-header">
-        <a
-          className="auth-brand"
-          href="/"
-          aria-label="Welcome To My Savane — Retour aux offres"
-        >
-          <img
-            src="/logo-welcome-to-my-savane-ink.svg"
-            className="auth-logo"
-            alt=""
-            aria-hidden="true"
-          />
-          <span className="auth-brand-name">
-            Welcome
-            <br />
-            To My Savane
-          </span>
-        </a>
-
-        <a className="auth-back-link" href="/">
-          Retour aux offres
-        </a>
+    <div className="auth-page">
+      <header className="auth-brand-header">
+        <div className="auth-entry-header page-container">
+          <SiteBrand />
+          <Link className="text-link" to="/">
+            Retour aux offres <span aria-hidden="true">↗</span>
+          </Link>
+        </div>
       </header>
-
-      <div className={`auth-content${wide ? " auth-content-wide" : ""}`}>
-        <section className={`auth-panel${wide ? " auth-panel-wide" : ""}`} aria-labelledby="auth-title">
+      <main className="auth-entry page-container">
+        <aside className="auth-story">
+          <h2>
+            Le prochain
+            <br />
+            chapitre,
+            <br />
+            <span>c’est le tien.</span>
+          </h2>
+          <p>
+            Un profil pour raconter ton parcours.
+            <br />
+            Des opportunités pour écrire la suite.
+          </p>
+          <img
+            className={`auth-story-art auth-story-art--${variant}`}
+            src={illustration.src}
+            alt={illustration.alt}
+          />
+        </aside>
+        <section className="auth-panel" aria-labelledby="auth-title">
           <h1 id="auth-title" className="auth-title">
             {title}
           </h1>
           <p className="auth-description">{description}</p>
-
           <div className="auth-form-content">{children}</div>
-
-          {footer && (
-            <div className="auth-footer">
-              {footer}
-            </div>
-          )}
+          {footer && <div className="auth-footer">{footer}</div>}
         </section>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

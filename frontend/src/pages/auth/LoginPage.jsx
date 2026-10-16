@@ -39,7 +39,7 @@ function LoginPage() {
           ? "/admin"
           : data.role === "COMPANY"
             ? "/company"
-            : "/";
+            : "/jobs";
       const requestedPath = location.state?.from;
       const allowedReturnPath =
         requestedPath &&

@@ -69,6 +69,9 @@ export default function SiteHeader() {
   const links = (
     <>
       <NavLink to="/" end>
+        Accueil
+      </NavLink>
+      <NavLink to="/jobs">
         Les offres
       </NavLink>
       {user?.role === "USER" && (

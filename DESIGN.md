@@ -237,6 +237,30 @@ Le signe-horizon assemble un soleil plein, un cercle tracé, deux champs arrondi
 
 ## Components
 
+### Accueil public
+
+La route `/` présente l’accueil ; la recherche complète reste accessible dans `/jobs`.
+L’accueil conserve le corail, Bricolage Grotesque et les arrondis asymétriques du site.
+Une scène peinte dédiée avec acacia, lion, phacochère et suricate occupe la moitié droite
+du premier écran. La recherche métier/lieu transmet ses valeurs dans l’URL des offres.
+Les offres récentes, domaines et entreprises proviennent de l’API publique, sans
+chiffres d’adoption ni témoignages inventés. Le bloc profil utilise la menthe et
+l’entrée recruteur le bleu nuit. Les actions de profil s’adaptent au rôle connecté.
+Sur mobile, l’illustration précède le formulaire et les sections suivent une colonne.
+Le mouvement d’apparition de la scène respecte `prefers-reduced-motion`.
+Les styles propres à cette page sont dans `frontend/src/styles/home.css`.
+
+### Recherche et liste des offres
+
+L’accueil et `/jobs` utilisent le même composant `JobSearchBar` et les styles
+`frontend/src/styles/job-search.css` : surface crème, champs métier/lieu et action
+bleu nuit. Le bandeau des offres garde le lion approuvé à une taille visible.
+Les filtres Contrat, Domaine et Entreprise sont affichés sous la recherche ; ils
+s’appliquent directement, avec des étiquettes permettant de retirer chaque critère.
+Le tri accompagne le titre des résultats. Recherche, filtres, tri et pagination
+restent dans l’URL ; le retour arrière restaure les valeurs sans recréer les champs.
+La page utilise `frontend/src/styles/job-board.css` pour sa mise en page propre.
+
 ### Application — extension approuvée
 
 Le header partagé, crème avec texte bleu nuit sur toutes les pages, adapte ses liens au rôle et expose la déconnexion. Sur mobile il utilise un menu `<details>`. Les boutons ont une hauteur minimale de 46px ; les actions secondaires restent bordées. Les champs portent des labels explicites, et les listes déroulantes utilisent `<select>` natif. Le dialogue partagé utilise `<dialog>.showModal()`, un titre associé, Échap, un bouton Fermer et un contenu défilant. La pagination partage la même présentation entre espaces. Les commentaires du code restent en anglais. Les transitions de couleur durent 160ms ; la préférence de mouvement réduit est respectée.

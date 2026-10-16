@@ -113,7 +113,7 @@ function JobDetail({ id }) {
         <p>Elle a peut-être été fermée ou retirée.</p>
         <Link
           className="mt-5 inline-flex min-h-11 items-center justify-center border border-ink bg-ink px-[18px] py-2.5 text-[13px] font-bold text-paper"
-          to="/"
+          to="/jobs"
         >
           Revenir aux offres
         </Link>
@@ -143,7 +143,7 @@ function JobDetail({ id }) {
         </button>
         <Link
           className="mb-[18px] inline-block text-[13px] font-bold underline-offset-4"
-          to="/"
+          to="/jobs"
         >
           ← Retour aux offres
         </Link>
@@ -159,7 +159,7 @@ function JobDetail({ id }) {
       className="job-detail page-container"
       aria-labelledby="job-detail-title"
     >
-      <Link className="text-link mb-6 inline-block" to="/">
+      <Link className="text-link mb-6 inline-block" to="/jobs">
         ← Toutes les offres
       </Link>
       <div className="job-detail-layout">

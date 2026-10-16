@@ -6,6 +6,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import ProfilePage from "./pages/auth/ProfilePage";
 import AdminRoute from "./pages/admin/AdminRoute";
 import JobBoardPage from "./pages/jobBoardPage";
+import HomePage from "./pages/HomePage";
 import JobDetailPage from "./pages/jobDetailPage";
 import AdminPage from "./pages/admin/adminPage";
 import AdminAdsPage from "./pages/admin/adminAdsPage";
@@ -28,7 +29,8 @@ const router = createBrowserRouter([
   {
     element: <PublicLayout />,
     children: [
-      { path: "/", element: <JobBoardPage /> },
+      { path: "/", element: <HomePage /> },
+      { path: "/jobs", element: <JobBoardPage /> },
       { path: "/jobs/:id", element: <JobDetailPage /> },
       { path: "/applications", element: <ApplicationsHistoryPage /> },
       { path: "/applications/:id", element: <ApplicationDetailPage /> },

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { adminRequest } from "../../services/adminApi";
 import PersonAvatar from "../../components/PersonAvatar";
+import RequestState from "../../components/ui/RequestState";
 
 function formatDate(date) {
   if (!date) return "Non renseignée";
@@ -15,10 +16,12 @@ export default function CandidateProfilePage() {
   const { personId } = useParams();
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get("company_id") || "";
+  const [retryKey, setRetryKey] = useState(0);
+  const requestKey = `${personId}-${companyId}-${retryKey}`;
   const [result, setResult] = useState(null);
-  const candidate = result?.id === personId ? result.data : null;
-  const error = result?.id === personId ? result.error : "";
-  const loading = result?.id !== personId;
+  const candidate = result?.key === requestKey ? result.data : null;
+  const error = result?.key === requestKey ? result.error : "";
+  const loading = result?.key !== requestKey || result.loading;
   const backToDirectory = `/company/candidates${searchParams.size ? `?${searchParams}` : ""}`;
 
   useEffect(() => {
@@ -29,14 +32,14 @@ export default function CandidateProfilePage() {
     adminRequest(endpoint, {
       signal: controller.signal,
     })
-      .then((data) => setResult({ id: personId, data, error: "" }))
+      .then((data) => setResult({ key: requestKey, data, error: "", loading: false }))
       .catch((requestError) => {
         if (requestError.name !== "AbortError") {
-          setResult({ id: personId, data: null, error: requestError.message });
+          setResult({ key: requestKey, data: null, error: requestError.message, loading: false });
         }
       });
     return () => controller.abort();
-  }, [personId, companyId]);
+  }, [personId, companyId, requestKey]);
 
   return (
     <CompanyLayout
@@ -50,17 +53,19 @@ export default function CandidateProfilePage() {
           ← Retour à l’annuaire
         </Link>
         {loading ? (
-          <p className="mt-8" role="status">
-            Chargement du profil…
-          </p>
+          <RequestState
+            className="mt-8"
+            variant="loading"
+            title="Chargement du profil"
+            description="On récupère les informations visibles de ce candidat."
+          />
         ) : error ? (
-          <section
-            className="mt-8 rounded border border-red-700 bg-white/70 p-6"
-            role="alert"
-          >
-            <h1 className="text-2xl font-bold">Profil indisponible</h1>
-            <p className="mt-2">{error}</p>
-          </section>
+          <RequestState
+            className="mt-8"
+            title="Profil indisponible"
+            description={error}
+            onRetry={() => setRetryKey((key) => key + 1)}
+          />
         ) : (
           candidate && (
             <>

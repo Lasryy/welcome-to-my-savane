@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import AdminCard from "../../components/admin/adminCard";
 import { adminRequest } from "../../services/adminApi";
+import RequestState from "../../components/ui/RequestState";
 import { formatDate } from "../../utils/adminUtils";
 import Modal from "../../components/ui/Modal";
 
@@ -21,8 +22,11 @@ function formatPeriod(startDate, endDate) {
 export default function AdminApplicationDetailPage() {
   const { id } = useParams();
   const [application, setApplication] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
+  const requestKey = `${id}-${retryKey}`;
+  const [requestState, setRequestState] = useState({ key: null, status: "loading" });
+  const loading = requestState.key !== requestKey || requestState.status === "loading";
+  const error = requestState.key === requestKey ? requestState.error || "" : "";
   const [draft, setDraft] = useState(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,17 +41,24 @@ export default function AdminApplicationDetailPage() {
         const data = await adminRequest(`/api/admin/applications/${id}`, {
           signal: controller.signal,
         });
-        if (!controller.signal.aborted) setApplication(data);
+        if (!controller.signal.aborted) {
+          setApplication(data);
+          setRequestState({ key: requestKey, status: "ready" });
+        }
       } catch (requestError) {
-        if (!controller.signal.aborted) setError(requestError.message);
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) {
+          setRequestState({
+            key: requestKey,
+            status: "error",
+            error: requestError.message || "Impossible de charger ce dossier.",
+          });
+        }
       }
     }
 
     loadApplication();
     return () => controller.abort();
-  }, [id]);
+  }, [id, requestKey]);
 
   function startEditing() {
     setDraft({
@@ -115,11 +126,19 @@ export default function AdminApplicationDetailPage() {
         ← Retour aux candidatures
       </Link>
 
-      {loading && <p role="status">Chargement du dossier…</p>}
+      {loading && (
+        <RequestState
+          variant="loading"
+          title="Chargement du dossier"
+          description="On récupère les informations de la candidature."
+        />
+      )}
       {error && (
-        <p className="border border-ink bg-white p-5" role="alert">
-          {error}
-        </p>
+        <RequestState
+          title="Impossible de charger ce dossier"
+          description={error}
+          onRetry={() => setRetryKey((key) => key + 1)}
+        />
       )}
 
       {feedback && <p className="form-success" role="status">{feedback}</p>}

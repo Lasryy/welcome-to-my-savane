@@ -1,4 +1,5 @@
 import Pagination from "../../components/ui/Pagination";
+import RequestState, { StateLink } from "../../components/ui/RequestState";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDate } from "../../utils/adminUtils";
@@ -15,14 +16,16 @@ export default function ApplicationsHistoryPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
   const [activeSection, setActiveSection] = useState("applications");
-  const [applications, setApplications] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [favoritesLoading, setFavoritesLoading] = useState(true);
   const [favoritesError, setFavoritesError] = useState("");
   const [favoritePendingIds, setFavoritePendingIds] = useState(() => new Set());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  const [requestState, setRequestState] = useState({ key: -1, status: "loading" });
+  const loading = requestState.key !== retryKey || requestState.status === "loading";
+  const error = requestState.key === retryKey ? requestState.error || "" : "";
+  const applications = requestState.key === retryKey ? requestState.applications || [] : [];
 
   useEffect(() => {
     const controller = new AbortController();
@@ -36,6 +39,7 @@ export default function ApplicationsHistoryPage() {
         const data = await response.json();
 
         if (response.status === 401) {
+          setRequestState({ key: retryKey, status: "login" });
           setIsLoggedOut(true);
           return;
         }
@@ -45,21 +49,22 @@ export default function ApplicationsHistoryPage() {
           );
         }
 
-        setApplications(data);
+        setRequestState({ key: retryKey, status: "ready", applications: data });
+        setIsLoggedOut(false);
       } catch (requestError) {
         if (requestError.name !== "AbortError") {
-          setError(requestError.message || "Le serveur ne répond pas.");
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
+          setRequestState({
+            key: retryKey,
+            status: "error",
+            error: requestError.message || "Le serveur ne répond pas.",
+          });
         }
       }
     }
 
     loadApplications();
     return () => controller.abort();
-  }, []);
+  }, [retryKey]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -180,25 +185,33 @@ export default function ApplicationsHistoryPage() {
           </select>
         </label>
       )}
-      {activeSection === "applications" && loading && <p role="status">Chargement de tes candidatures…</p>}
+      {activeSection === "applications" && loading && (
+        <RequestState
+          variant="loading"
+          title="Chargement de tes candidatures"
+          description="On récupère la liste de tes dossiers envoyés."
+        />
+      )}
       {activeSection === "applications" && error && (
-        <p className="border border-ink p-4" role="alert">
-          {error}
-        </p>
+        <RequestState
+          title="Impossible de charger tes candidatures"
+          description={error}
+          onRetry={() => {
+            setIsLoggedOut(false);
+            setRetryKey((key) => key + 1);
+          }}
+        />
       )}
       {isLoggedOut && (
-        <div className="border border-ink bg-white p-6">
-          <p className="mb-4">
-            Connecte-toi pour consulter ton historique de candidatures.
-          </p>
-          <Link
-            className="font-bold underline"
-            to="/login"
-            state={{ from: "/applications" }}
-          >
+        <RequestState
+          variant="forbidden"
+          title="Connecte-toi pour retrouver tes candidatures"
+          description="Ton historique est enregistré dans ton espace personnel."
+        >
+          <StateLink to="/login" state={{ from: "/applications" }}>
             Se connecter
-          </Link>
-        </div>
+          </StateLink>
+        </RequestState>
       )}
       {activeSection === "applications" && !loading && !error && !isLoggedOut && applications.length === 0 && (
         <div className="illustrated-empty-state border border-rule bg-white p-6">

@@ -1,7 +1,18 @@
 ---
 name: "Welcome To My Savane — maquette retenue"
-description: "Grand Air 2.0, Bricolage Grotesque de Grand Air 1.0 et palette exacte de l’image fournie ; portée limitée à la maquette Offres."
+description: "Grand Air 2.0, Bricolage Grotesque de Grand Air 1.0 et palette exacte de l’image fournie ; maquette historique et extension approuvée aux espaces du MVP."
 colors:
+  app-ink: "#252a46"
+  app-paper: "#fff9ee"
+  app-coral: "#f09169"
+  app-sun: "#f0e970"
+  app-mint: "#bedbc7"
+  app-lavender: "#acbefa"
+  app-surface: "#fffdf8"
+  app-line: "#dad9d0"
+  app-muted: "#626479"
+  app-control-stroke: "#6b7080"
+  app-primary-hover: "#39405f"
   selected-coral: "#f09169"
   selected-ink: "#252a46"
   selected-paper: "#fff9ee"
@@ -18,6 +29,17 @@ colors:
   selected-contract-rule: "#565d78"
   selected-sector: "#e3e7f4"
 typography:
+  app-title:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "36px"
+    fontWeight: 800
+    lineHeight: 1.15
+    letterSpacing: "-0.035em"
+  app-body:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.6
   selected-display:
     fontFamily: "Bricolage Grotesque, sans-serif"
     fontSize: "clamp(48px, 5.4vw, 78px)"
@@ -52,6 +74,10 @@ typography:
     fontWeight: 400
     lineHeight: 1.55
 rounded:
+  app-control: "8px"
+  app-record: "10px"
+  app-panel: "12px 32px 12px 12px"
+  app-dialog: "16px 32px 16px 16px"
   selected-square: "0"
   selected-search: "3px"
   selected-search-button: "1px"
@@ -60,12 +86,26 @@ rounded:
   selected-skill: "4px"
   selected-circle: "50%"
 spacing:
+  app-button: "11px 19px"
+  app-field: "11px 13px"
+  app-workspace-gap: "44px"
   selected-compact: "12px"
   selected-control: "14px"
   selected-comfortable: "20px"
   selected-grid: "22px"
   selected-closing: "40px"
 components:
+  app-button-primary:
+    backgroundColor: "{colors.app-ink}"
+    textColor: "{colors.app-paper}"
+    rounded: "{rounded.app-control}"
+    padding: "{spacing.app-button}"
+    height: "46px minimum"
+  app-input:
+    backgroundColor: "{colors.app-surface}"
+    textColor: "{colors.app-ink}"
+    rounded: "{rounded.app-control}"
+    padding: "{spacing.app-field}"
   selected-register:
     backgroundColor: "{colors.selected-ink}"
     textColor: "{colors.selected-paper}"
@@ -112,7 +152,7 @@ components:
 
 La maquette choisie le 9 octobre 2026 associe la composition de Grand Air 2.0, Bricolage Grotesque de Grand Air 1.0 et les cinq couleurs de l’image de référence fournie ensuite par l’utilisateur. Cette précision remplace les valeurs de Savane Pop dans la maquette retenue. Le corail occupe la couverture, le bleu nuit structure la recherche et les bandeaux, le jaune porte les accents. Le signe-horizon et les offres en affiches conservent le langage de Grand Air 2.0. Le résultat est coloré, accueillant, jeune et professionnel. L’image de référence est conservée dans [selected-palette.png](docs/design-lab/references/selected-palette.png).
 
-**Portée normative : la maquette de la page Offres dans `/design-lab/selected` et la vue par défaut `/design-lab` uniquement.** Ce document enregistre le choix explicite de l’utilisateur et les styles effectivement livrés. Il ne constitue pas une autorisation de réaliser les autres écrans du MVP ou de remplacer l’application à `/`. Les sept explorations restent des références historiques indépendantes, sans autorité sur cette maquette. Voir [le contrat retenu](docs/design-lab/SELECTED.md), [les trois propositions originales](docs/design-lab/ROUND-2.md) et [le laboratoire](docs/design-lab/README.md).
+**Portée historique des tokens `selected-*` : la maquette Offres dans `/design-lab/selected` et `/design-lab`.** Ce document enregistre le choix explicite de l’utilisateur et les styles effectivement livrés. L’utilisateur a ensuite approuvé l’extension de cette identité aux pages du MVP. Les sous-sections Application décrivent cette extension, livrée dans `frontend/src/styles/ui.css` et les composants partagés. Les sept explorations restent des références historiques indépendantes, sans autorité sur cette maquette. Voir [le contrat retenu](docs/design-lab/SELECTED.md), [les trois propositions originales](docs/design-lab/ROUND-2.md) et [le laboratoire](docs/design-lab/README.md).
 
 **Key Characteristics:**
 
@@ -120,9 +160,13 @@ La maquette choisie le 9 octobre 2026 associe la composition de Grand Air 2.0, B
 - Bricolage Grotesque hébergée localement, poids disponibles 400–800, avec grand titrage au poids 800.
 - Corail, bleu nuit, jaune, bleu pastel et menthe de la référence fournie, avec blanc cassé neutre.
 - Actions locales et données fictives ; langue française et logo fourni conservés.
-- Approbation limitée à la maquette ; les autres écrans attendent une nouvelle demande.
+- Espaces du MVP : navigation par rôle, formulaires lisibles, bibliothèques de profil et dialogues partagés.
 
 ## Colors
+
+### Application — extension approuvée
+
+Le MVP reprend les couleurs de marque exactes. Le header est crème sur toutes les pages, avec logo et texte bleu nuit ; la couverture Offres conserve son fond corail distinct. Une seule grande région corail identifie l’accueil Admin (bloc d’actions) ou Recruteur (titre). Le profil, l’annuaire et le panneau de connexion utilisent la menthe ; les fiches d’offres et l’historique utilisent le bleu pastel. Les titres de gestion Admin sont sans fond coloré. Le bleu nuit porte la navigation latérale et les onglets recruteur, le jaune indique leur sélection. Les formulaires conservent une surface claire et des contours contrastés. Le texte secondaire utilise `app-muted`. Les statuts gardent aussi un libellé explicite : la couleur seule ne transmet pas une information.
 
 ### Primary
 
@@ -140,6 +184,10 @@ Le **blanc cassé** couvre le fond de page, les champs et le texte sur bleu nuit
 
 ## Typography
 
+### Application — extension approuvée
+
+Le mot-symbole utilise Bricolage Grotesque, comme les titres, sur deux lignes alignées : « Welcome to » puis « My Savane ». Les poids sont 750 et 800, les tailles 17px et 26px (15px et 23px sur mobile). L’acacia reste un SVG distinct, et le lien fournit le nom complet accessible. Les titres de page utilisent 36px, poids 800, interligne 1.15, puis 30px sur mobile. Les titres de section utilisent 23px. Le corps courant utilise 15px et un interligne de 1.6 ; les labels restent à 14px. Bricolage Grotesque reste la seule famille. Les descriptions longues sont séparées en paragraphes et listes simples.
+
 **Display Font:** Bricolage Grotesque, avec sans-serif en repli.
 **Body Font:** Bricolage Grotesque, avec sans-serif en repli.
 
@@ -155,6 +203,10 @@ Les rôles desktop sont définis dans le frontmatter. Le display est réservé �
 
 ## Layout
 
+### Application — extension approuvée
+
+Le conteneur est `min(1320px, calc(100% - 64px))`, puis la marge totale devient 40px sur mobile. Les espaces de travail utilisent une navigation latérale de 216px et un écart de 44px ; à 1100px ces valeurs deviennent 190px et 28px ; sous 800px la navigation devient horizontale. Le profil conserve sa section dans `?section=account|cv|projects|experiences|visibility`. Sur les offres mobiles, le titre et l’entreprise précèdent les informations essentielles et la candidature.
+
 Le conteneur partagé est `min(1280px, calc(100% - 112px))`, puis `calc(100% - 72px)` sous 1200px et `calc(100% - 40px)` sous 760px. La couverture rassemble navigation, titre et horizon ; la recherche reste sur une bande bleu nuit distincte. Le header a une hauteur minimale de 80px, puis ses liens occupent une seconde ligne sous 1000px.
 
 Les offres suivent trois colonnes desktop (1.1fr / 1fr / 1fr), deux sous 1000px et une sous 480px. L’écart initial est de 22px, réduit à 17px sous 1200px. Les cartes restent à leur hauteur naturelle et alignées en haut. Les contrôles desktop donnent accès aux domaines, contrats, télétravail et tri ; sous 760px, les domaines horizontaux disparaissent et les filtres sont disponibles dans un `<details>` natif. La recherche mobile se répartit sur deux lignes : métier d’abord, ville et action ensuite.
@@ -165,17 +217,29 @@ Les vérifications de la maquette retenue à 1440 × 960, 390 × 844 et 886 × 9
 
 ## Elevation & Depth
 
+### Application — extension approuvée
+
+Les espaces de travail séparent leurs régions par fond, espace et filet. Le dialogue seul utilise une ombre de `0 24px 80px rgb(15 20 40 / .25)` et un voile `rgb(24 29 48 / .55)`. Les bibliothèques de projets et expériences ne superposent pas un cadre externe aux cadres des fiches.
+
 La maquette utilise des régions colorées et des bandeaux contrastés, sans ombre portée sur les boutons ou les affiches. La palette suit l’image de référence ; les bordures épaisses et ombres décalées de Savane Pop restent dans cette proposition historique. La barre du laboratoire et les panneaux de démonstration peuvent avoir leurs propres ombres utilitaires ; ces outils ne définissent pas la profondeur de la maquette.
 
 **The Flat Poster Rule.** La séparation des offres repose sur la couleur et les bandeaux ; ne pas transférer les ombres néo-brutalistes de Savane Pop dans la maquette retenue.
 
 ## Shapes
 
+### Application — extension approuvée
+
+Les contrôles utilisent un rayon de 8px ; les fiches de profil 10px. Les panneaux ont la signature asymétrique `12px 32px 12px 12px` et les dialogues `16px 32px 16px 16px`. Le logo acacia fourni est conservé, sans cadre décoratif ajouté.
+
 Les affiches ont un seul coin supérieur droit courbe. Le bloc de fin reprend cette asymétrie à une plus grande échelle. La recherche et l’inscription ont des angles légèrement adoucis ; le bouton Rechercher est presque carré. Les contrats et monogrammes d’entreprise sont rectangulaires. Le logo fourni garde son acacia blanc dans une forme bleu nuit asymétrique.
 
 Le signe-horizon assemble un soleil plein, un cercle tracé, deux champs arrondis légèrement tournés, une ligne et la légende « le bon départ. ». Toutes les formes composent le même signe à chaque taille ; le mouvement n’ajoute aucune forme.
 
 ## Components
+
+### Application — extension approuvée
+
+Le header partagé, crème avec texte bleu nuit sur toutes les pages, adapte ses liens au rôle et expose la déconnexion. Sur mobile il utilise un menu `<details>`. Les boutons ont une hauteur minimale de 46px ; les actions secondaires restent bordées. Les champs portent des labels explicites, et les listes déroulantes utilisent `<select>` natif. Le dialogue partagé utilise `<dialog>.showModal()`, un titre associé, Échap, un bouton Fermer et un contenu défilant. La pagination partage la même présentation entre espaces. Les commentaires du code restent en anglais. Les transitions de couleur durent 160ms ; la préférence de mouvement réduit est respectée.
 
 ### Buttons
 
@@ -203,6 +267,16 @@ Le soleil monte de 12px quand la couverture contient le focus, avec une transiti
 
 ## Do's and Don'ts
 
+### Application — extension approuvée
+
+**The Clear Workspace Rule.** Un espace de travail commence par son titre et ses actions utiles, sans répéter la couverture de marque.
+
+**The One Frame Rule.** Une fiche possède un seul niveau de cadre.
+
+**The Visible Exit Rule.** La déconnexion reste accessible depuis le header.
+
+Conserver les contrôles natifs et les labels. Ne pas exposer les codes techniques comme explication principale à l’utilisateur. Ne pas attribuer de sens métier à l’alternance décorative des couleurs d’offres.
+
 ### Do:
 
 - **Do** respecter la composition Grand Air 2.0, Bricolage Grotesque et les cinq couleurs de référence dans la maquette retenue.
@@ -212,7 +286,7 @@ Le soleil monte de 12px quand la couverture contient le focus, avec une transiti
 
 ### Don't:
 
-- **Don't** interpréter l’approbation de la maquette comme une demande de réaliser les autres écrans ou d’intégrer l’API.
+- **Don't** confondre les interactions fictives du laboratoire avec les parcours API réels du MVP.
 - **Don't** reprendre les ombres et les bordures épaisses de Pop, Archivo de Grand Air 2.0 ou les photographies de Creative Editorial dans cette maquette.
 - **Don't** transformer l’alternance des tons d’offres en une signification métier absente des données.
 - **Don't** promouvoir les notes subjectives des comparaisons ou les outils du laboratoire au rang de règles de produit.

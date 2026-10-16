@@ -28,7 +28,9 @@ export default function AdminApplicationDetailPage() {
 
     async function loadApplication() {
       try {
-        const data = await adminRequest(`/api/admin/applications/${id}`, { signal: controller.signal });
+        const data = await adminRequest(`/api/admin/applications/${id}`, {
+          signal: controller.signal,
+        });
         if (!controller.signal.aborted) setApplication(data);
       } catch (requestError) {
         if (!controller.signal.aborted) setError(requestError.message);
@@ -43,37 +45,80 @@ export default function AdminApplicationDetailPage() {
 
   return (
     <section className="grid gap-5" aria-labelledby="admin-application-title">
-      <Link className="w-fit font-bold underline underline-offset-4" to="/admin/applications">
+      <Link
+        className="w-fit font-bold underline underline-offset-4"
+        to="/admin/applications"
+      >
         ← Retour aux candidatures
       </Link>
 
       {loading && <p role="status">Chargement du dossier…</p>}
-      {error && <p className="border border-ink bg-white p-5" role="alert">{error}</p>}
+      {error && (
+        <p className="border border-ink bg-white p-5" role="alert">
+          {error}
+        </p>
+      )}
 
       {!loading && !error && application && (
         <>
-          <AdminCard title={application.title} description={application.company_name} index={0}>
-            <p className="text-sm">Offre #{application.ad_id}{application.location ? ` · ${application.location}` : ""}</p>
-            <p><strong>Envoyée le :</strong> {formatDate(application.created_at)}</p>
-            <p><strong>Statut :</strong> {STATUS_LABELS[application.status] || "Statut inconnu"}</p>
-            <Link className="font-bold underline underline-offset-4" to={`/admin/ads/${application.ad_id}/edit`}>Voir l’offre</Link>
+          <AdminCard
+            title={application.title}
+            description={application.company_name}
+            index={0}
+          >
+            <p className="text-sm">
+              Offre #{application.ad_id}
+              {application.location ? ` · ${application.location}` : ""}
+            </p>
+            <p>
+              <strong>Envoyée le :</strong> {formatDate(application.created_at)}
+            </p>
+            <p>
+              <strong>Statut :</strong>{" "}
+              {STATUS_LABELS[application.status] || "Statut inconnu"}
+            </p>
+            <Link
+              className="font-bold underline underline-offset-4"
+              to={`/admin/ads/${application.ad_id}/edit`}
+            >
+              Voir l’offre
+            </Link>
           </AdminCard>
 
           {!application.snapshot_available && (
             <aside className="border border-rule bg-white p-5" role="note">
               <h2 className="font-bold">Ancienne candidature</h2>
-              <p className="mt-2">La copie figée n’existe pas pour cet envoi. Seules les informations encore disponibles sont affichées ; les coordonnées du candidat correspondent à son profil actuel.</p>
+              <p className="mt-2">
+                La copie figée n’existe pas pour cet envoi. Seules les
+                informations encore disponibles sont affichées ; les coordonnées
+                du candidat correspondent à son profil actuel.
+              </p>
             </aside>
           )}
 
-          <AdminCard title="Coordonnées du candidat" description="Informations à l’envoi" index={1}>
-            <p>{application.person?.first_name} {application.person?.last_name}</p>
-            <p><a className="underline" href={`mailto:${application.person?.email}`}>{application.person?.email}</a></p>
+          <AdminCard
+            title="Coordonnées du candidat"
+            description="Informations à l’envoi"
+            index={1}
+          >
+            <p>
+              {application.person?.first_name} {application.person?.last_name}
+            </p>
+            <p>
+              <a
+                className="underline"
+                href={`mailto:${application.person?.email}`}
+              >
+                {application.person?.email}
+              </a>
+            </p>
             <p>{application.person?.phone || "Téléphone non renseigné"}</p>
           </AdminCard>
 
           <AdminCard title="Message de motivation" index={2}>
-            <p className="whitespace-pre-wrap">{application.message || "Aucun message conservé."}</p>
+            <p className="whitespace-pre-wrap">
+              {application.message || "Aucun message conservé."}
+            </p>
           </AdminCard>
 
           <AdminCard title="Projets présentés" index={3}>
@@ -82,12 +127,34 @@ export default function AdminApplicationDetailPage() {
             ) : (
               <ul className="grid list-none gap-4 p-0">
                 {application.projects.map((project) => (
-                  <li key={project.id} className="border-l-4 border-[#f09169] pl-4">
+                  <li key={project.id} className="border-t border-rule/30 pt-4">
                     <h3 className="font-bold">{project.title}</h3>
-                    {project.description && <p className="mt-1 whitespace-pre-wrap">{project.description}</p>}
+                    {project.description && (
+                      <p className="mt-1 whitespace-pre-wrap">
+                        {project.description}
+                      </p>
+                    )}
                     <div className="mt-2 flex flex-wrap gap-4 text-sm">
-                      {project.project_url && <a className="font-bold underline" href={project.project_url} target="_blank" rel="noreferrer">Voir le projet</a>}
-                      {project.repository_url && <a className="font-bold underline" href={project.repository_url} target="_blank" rel="noreferrer">Voir le dépôt</a>}
+                      {project.project_url && (
+                        <a
+                          className="font-bold underline"
+                          href={project.project_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Voir le projet
+                        </a>
+                      )}
+                      {project.repository_url && (
+                        <a
+                          className="font-bold underline"
+                          href={project.repository_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Voir le dépôt
+                        </a>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -101,10 +168,21 @@ export default function AdminApplicationDetailPage() {
             ) : (
               <ul className="grid list-none gap-4 p-0">
                 {application.experiences.map((experience) => (
-                  <li key={experience.id} className="border-l-4 border-[#bedbc7] pl-4">
-                    <h3 className="font-bold">{experience.job_title} · {experience.company_name}</h3>
-                    <p className="mt-1 text-sm">{formatPeriod(experience.start_date, experience.end_date)}</p>
-                    {experience.description && <p className="mt-2 whitespace-pre-wrap">{experience.description}</p>}
+                  <li
+                    key={experience.id}
+                    className="border-t border-rule/30 pt-4"
+                  >
+                    <h3 className="font-bold">
+                      {experience.job_title} · {experience.company_name}
+                    </h3>
+                    <p className="mt-1 text-sm">
+                      {formatPeriod(experience.start_date, experience.end_date)}
+                    </p>
+                    {experience.description && (
+                      <p className="mt-2 whitespace-pre-wrap">
+                        {experience.description}
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -116,10 +194,27 @@ export default function AdminApplicationDetailPage() {
               <div className="flex flex-wrap gap-4">
                 {application.cv.file_url ? (
                   <>
-                    <a className="font-bold underline underline-offset-4" href={application.cv.file_url} target="_blank" rel="noreferrer">Consulter {application.cv.original_name}</a>
-                    <a className="font-bold underline underline-offset-4" href={`${application.cv.file_url}?download=1`}>Télécharger</a>
+                    <a
+                      className="font-bold underline underline-offset-4"
+                      href={application.cv.file_url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Consulter {application.cv.original_name}
+                    </a>
+                    <a
+                      className="font-bold underline underline-offset-4"
+                      href={`${application.cv.file_url}?download=1`}
+                    >
+                      Télécharger
+                    </a>
                   </>
-                ) : <p>{application.cv.original_name || "CV conservé sans fichier consultable."}</p>}
+                ) : (
+                  <p>
+                    {application.cv.original_name ||
+                      "CV conservé sans fichier consultable."}
+                  </p>
+                )}
               </div>
             ) : (
               <p>Aucun CV n’était joint à cette candidature.</p>

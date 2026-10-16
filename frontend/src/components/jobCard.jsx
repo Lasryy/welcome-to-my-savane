@@ -1,22 +1,15 @@
 import { Link } from "react-router-dom";
 import { contractLabels, formatDate, formatSalary, workingTimeLabels } from "../utils/adminUtils";
-
-function companyInitials(name = "") {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-  const initials = words.slice(0, 2).map((word) => word[0]).join("");
-  return initials.toLocaleUpperCase("fr") || "?";
-}
+import CompanyLogo from "./CompanyLogo";
 
 function JobCard({ ad, index = 0 }) {
   const description = ad.short_description || ad.description || "Consultez l’offre pour découvrir le poste et ses missions.";
   const cardColors = ["bg-lavender", "bg-mint", "bg-mint", "bg-sun", "bg-lavender", "bg-mint"];
 
   return (
-    <article className={`flex min-h-full min-w-0 flex-col overflow-hidden rounded-tr-[18px] border border-rule ${cardColors[index % cardColors.length]}`} aria-labelledby={`job-title-${ad.id}`}>
+    <article className={`job-card flex min-h-full min-w-0 flex-col overflow-hidden rounded-[12px_28px_12px_12px] border border-rule ${cardColors[index % cardColors.length]}`} aria-labelledby={`job-title-${ad.id}`}>
       <header className="flex min-h-[74px] items-center gap-3 bg-ink px-[18px] py-3.5 text-paper">
-        <span className="grid h-[42px] w-[42px] shrink-0 place-items-center border border-[#959ab2] text-[13px] font-bold" aria-hidden="true">
-          {companyInitials(ad.company_name)}
-        </span>
+        <CompanyLogo name={ad.company_name} url={ad.company_logo_url} size={44} />
         <p className="min-w-0 break-words font-bold">
           {ad.company_name || "Entreprise"}
           <span className="block text-[11px] font-normal text-[#e3e7f4]">

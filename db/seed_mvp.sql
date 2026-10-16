@@ -13,7 +13,7 @@
 -- Les dates sont relatives à CURRENT_TIMESTAMP pour garder des offres récentes.
 --
 -- Volumes attendus :
---   122 comptes : 120 candidats USER + 2 administrateurs ADMIN
+--   123 comptes : 120 candidats USER + 3 administrateurs ADMIN
 --   30 entreprises, 20 catégories, 240 offres (60 métiers x 4 variantes)
 --   360 projets, 360 expériences, 720 candidatures
 --   1 440 liens vers des projets, 1 440 liens vers des expériences
@@ -46,7 +46,9 @@ RESTART IDENTITY;
 -- 1. ENTREPRISES : villes, présentation et sites fictifs.
 INSERT INTO companies (name, description, website, location, logo_url, created_at)
 SELECT name, description, 'https://' || domain || '.example.com', location,
-       NULL, CURRENT_TIMESTAMP - INTERVAL '2 years'
+       'https://api.dicebear.com/10.x/shapes/svg?seed=company-' || name
+           || '&backgroundColor=f09169,bedbc7,acbefa,f0e970',
+       CURRENT_TIMESTAMP - INTERVAL '2 years'
 FROM (VALUES
     ('NovaTech', 'novatech', 'Paris', 'Éditeur SaaS de 85 personnes qui simplifie les opérations des PME. Nos équipes produit travaillent en cycles courts, avec des tests automatisés et un contact direct avec les clients.'),
     ('DataForge', 'dataforge', 'Lyon', 'Cabinet de 60 spécialistes de la donnée. Nous construisons des plateformes analytiques pour les secteurs de la santé, de la distribution et des transports.'),
@@ -322,6 +324,9 @@ INSERT INTO people (first_name, last_name, email, phone, password_hash, role, cr
      '$2b$10$OozsG2pijPcjPx5I1a/feO1tzKKWhupzIMjhTpHcVQkohbnehpzra',
      'ADMIN', CURRENT_TIMESTAMP - INTERVAL '2 years'),
     ('Sophie', 'Gestion', 'moderation@jobboard.example.com', NULL,
+     '$2b$10$OozsG2pijPcjPx5I1a/feO1tzKKWhupzIMjhTpHcVQkohbnehpzra',
+     'ADMIN', CURRENT_TIMESTAMP - INTERVAL '2 years'),
+    ('Lasry', 'Admin', 'lasry.admin@example.com', NULL,
      '$2b$10$OozsG2pijPcjPx5I1a/feO1tzKKWhupzIMjhTpHcVQkohbnehpzra',
      'ADMIN', CURRENT_TIMESTAMP - INTERVAL '2 years');
 
@@ -1197,7 +1202,7 @@ DECLARE
     actual_count BIGINT;
 BEGIN
     FOR item IN SELECT * FROM (VALUES
-        ('people', 122), ('companies', 30), ('categories', 20), ('ads', 240),
+        ('people', 123), ('companies', 30), ('categories', 20), ('ads', 240),
         ('projects', 360), ('experiences', 360), ('applications', 720),
         ('application_projects', 1440), ('application_experiences', 1440)
     ) AS expected(table_name, row_count)

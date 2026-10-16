@@ -1,3 +1,4 @@
+import PasswordInput from "../../components/ui/PasswordInput";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
@@ -33,17 +34,25 @@ function LoginPage() {
         return;
       }
 
-      const defaultPath = data.role === "ADMIN" ? "/admin" : data.role === "COMPANY" ? "/company" : "/";
+      const defaultPath =
+        data.role === "ADMIN"
+          ? "/admin"
+          : data.role === "COMPANY"
+            ? "/company"
+            : "/";
       const requestedPath = location.state?.from;
-      const allowedReturnPath = requestedPath && (
-        (data.role === "ADMIN" && requestedPath.startsWith("/admin")) ||
-        (data.role === "COMPANY" && requestedPath.startsWith("/company")) ||
-        (data.role === "USER" && !requestedPath.startsWith("/admin") && !requestedPath.startsWith("/company"))
-      );
+      const allowedReturnPath =
+        requestedPath &&
+        ((data.role === "ADMIN" && requestedPath.startsWith("/admin")) ||
+          (data.role === "COMPANY" && requestedPath.startsWith("/company")) ||
+          (data.role === "USER" &&
+            !requestedPath.startsWith("/admin") &&
+            !requestedPath.startsWith("/company")));
       const returnPath = allowedReturnPath ? requestedPath : defaultPath;
-      const returnState = data.role === "USER" && location.state?.continueApplication
-        ? { continueApplication: true }
-        : null;
+      const returnState =
+        data.role === "USER" && location.state?.continueApplication
+          ? { continueApplication: true }
+          : null;
 
       navigate(returnPath, { replace: true, state: returnState });
     } catch (error) {
@@ -56,12 +65,15 @@ function LoginPage() {
 
   return (
     <AuthLayout
+      variant="login"
       title="Bon retour."
-      description="Connectez-vous pour retrouver votre parcours."
+      description="Retrouve ton profil et tes opportunités."
       footer={
         <>
           Pas encore de compte ?{" "}
-          <Link to="/register" state={location.state}>Créer un compte</Link>
+          <Link to="/register" state={location.state}>
+            Créer un compte
+          </Link>
         </>
       }
     >
@@ -79,18 +91,18 @@ function LoginPage() {
           />
         </label>
 
-        <label className="form-field">
-          Mot de passe
-          <input
+        <div className="form-field">
+          <label htmlFor="login-password">Mot de passe</label>
+          <PasswordInput
+            id="login-password"
             className="form-input"
-            type="password"
             name="password"
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
           />
-        </label>
+        </div>
 
         {error && (
           <p className="form-error" role="alert">
@@ -98,7 +110,11 @@ function LoginPage() {
           </p>
         )}
 
-        <button className="primary-button mt-1" type="submit" disabled={isLoading}>
+        <button
+          className="primary-button mt-1"
+          type="submit"
+          disabled={isLoading}
+        >
           {isLoading ? "Connexion…" : "Se connecter"}
         </button>
       </form>

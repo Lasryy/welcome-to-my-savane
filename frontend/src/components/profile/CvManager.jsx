@@ -130,7 +130,7 @@ function CvManager() {
   }
 
   return (
-    <section className="profile-section" aria-labelledby="profile-cv-title" aria-busy={isLoading || isSaving || isUpdating}>
+    <section className="profile-section profile-library" aria-labelledby="profile-cv-title" aria-busy={isLoading || isSaving || isUpdating}>
       <div className="profile-section-heading">
         <div>
           <h2 id="profile-cv-title">Mes CV</h2>
@@ -147,7 +147,10 @@ function CvManager() {
       {isLoading && <p role="status">Chargement de tes CV…</p>}
 
       {!isLoading && cvDocuments.length === 0 && !error && (
-        <p className="profile-empty">Tu n’as pas encore ajouté de CV.</p>
+        <div className="profile-empty-state">
+          <img src="/illustrations/profile-cv-zebra.webp" alt="" aria-hidden="true" />
+          <p className="profile-empty">Tu n’as pas encore ajouté de CV.</p>
+        </div>
       )}
 
       {!isLoading && cvDocuments.length > 0 && (

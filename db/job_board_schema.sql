@@ -21,6 +21,7 @@ CREATE TABLE people (
     role VARCHAR(20) NOT NULL DEFAULT 'USER'
         CHECK (role IN ('USER', 'COMPANY', 'ADMIN')),
     company_id INTEGER,
+    is_visible_to_recruiters BOOLEAN NOT NULL DEFAULT FALSE,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 

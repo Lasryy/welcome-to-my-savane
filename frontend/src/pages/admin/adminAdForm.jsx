@@ -254,7 +254,7 @@ function AdForm({ adId }) {
               </AdminField>
             </div>
             <AdminField label="Résumé" name="ad-summary" help="500 caractères maximum."><textarea id="ad-summary" name="short_description" rows={3} maxLength={500} aria-describedby="ad-summary-help" value={form.short_description} onChange={update} /></AdminField>
-            <AdminField label="Description complète *" name="ad-description"><textarea id="ad-description" name="description" required rows={14} value={form.description} onChange={update} /></AdminField>
+            <AdminField label="Description complète *" name="ad-description"><textarea className="description-input" id="ad-description" name="description" required rows={14} value={form.description} onChange={update} /></AdminField>
             <div className="grid gap-5 md:grid-cols-2">
               <AdminField label="Lieu" name="ad-location"><input id="ad-location" name="location" maxLength={255} value={form.location} onChange={update} /></AdminField>
               <AdminField label="Statut" name="ad-status">

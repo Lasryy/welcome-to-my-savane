@@ -119,4 +119,64 @@
  *     responses:
  *       '200': { description: Updated application status. }
  *       '404': { description: Application not found for this company. }
+ * /api/company/candidates:
+ *   get:
+ *     tags: [Company]
+ *     summary: Search candidates who opted in to recruiter visibility
+ *     description: Searches candidate names, project details and experience details. Results contain only names and project/experience counts; contact details, password data and CVs are not returned. Each result is unique even when several fields match.
+ *     security: [{ sessionCookie: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         description: Optional keyword, up to 200 characters.
+ *         schema: { type: string, maxLength: 200 }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1, default: 1 }
+ *       - in: query
+ *         name: page_size
+ *         description: Defaults to 12 and cannot exceed 100.
+ *         schema: { type: integer, minimum: 1, maximum: 100, default: 12 }
+ *     responses:
+ *       '200':
+ *         description: Paginated candidate summaries visible to recruiters.
+ *         content:
+ *           application/json:
+ *             example:
+ *               items: [{ id: 7, first_name: Camille, last_name: Petit, project_count: 2, experience_count: 1 }]
+ *               page: 1
+ *               page_size: 12
+ *               total: 1
+ *               total_pages: 1
+ *       '400': { description: Invalid search or pagination parameters. }
+ *       '401': { description: Login required. }
+ *       '403': { description: COMPANY role required. }
+ *       '500': { description: Internal database error. }
+ * /api/company/candidates/{personId}:
+ *   get:
+ *     tags: [Company]
+ *     summary: Read the profile of a candidate who opted in
+ *     description: Returns the candidate's name, projects and experiences. Email, phone, password data and CVs are never included. Hidden and missing profiles both return 404.
+ *     security: [{ sessionCookie: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: personId
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '200':
+ *         description: Candidate profile and professional details.
+ *         content:
+ *           application/json:
+ *             example:
+ *               id: 7
+ *               first_name: Camille
+ *               last_name: Petit
+ *               projects: [{ id: 3, title: Portfolio, description: Site personnel, project_url: 'https://example.com', repository_url: 'https://github.com/example/site' }]
+ *               experiences: [{ id: 8, company_name: Savane Tech, job_title: Développeuse, description: Première expérience, start_date: '2024-01-01', end_date: null }]
+ *       '400': { description: Invalid candidate ID. }
+ *       '401': { description: Login required. }
+ *       '403': { description: COMPANY role required. }
+ *       '404': { description: Candidate profile is missing or hidden. }
+ *       '500': { description: Internal database error. }
  */

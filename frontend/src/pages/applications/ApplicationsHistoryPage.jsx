@@ -129,7 +129,7 @@ export default function ApplicationsHistoryPage() {
             <p className="mb-4">
               Parcours les offres et envoie ta première candidature.
             </p>
-            <Link className="font-bold underline" to="/">
+            <Link className="font-bold underline" to="/jobs">
               Voir les offres
             </Link>
           </div>

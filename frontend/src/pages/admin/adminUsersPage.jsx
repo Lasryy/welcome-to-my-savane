@@ -10,6 +10,7 @@ import { adminRequest } from "../../services/adminApi";
 import AdminPagination from "../../components/admin/AdminPagination";
 import PersonAvatar from "../../components/PersonAvatar";
 import AdminCreateUserModal from "./AdminCreateUserModal";
+import CustomSelect from "../../components/CustomSelect";
 
 const EMPTY_FORM = {
   first_name: "",
@@ -280,17 +281,13 @@ export default function AdminUsersPage() {
               />
             </AdminField>
             <AdminField label="Rôle" name="user-role">
-              <select
+              <CustomSelect
                 id="user-role"
-                name="role"
                 value={form.role}
-                onChange={updateField}
+                onChange={(value) => updateField({ target: { name: "role", value } })}
                 disabled={editingId === currentUserId}
-              >
-                <option value="USER">Candidat</option>
-                <option value="COMPANY">Recruteur</option>
-                <option value="ADMIN">Administrateur</option>
-              </select>
+                options={[{ value: "USER", label: "Candidat" }, { value: "COMPANY", label: "Recruteur" }, { value: "ADMIN", label: "Administrateur" }]}
+              />
               {editingId === currentUserId && (
                 <p className="admin-help text-[12px]">
                   Tu ne peux pas modifier ton propre rôle.
@@ -299,20 +296,16 @@ export default function AdminUsersPage() {
             </AdminField>
             {editingId !== currentUserId && form.role === "COMPANY" && (
               <AdminField label="Entreprise *" name="user-company">
-                <select
+                <CustomSelect
                   id="user-company"
-                  name="company_id"
                   value={form.company_id}
-                  onChange={updateField}
+                  onChange={(value) => updateField({ target: { name: "company_id", value } })}
                   required
-                >
-                  <option value="">Choisir une entreprise</option>
-                  {companies.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: "", label: "Choisir une entreprise" },
+                    ...companies.map((company) => ({ value: company.id, label: company.name })),
+                  ]}
+                />
                 <p className="admin-help text-[12px]">
                   Plusieurs comptes recruteur peuvent être rattachés à la même
                   entreprise.
@@ -358,18 +351,12 @@ export default function AdminUsersPage() {
         </label>
         <label className="admin-field grid gap-2" htmlFor="users-role">
           Rôle
-          <select
+          <CustomSelect
             id="users-role"
             value={roleFilter}
-            onChange={(event) =>
-              updateListFilter(() => setRoleFilter(event.target.value))
-            }
-          >
-            <option value="all">Tous les rôles</option>
-            <option value="USER">Candidats</option>
-            <option value="COMPANY">Recruteurs</option>
-            <option value="ADMIN">Administrateurs</option>
-          </select>
+            onChange={(value) => updateListFilter(() => setRoleFilter(value))}
+            options={[{ value: "all", label: "Tous les rôles" }, { value: "USER", label: "Candidats" }, { value: "COMPANY", label: "Recruteurs" }, { value: "ADMIN", label: "Administrateurs" }]}
+          />
         </label>
       </section>
       <AdminListState

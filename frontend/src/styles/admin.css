@@ -87,7 +87,8 @@
   font-size: 13px;
   font-weight: 650;
 }
-.admin-field :is(input, textarea, select) {
+.admin-field :is(input, textarea, select),
+.admin-field .custom-select-trigger {
   width: 100%;
   min-width: 0;
   min-height: 46px;
@@ -97,6 +98,9 @@
   color: #252a46;
   background: #fffdf8;
   font: inherit;
+  font-size: 14px;
+}
+.admin-field .custom-select-menu {
   font-size: 14px;
 }
 .admin-field textarea {

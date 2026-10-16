@@ -1,4 +1,5 @@
 import Modal from "../../components/ui/Modal";
+import CustomSelect from "../../components/CustomSelect";
 import { contractLabels, workingTimeLabels } from "../../utils/adminUtils";
 
 export default function CompanyOfferForm({
@@ -77,51 +78,36 @@ export default function CompanyOfferForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="form-field sm:col-span-2">
               Domaine
-              <select
-                className="form-input"
-                name="category_id"
+              <CustomSelect
                 value={form.category_id}
-                onChange={onChange}
-              >
-                <option value="">Non renseigné</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => onChange({ target: { name: "category_id", value } })}
+                options={[
+                  { value: "", label: "Non renseigné" },
+                  ...categories.map((category) => ({ value: category.id, label: category.name })),
+                ]}
+              />
             </label>
             <label className="form-field">
               Contrat
-              <select
-                className="form-input"
-                name="contract_type"
+              <CustomSelect
                 value={form.contract_type}
-                onChange={onChange}
-              >
-                <option value="">Non renseigné</option>
-                {Object.entries(contractLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => onChange({ target: { name: "contract_type", value } })}
+                options={[
+                  { value: "", label: "Non renseigné" },
+                  ...Object.entries(contractLabels).map(([value, label]) => ({ value, label })),
+                ]}
+              />
             </label>
             <label className="form-field">
               Temps de travail
-              <select
-                className="form-input"
-                name="working_time"
+              <CustomSelect
                 value={form.working_time}
-                onChange={onChange}
-              >
-                <option value="">Non renseigné</option>
-                {Object.entries(workingTimeLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => onChange({ target: { name: "working_time", value } })}
+                options={[
+                  { value: "", label: "Non renseigné" },
+                  ...Object.entries(workingTimeLabels).map(([value, label]) => ({ value, label })),
+                ]}
+              />
             </label>
           </div>
         </fieldset>
@@ -156,31 +142,23 @@ export default function CompanyOfferForm({
             </label>
             <label className="form-field">
               Période
-              <select
-                className="form-input"
-                name="salary_period"
+              <CustomSelect
                 value={form.salary_period}
-                onChange={onChange}
-              >
-                <option value="year">Par an</option>
-                <option value="month">Par mois</option>
-              </select>
+                onChange={(value) => onChange({ target: { name: "salary_period", value } })}
+                options={[{ value: "year", label: "Par an" }, { value: "month", label: "Par mois" }]}
+              />
             </label>
           </div>
         </fieldset>
         <div className="dialog-actions">
           <label className="form-field">
             Visibilité de l’offre
-            <select
-              className="form-input"
-              name="status"
+            <CustomSelect
               value={form.status}
               disabled={pending}
-              onChange={onChange}
-            >
-              <option value="published">Publiée</option>
-              <option value="closed">Fermée</option>
-            </select>
+              onChange={(value) => onChange({ target: { name: "status", value } })}
+              options={[{ value: "published", label: "Publiée" }, { value: "closed", label: "Fermée" }]}
+            />
           </label>
           <div className="flex flex-wrap gap-3">
             <button

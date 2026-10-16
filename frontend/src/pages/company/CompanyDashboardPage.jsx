@@ -8,6 +8,7 @@ import UiIcon from "../../components/ui/UiIcon";
 import PersonAvatar from "../../components/PersonAvatar";
 import { adminRequest } from "../../services/adminApi";
 import CompanyUsersPanel from "./CompanyUsersPanel";
+import CustomSelect from "../../components/CustomSelect";
 
 const EMPTY_AD = {
   title: "",
@@ -277,21 +278,20 @@ export default function CompanyDashboardPage() {
       {isAdmin && (
         <label className="mb-5 grid max-w-xl gap-2 font-bold">
           Entreprise à consulter
-          <select
-            className="rounded border border-ink bg-white p-3"
+          <CustomSelect
             value={selectedCompanyId}
-            onChange={(event) => {
-              const nextId = event.target.value;
+            onChange={(nextId) => {
               setSelectedCompanyId(nextId);
               setCompany(companies.find((item) => String(item.id) === nextId) || null);
               setSearchParams(nextId ? { company_id: nextId } : {});
               setPage(1);
               setSelectedApplication(null);
             }}
-          >
-            <option value="">Choisir une entreprise</option>
-            {companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-          </select>
+            options={[
+              { value: "", label: "Choisir une entreprise" },
+              ...companies.map((item) => ({ value: item.id, label: item.name })),
+            ]}
+          />
         </label>
       )}
       <div
@@ -402,28 +402,20 @@ export default function CompanyDashboardPage() {
             )}
             <label className="grid gap-1 text-sm">
               Statut
-              <select
-                className="rounded border border-ink bg-white p-2"
+              <CustomSelect
                 value={statusFilter}
-                onChange={(event) => {
+                triggerClassName="min-h-10 p-2"
+                onChange={(value) => {
                   setPage(1);
-                  setStatusFilter(event.target.value);
+                  setStatusFilter(value);
                 }}
-              >
-                <option value="all">Tous</option>
-                {tab === "ads" ? (
-                  <>
-                    <option value="published">Publiées</option>
-                    <option value="closed">Fermées</option>
-                  </>
-                ) : (
-                  STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {STATUS_LABELS[status]}
-                    </option>
-                  ))
-                )}
-              </select>
+                options={[
+                  { value: "all", label: "Tous" },
+                  ...(tab === "ads"
+                    ? [{ value: "published", label: "Publiées" }, { value: "closed", label: "Fermées" }]
+                    : STATUSES.map((status) => ({ value: status, label: STATUS_LABELS[status] }))),
+                ]}
+              />
             </label>
           </div>
         </div>
@@ -512,21 +504,14 @@ export default function CompanyDashboardPage() {
                     >
                       Ouvrir le dossier
                     </button>
-                    {!isAdmin ? <select
-                      aria-label={`Statut de ${item.first_name} ${item.last_name}`}
+                    {!isAdmin ? <CustomSelect
+                      ariaLabel={`Statut de ${item.first_name} ${item.last_name}`}
                       value={item.status}
                       disabled={pending}
-                      onChange={(event) =>
-                        changeApplicationStatus(item.id, event.target.value)
-                      }
-                      className="rounded border border-ink bg-white p-2"
-                    >
-                      {STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {STATUS_LABELS[status]}
-                        </option>
-                      ))}
-                    </select> : <Link className="underline" to={`/admin/applications/${item.id}`}>Modifier avec confirmation</Link>}
+                      triggerClassName="min-h-10 p-2"
+                      onChange={(value) => changeApplicationStatus(item.id, value)}
+                      options={STATUSES.map((status) => ({ value: status, label: STATUS_LABELS[status] }))}
+                    /> : <Link className="underline" to={`/admin/applications/${item.id}`}>Modifier avec confirmation</Link>}
                   </div>
                 </article>
               ),

@@ -263,7 +263,7 @@ La page utilise `frontend/src/styles/job-board.css` pour sa mise en page propre.
 
 ### Application — extension approuvée
 
-Le header partagé, crème avec texte bleu nuit sur toutes les pages, adapte ses liens au rôle et expose la déconnexion. Sur mobile il utilise un menu `<details>`. Les boutons ont une hauteur minimale de 46px ; les actions secondaires restent bordées. Les champs portent des labels explicites, et les listes déroulantes utilisent `<select>` natif. Le dialogue partagé utilise `<dialog>.showModal()`, un titre associé, Échap, un bouton Fermer et un contenu défilant. La pagination partage la même présentation entre espaces. Les commentaires du code restent en anglais. Les transitions de couleur durent 160ms ; la préférence de mouvement réduit est respectée.
+Le header partagé, crème avec texte bleu nuit sur toutes les pages, adapte ses liens au rôle et expose la déconnexion. Sur mobile il utilise un menu `<details>`. Les boutons ont une hauteur minimale de 46px ; les actions secondaires restent bordées. Les champs portent des labels explicites. Les menus de sélection utilisent le composant partagé `CustomSelect` : déclencheur crème bordé, liste crème à coins de 8px, option active bleu nuit/blanc cassé et option sélectionnée jaune/encre. La navigation au clavier, le focus visible, l’état désactivé et la validation des champs obligatoires sont conservés. Le dialogue partagé utilise `<dialog>.showModal()`, un titre associé, Échap, un bouton Fermer et un contenu défilant. La pagination partage la même présentation entre espaces. Les commentaires du code restent en anglais. Les transitions de couleur durent 160ms ; la préférence de mouvement réduit est respectée.
 
 ### Buttons
 
@@ -279,7 +279,7 @@ Chaque affiche garde entreprise, secteur, signet, contrat, ville, titre, salaire
 
 ### Inputs / Fields
 
-La recherche repose sur des labels explicites, des champs natifs et des pictogrammes SVG. La barre crème prend un contour de focus de 2px, décalé de 3px ; chaque champ reste sans bordure intérieure propre. Les selects de filtres restent natifs. Le bouton Rechercher est désactivé pendant le chargement simulé, avec opacité réduite et curseur d’attente. Les états de résultats comprennent chargement, vide et erreur récupérable ; ce sont des états de démonstration.
+La recherche repose sur des labels explicites, des champs natifs et des pictogrammes SVG. La barre crème prend un contour de focus de 2px, décalé de 3px ; chaque champ reste sans bordure intérieure propre. Les filtres utilisent le composant partagé `CustomSelect` afin que le menu ouvert conserve la même présentation dans chaque navigateur. Le bouton Rechercher est désactivé pendant le chargement simulé, avec opacité réduite et curseur d’attente. Les états de résultats comprennent chargement, vide et erreur récupérable ; ce sont des états de démonstration.
 
 ### Navigation
 

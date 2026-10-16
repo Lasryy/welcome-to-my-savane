@@ -1,4 +1,5 @@
 import Pagination from "../../components/ui/Pagination";
+import CustomSelect from "../../components/CustomSelect";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDate } from "../../utils/adminUtils";
@@ -163,21 +164,17 @@ export default function ApplicationsHistoryPage() {
       {activeSection === "applications" && !loading && !isLoggedOut && !error && applications.length > 0 && (
         <label className="form-field mb-6 max-w-xs">
           Filtrer par statut
-          <select
-            className="form-input"
+          <CustomSelect
             value={statusFilter}
-            onChange={(event) => {
-              setStatusFilter(event.target.value);
+            onChange={(value) => {
+              setStatusFilter(value);
               setPage(1);
             }}
-          >
-            <option value="all">Tous les statuts</option>
-            {Object.entries(STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: "all", label: "Tous les statuts" },
+              ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label })),
+            ]}
+          />
         </label>
       )}
       {activeSection === "applications" && loading && <p role="status">Chargement de tes candidatures…</p>}

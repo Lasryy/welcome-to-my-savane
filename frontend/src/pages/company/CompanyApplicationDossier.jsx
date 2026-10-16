@@ -1,4 +1,5 @@
 import Modal from "../../components/ui/Modal";
+import CustomSelect from "../../components/CustomSelect";
 import { Link } from "react-router-dom";
 import { formatDate } from "../../utils/adminUtils";
 
@@ -166,16 +167,12 @@ export default function CompanyApplicationDossier({
           ) : (
             <label className="form-field mt-6">
               Statut du dossier
-              <select
-                className="form-input"
+              <CustomSelect
                 value={dossier.status}
                 disabled={pending}
-                onChange={(event) => onStatusChange(dossier.id, event.target.value)}
-              >
-                {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
+                onChange={(value) => onStatusChange(dossier.id, value)}
+                options={Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))}
+              />
             </label>
           )}
         </>

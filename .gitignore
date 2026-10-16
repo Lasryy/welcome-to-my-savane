@@ -5,3 +5,16 @@ dist/
 .env.*
 !.env.example
 backend/storage/
+
+# Documents internes et fichiers du template Vite retirés de main
+/DESIGN.md
+/Handoff.md
+/PRODUCT.md
+/frontend/ADMIN.md
+/frontend/README.md
+/frontend/public/icons.svg
+/frontend/src/assets/hero.png
+/frontend/src/assets/react.svg
+/frontend/src/assets/vite.svg
+/docs/superpowers/plans/2026-10-13-etape-4-profil-candidat.md
+/docs/superpowers/specs/2026-10-13-etape-4-profil-candidat.md

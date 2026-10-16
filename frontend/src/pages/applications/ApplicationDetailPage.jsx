@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import RequestState, { StateLink } from "../../components/ui/RequestState";
 import { requestJson } from "./applicationApi";
 import { formatDate } from "../../utils/adminUtils";
 
@@ -18,10 +19,13 @@ function formatPeriod(startDate, endDate) {
 
 export default function ApplicationDetailPage() {
   const { id } = useParams();
-  const [application, setApplication] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  const requestKey = `${id}-${retryKey}`;
+  const [requestState, setRequestState] = useState({ key: "", status: "loading" });
+  const loading = requestState.key !== requestKey || requestState.status === "loading";
+  const application = requestState.key === requestKey ? requestState.application : null;
+  const error = requestState.key === requestKey ? requestState.error || "" : "";
+  const isLoggedOut = requestState.key === requestKey && requestState.status === "login";
 
   useEffect(() => {
     const controller = new AbortController();
@@ -31,24 +35,26 @@ export default function ApplicationDetailPage() {
         const data = await requestJson(`/api/applications/mine/${id}`, {
           signal: controller.signal,
         });
-        if (!controller.signal.aborted) setApplication(data);
+        if (!controller.signal.aborted) {
+          setRequestState({ key: requestKey, status: "ready", application: data });
+        }
       } catch (requestError) {
         if (controller.signal.aborted) return;
         if (requestError.status === 401) {
-          setIsLoggedOut(true);
+          setRequestState({ key: requestKey, status: "login" });
         } else {
-          setError(
-            requestError.message || "Impossible de charger cette candidature.",
-          );
+          setRequestState({
+            key: requestKey,
+            status: "error",
+            error: requestError.message || "Impossible de charger cette candidature.",
+          });
         }
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
       }
     }
 
     loadApplication();
     return () => controller.abort();
-  }, [id]);
+  }, [id, requestKey]);
 
   const snapshot = application?.submitted_snapshot;
   const projects =
@@ -68,23 +74,30 @@ export default function ApplicationDetailPage() {
         ← Retour à l’espace candidat
       </Link>
 
-      {loading && <p role="status">Chargement du dossier…</p>}
+      {loading && (
+        <RequestState
+          variant="loading"
+          title="Chargement de ton dossier"
+          description="On récupère les informations envoyées avec ta candidature."
+        />
+      )}
       {error && (
-        <p className="border border-ink bg-white p-5" role="alert">
-          {error}
-        </p>
+        <RequestState
+          title="Impossible de charger ce dossier"
+          description={error}
+          onRetry={() => setRetryKey((key) => key + 1)}
+        />
       )}
       {isLoggedOut && (
-        <div className="border border-rule bg-white p-6">
-          <p className="mb-4">Connecte-toi pour consulter ce dossier.</p>
-          <Link
-            className="font-bold underline underline-offset-4"
-            to="/login"
-            state={{ from: `/applications/${id}` }}
-          >
+        <RequestState
+          variant="forbidden"
+          title="Connecte-toi pour consulter ce dossier"
+          description="Tes candidatures sont accessibles depuis ton espace personnel."
+        >
+          <StateLink to="/login" state={{ from: `/applications/${id}` }}>
             Se connecter
-          </Link>
-        </div>
+          </StateLink>
+        </RequestState>
       )}
 
       {!loading && !error && !isLoggedOut && application && (

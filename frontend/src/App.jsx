@@ -23,6 +23,7 @@ import CompanyRoute from "./pages/company/CompanyRoute";
 import CompanyDashboardPage from "./pages/company/CompanyDashboardPage";
 import CandidateDirectoryPage from "./pages/company/CandidateDirectoryPage";
 import CandidateProfilePage from "./pages/company/CandidateProfilePage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 // This router also supports useBlocker in the admin's unsaved-change warning.
 const router = createBrowserRouter([
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
       { path: "/jobs/:id", element: <JobDetailPage /> },
       { path: "/applications", element: <ApplicationsHistoryPage /> },
       { path: "/applications/:id", element: <ApplicationDetailPage /> },
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
   { path: "/login", element: <LoginPage /> },

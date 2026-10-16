@@ -1,0 +1,105 @@
+.request-state {
+  display: grid;
+  width: min(100%, 820px);
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+  margin: 28px auto;
+  padding: clamp(22px, 4vw, 34px);
+  color: var(--color-ink);
+  background: var(--surface, var(--color-paper));
+  border: 1px solid var(--line);
+  border-radius: 22px 48px 22px 22px;
+}
+.request-state__mark {
+  display: grid;
+  width: 48px;
+  aspect-ratio: 1;
+  place-items: center;
+  color: var(--color-ink);
+  background: var(--color-sun);
+  border-radius: 50%;
+  font-size: 26px;
+  font-weight: 800;
+}
+.request-state--loading .request-state__mark {
+  background: var(--color-mint);
+}
+.request-state--forbidden .request-state__mark {
+  background: var(--color-lavender);
+}
+.request-state__illustration {
+  display: block;
+  width: 100%;
+  grid-column: 1 / -1;
+  aspect-ratio: 2.5 / 1;
+  object-fit: cover;
+  object-position: center 58%;
+  border-radius: 16px 42px 16px 16px;
+}
+.request-state--admin-access {
+  width: min(100% - 32px, 900px);
+  grid-template-columns: 48px minmax(0, 1fr);
+  margin-block: clamp(28px, 8vh, 90px);
+}
+.request-state--admin-access .request-state__illustration {
+  aspect-ratio: 2.4 / 1;
+  object-position: center 60%;
+}
+.request-state__spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgb(37 42 70 / 24%);
+  border-top-color: var(--color-ink);
+  border-radius: 50%;
+  animation: request-state-spin 800ms linear infinite;
+}
+.request-state__content h2 {
+  font-size: clamp(20px, 2.3vw, 26px);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.request-state__content > p {
+  margin-top: 9px;
+  color: var(--color-muted, #62677d);
+  line-height: 1.6;
+}
+.request-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+.request-state__actions .button {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.request-state--loading .request-state__mark:empty {
+  display: none;
+}
+@keyframes request-state-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .request-state__spinner { animation-duration: 2s; }
+}
+@media (max-width: 520px) {
+  .request-state {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 14px;
+    border-top-right-radius: 30px;
+  }
+  .request-state__mark { width: 38px; }
+  .request-state--admin-access {
+    width: min(100% - 24px, 900px);
+  }
+  .request-state--admin-access .request-state__illustration {
+    aspect-ratio: 1.6 / 1;
+  }
+}

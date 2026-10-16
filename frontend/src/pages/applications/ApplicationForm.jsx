@@ -425,7 +425,7 @@ export default function ApplicationForm({ ad, onCancel }) {
         <div className="application-success" role="status">
           <p>{success}</p>
           <Link className="button button-primary mt-4" to="/applications">
-            Suivre mes candidatures
+            Ouvrir l’espace candidat
           </Link>
         </div>
       )}

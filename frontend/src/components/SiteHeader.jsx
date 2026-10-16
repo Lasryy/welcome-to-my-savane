@@ -78,7 +78,7 @@ export default function SiteHeader() {
       </NavLink>
       {(user?.role === "USER" || user?.role === "ADMIN") && (
         <>
-          <NavLink to="/applications">Mes candidatures</NavLink>
+          <NavLink to="/applications">Espace candidat</NavLink>
           <NavLink to="/profile">Mon profil</NavLink>
         </>
       )}

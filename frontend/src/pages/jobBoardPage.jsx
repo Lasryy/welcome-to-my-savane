@@ -1,6 +1,6 @@
 import Pagination from "../components/ui/Pagination";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import CustomSelect from "../components/CustomSelect";
 import JobSearchBar from "../components/JobSearchBar";
 import JobCard from "../components/jobCard";
@@ -34,6 +34,12 @@ function JobSearch({
     filters: readFilters(query),
   }));
   const [responseState, setResponseState] = useState(null);
+  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [favoriteAccess, setFavoriteAccess] = useState(false);
+  const [favoritePendingIds, setFavoritePendingIds] = useState(() => new Set());
+  const [favoriteError, setFavoriteError] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
   const requestKey = `${query}-${retryKey}`;
   let filters = searchState.filters;
 
@@ -80,6 +86,66 @@ function JobSearch({
     loadAds();
     return () => controller.abort();
   }, [query, requestKey]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadFavorites() {
+      try {
+        const response = await fetch("/api/favorites", {
+          credentials: "same-origin",
+          signal: controller.signal,
+        });
+        if (response.status === 401 || response.status === 403) {
+          if (!controller.signal.aborted) setFavoriteAccess(false);
+          return;
+        }
+        if (!response.ok) throw new Error("Les favoris ne peuvent pas être chargés.");
+        const favorites = await response.json();
+        if (!Array.isArray(favorites)) throw new Error("La liste des favoris reçue est invalide.");
+        if (!controller.signal.aborted) {
+          setFavoriteIds(favorites.map((ad) => ad.id));
+          setFavoriteAccess(true);
+          setFavoriteError("");
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) setFavoriteError(error.message || "Impossible de charger les favoris.");
+      }
+    }
+    loadFavorites();
+    return () => controller.abort();
+  }, []);
+
+  async function toggleFavorite(ad) {
+    if (favoritePendingIds.has(ad.id)) return;
+    const wasFavorite = favoriteIds.includes(ad.id);
+    setFavoritePendingIds((current) => new Set(current).add(ad.id));
+    setFavoriteError("");
+    try {
+      const response = await fetch(`/api/favorites/${ad.id}`, {
+        method: wasFavorite ? "DELETE" : "PUT",
+        credentials: "same-origin",
+      });
+      if (response.status === 401) {
+        navigate("/login", { state: { from: `${location.pathname}${location.search}` } });
+        return;
+      }
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message || "Impossible de mettre à jour ce favori.");
+      }
+      setFavoriteIds((current) => wasFavorite
+        ? current.filter((id) => id !== ad.id)
+        : [...current, ad.id]);
+    } catch (error) {
+      setFavoriteError(error.message || "Impossible de mettre à jour ce favori.");
+    } finally {
+      setFavoritePendingIds((current) => {
+        const next = new Set(current);
+        next.delete(ad.id);
+        return next;
+      });
+    }
+  }
 
   function editSearch(name, value) {
     setSearchState((current) => ({
@@ -320,6 +386,7 @@ function JobSearch({
               </button>
             </div>
           )}
+        {favoriteError && <p className="form-error mb-4" role="alert">{favoriteError}</p>}
           {result && result.ads.length === 0 && (
             <div className="board-message board-empty" role="status">
               {result.total === 0 && (
@@ -355,7 +422,15 @@ function JobSearch({
           {result && result.ads.length > 0 && (
             <div className="board-job-grid">
               {result.ads.map((ad, index) => (
-                <JobCard key={ad.id} ad={ad} index={index} />
+                <JobCard
+                  key={ad.id}
+                  ad={ad}
+                  index={index}
+                  showFavorite={favoriteAccess}
+                  isFavorite={favoriteIds.includes(ad.id)}
+                  favoritePending={favoritePendingIds.has(ad.id)}
+                  onToggleFavorite={toggleFavorite}
+                />
               ))}
             </div>
           )}

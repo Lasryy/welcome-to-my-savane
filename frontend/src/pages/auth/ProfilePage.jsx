@@ -4,6 +4,7 @@ import SiteHeader from "../../components/SiteHeader";
 import UiIcon from "../../components/ui/UiIcon";
 import CvManager from "../../components/profile/CvManager";
 import PersonAvatar from "../../components/PersonAvatar";
+import PasswordInput from "../../components/ui/PasswordInput";
 
 const emptyProject = {
   title: "",
@@ -92,6 +93,7 @@ function ProfilePage() {
     "projects",
     "experiences",
     "visibility",
+    "security",
   ].includes(requestedSection)
     ? requestedSection
     : "account";
@@ -99,6 +101,10 @@ function ProfilePage() {
   const [showExperienceForm, setShowExperienceForm] = useState(false);
   const [projects, setProjects] = useState([]);
   const [experiences, setExperiences] = useState([]);
+  const [passwordForm, setPasswordForm] = useState({
+    new_password: "",
+    confirm_password: "",
+  });
   const [profileForm, setProfileForm] = useState(null);
   const [projectForm, setProjectForm] = useState(emptyProject);
   const [experienceForm, setExperienceForm] = useState(emptyExperience);
@@ -190,6 +196,32 @@ function ProfilePage() {
           ? "Ton profil est maintenant visible dans l’annuaire recruteur."
           : "Ton profil n’apparaît plus dans l’annuaire recruteur.",
       );
+    } catch (requestError) {
+      showRequestError(requestError);
+    } finally {
+      setSaving("");
+    }
+  }
+
+  async function changePassword(event) {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      setError("Les deux nouveaux mots de passe ne correspondent pas.");
+      return;
+    }
+    setSaving("password");
+    try {
+      await requestJson("/api/people/me/password", {
+        method: "PATCH",
+        body: JSON.stringify({
+          new_password: passwordForm.new_password,
+          confirm_password: passwordForm.confirm_password,
+        }),
+      });
+      setPasswordForm({ new_password: "", confirm_password: "" });
+      setSuccess("Ton mot de passe a été modifié. Ta session a été renouvelée.");
     } catch (requestError) {
       showRequestError(requestError);
     } finally {
@@ -363,6 +395,7 @@ function ProfilePage() {
       count: experiences.length,
     },
     { id: "visibility", label: "Ma visibilité", icon: "eye" },
+    { id: "security", label: "Sécurité du compte", icon: "lock" },
   ];
 
   return (
@@ -481,6 +514,54 @@ function ProfilePage() {
                     {saving === "profile"
                       ? "Enregistrement…"
                       : "Enregistrer mes informations"}
+                  </button>
+                </form>
+              </section>
+
+              <section
+                className="profile-section"
+                hidden={section !== "security"}
+                aria-labelledby="profile-security-title"
+              >
+                <div className="profile-section-heading">
+                  <div>
+                    <h2 id="profile-security-title">Sécurité du compte</h2>
+                    <p>Saisis deux fois ton nouveau mot de passe pour confirmer ta saisie.</p>
+                  </div>
+                </div>
+                <form className="form-stack max-w-xl" onSubmit={changePassword}>
+                  <label className="form-field">
+                    Nouveau mot de passe
+                    <PasswordInput
+                      className="form-input"
+                      name="new_password"
+                      autoComplete="new-password"
+                      minLength={8}
+                      maxLength={72}
+                      required
+                      value={passwordForm.new_password}
+                      onChange={(event) => updateForm(setPasswordForm, event)}
+                    />
+                  </label>
+                  <label className="form-field">
+                    Confirmer le nouveau mot de passe
+                    <PasswordInput
+                      className="form-input"
+                      name="confirm_password"
+                      autoComplete="new-password"
+                      minLength={8}
+                      maxLength={72}
+                      required
+                      value={passwordForm.confirm_password}
+                      onChange={(event) => updateForm(setPasswordForm, event)}
+                    />
+                  </label>
+                  <button
+                    className="primary-button w-fit"
+                    type="submit"
+                    disabled={saving === "password"}
+                  >
+                    {saving === "password" ? "Modification…" : "Modifier le mot de passe"}
                   </button>
                 </form>
               </section>

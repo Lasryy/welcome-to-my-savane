@@ -1,4 +1,5 @@
 const pool = require("../db/pool");
+const bcrypt = require("bcrypt");
 
 const PROFILE_FIELDS = new Set([
   "first_name",
@@ -122,4 +123,41 @@ async function updateMyProfile(req, res) {
   }
 }
 
-module.exports = { getMyProfile, updateMyProfile };
+async function changeMyPassword(req, res) {
+  const body = req.body;
+  if (!isRecord(body) || Object.keys(body).length !== 2 ||
+      !["new_password", "confirm_password"].every((field) => typeof body[field] === "string")) {
+    return res.status(400).json({ error: "Renseigne le nouveau mot de passe et sa confirmation." });
+  }
+  const { new_password: newPassword, confirm_password: confirmPassword } = body;
+  if (!newPassword || !confirmPassword) {
+    return res.status(400).json({ error: "Les deux champs de mot de passe sont obligatoires." });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ error: "Les deux nouveaux mots de passe ne correspondent pas." });
+  }
+  if (Buffer.byteLength(newPassword, "utf8") < 8 || Buffer.byteLength(newPassword, "utf8") > 72) {
+    return res.status(400).json({ error: "Le nouveau mot de passe doit contenir entre 8 et 72 octets." });
+  }
+
+  try {
+    const result = await pool.query("SELECT id FROM people WHERE id = $1", [req.session.userId]);
+    if (!result.rowCount) return res.status(401).json({ error: "Compte introuvable." });
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await pool.query("UPDATE people SET password_hash = $1 WHERE id = $2", [passwordHash, req.session.userId]);
+    const userId = req.session.userId;
+    return req.session.regenerate((error) => {
+      if (error) {
+        console.error("Error while renewing session after password change:", error);
+        return res.status(500).json({ error: "Mot de passe modifié, mais impossible de renouveler la session. Reconnecte-toi." });
+      }
+      req.session.userId = userId;
+      return res.status(200).json({ message: "Mot de passe modifié." });
+    });
+  } catch (error) {
+    console.error("Error while changing candidate password:", error);
+    return res.status(500).json({ error: "Impossible de modifier le mot de passe." });
+  }
+}
+
+module.exports = { getMyProfile, updateMyProfile, changeMyPassword };

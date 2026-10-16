@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { contractLabels, formatDate, formatSalary, workingTimeLabels } from "../utils/adminUtils";
 import CompanyLogo from "./CompanyLogo";
+import UiIcon from "./ui/UiIcon";
 
-function JobCard({ ad, index = 0 }) {
+function JobCard({ ad, index = 0, showFavorite = false, isFavorite = false, favoritePending = false, onToggleFavorite }) {
   const description = ad.short_description || ad.description || "Consultez l’offre pour découvrir le poste et ses missions.";
   const cardColors = ["bg-lavender", "bg-mint", "bg-mint", "bg-sun", "bg-lavender", "bg-mint"];
 
@@ -31,13 +32,29 @@ function JobCard({ ad, index = 0 }) {
         <p className="line-clamp-3 min-h-[4.65em] break-words text-[13px] leading-[1.55]" title={description}>
           {description}
         </p>
+        {showFavorite && (
+          <button
+            className="mt-4 inline-flex min-h-9 w-fit items-center gap-2 border border-ink px-3 py-2 text-xs font-bold text-ink hover:bg-paper disabled:cursor-wait disabled:opacity-60"
+            type="button"
+            aria-pressed={isFavorite}
+            disabled={favoritePending}
+            onClick={() => onToggleFavorite?.(ad)}
+          >
+            <UiIcon name="bookmark" size={16} />
+            {favoritePending ? "Enregistrement…" : isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+          </button>
+        )}
         <div className="mt-auto flex items-center justify-between gap-2.5 pt-[18px]">
           <span className="text-[11px]">
             {workingTimeLabels[ad.working_time] || "Temps à préciser"} · {formatDate(ad.created_at)}
           </span>
-          <Link className="whitespace-nowrap text-[13px] font-bold underline-offset-4 hover:underline" to={`/jobs/${ad.id}`}>
-            Découvrir l’offre <span aria-hidden="true">→</span>
-          </Link>
+          {ad.status === "closed" ? (
+            <span className="whitespace-nowrap text-[12px] font-semibold">Offre fermée</span>
+          ) : (
+            <Link className="whitespace-nowrap text-[13px] font-bold underline-offset-4 hover:underline" to={`/jobs/${ad.id}`}>
+              Découvrir l’offre <span aria-hidden="true">→</span>
+            </Link>
+          )}
         </div>
       </div>
     </article>

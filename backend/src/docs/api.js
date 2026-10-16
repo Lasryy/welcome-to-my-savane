@@ -1221,6 +1221,72 @@
  *       '401': { description: Login required or account not found. }
  *       '409': { description: Email already used by another account. }
  *       '500': { description: Internal database error. }
+ * /api/people/me/password:
+ *   patch:
+ *     tags: [Profile]
+ *     summary: Change the current account password
+ *     description: Requires matching new_password and confirm_password values. The authenticated session is renewed after a successful change.
+ *     security:
+ *       - sessionCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             required: [new_password, confirm_password]
+ *             properties:
+ *               new_password: { type: string, minLength: 8, maxLength: 72 }
+ *               confirm_password: { type: string, minLength: 8, maxLength: 72 }
+ *     responses:
+ *       '200': { description: Password changed and session renewed. }
+ *       '400': { description: Password mismatch or invalid length. }
+ *       '401': { description: Login required or account not found. }
+ *       '500': { description: Internal database or session error. }
+ * /api/favorites:
+ *   get:
+ *     tags: [Favorites]
+ *     summary: List saved offers for the current candidate
+ *     description: Includes published and closed offers so saved items remain visible in the profile.
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       '200': { description: Saved offers with company and category details. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
+ * /api/favorites/{adId}:
+ *   put:
+ *     tags: [Favorites]
+ *     summary: Save a published offer
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: adId
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '204': { description: Offer saved, including if already saved. }
+ *       '400': { description: Invalid offer ID. }
+ *       '401': { description: Login required. }
+ *       '404': { description: Published offer not found. }
+ *       '500': { description: Database error. }
+ *   delete:
+ *     tags: [Favorites]
+ *     summary: Remove an offer from favorites
+ *     security:
+ *       - sessionCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: adId
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '204': { description: Favorite removed, including if it was already absent. }
+ *       '400': { description: Invalid offer ID. }
+ *       '401': { description: Login required. }
+ *       '500': { description: Database error. }
  * /api/admin/applications:
  *   get:
  *     tags: [Admin - Applications]

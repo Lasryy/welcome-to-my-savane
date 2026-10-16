@@ -65,7 +65,7 @@ export default function ApplicationDetailPage() {
         className="mb-6 inline-flex font-bold underline underline-offset-4"
         to="/applications"
       >
-        ← Retour à mes candidatures
+        ← Retour à l’espace candidat
       </Link>
 
       {loading && <p role="status">Chargement du dossier…</p>}

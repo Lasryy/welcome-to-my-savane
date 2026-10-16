@@ -5,6 +5,7 @@ import { adminRequest } from "../../services/adminApi";
 import RequestState from "../../components/ui/RequestState";
 import { formatDate } from "../../utils/adminUtils";
 import Modal from "../../components/ui/Modal";
+import CustomSelect from "../../components/CustomSelect";
 
 const STATUS_LABELS = {
   sent: "Envoyée",
@@ -185,9 +186,11 @@ export default function AdminApplicationDetailPage() {
               <p className="text-sm">Ces corrections s’appliquent à cette candidature. Le profil du candidat reste inchangé.</p>
               <p className="text-sm">Le fichier du CV joint reste inchangé.</p>
               <label className="grid gap-2">Statut
-                <select value={draft.status} onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value }))}>
-                  {Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                </select>
+                <CustomSelect
+                  value={draft.status}
+                  onChange={(value) => setDraft((current) => ({ ...current, status: value }))}
+                  options={Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))}
+                />
               </label>
               <div className="grid gap-4 sm:grid-cols-2">
                 {["first_name", "last_name", "email", "phone"].map((field) => (

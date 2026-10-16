@@ -6,6 +6,7 @@ import {
 } from "../../components/admin/adminUi";
 import { adminRequest } from "../../services/adminApi";
 import { generateSecurePassword } from "../../utils/securePassword";
+import CustomSelect from "../../components/CustomSelect";
 
 const EMPTY_FORM = {
   first_name: "",
@@ -133,11 +134,7 @@ export default function AdminCreateUserModal({
           <input id="new-user-phone" name="phone" type="tel" value={form.phone} onChange={updateField} maxLength={30} />
         </AdminField>
         <AdminField label="Rôle *" name="new-user-role">
-          <select id="new-user-role" name="role" value={form.role} onChange={updateField} disabled={companyScoped}>
-            <option value="COMPANY">Employé d’entreprise</option>
-            <option value="USER">Candidat</option>
-            <option value="ADMIN">Administrateur</option>
-          </select>
+          <CustomSelect id="new-user-role" value={form.role} onChange={(value) => updateField({ target: { name: "role", value } })} disabled={companyScoped} options={[{ value: "COMPANY", label: "Employé d’entreprise" }, { value: "USER", label: "Candidat" }, { value: "ADMIN", label: "Administrateur" }]} />
         </AdminField>
         <AdminField
           label={form.role === "COMPANY" ? "Entreprise *" : "Entreprise"}
@@ -145,10 +142,7 @@ export default function AdminCreateUserModal({
           helpClassName="min-h-[36px]"
           help="Sélectionne une entreprise pour les comptes employés."
         >
-          <select id="new-user-company" name="company_id" value={form.company_id} onChange={updateField} required={form.role === "COMPANY"} disabled={companyScoped || form.role !== "COMPANY"}>
-            <option value="">{companyScoped ? "Entreprise sélectionnée" : "Choisir une entreprise"}</option>
-            {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
-          </select>
+          <CustomSelect id="new-user-company" value={form.company_id} onChange={(value) => updateField({ target: { name: "company_id", value } })} required={form.role === "COMPANY"} disabled={companyScoped || form.role !== "COMPANY"} options={[{ value: "", label: companyScoped ? "Entreprise sélectionnée" : "Choisir une entreprise" }, ...companies.map((company) => ({ value: company.id, label: company.name }))]} />
         </AdminField>
         <AdminField label="Mot de passe initial *" name="new-user-password" help="Au moins 8 caractères. Il sera copiable après la création.">
           <div className="grid gap-2">

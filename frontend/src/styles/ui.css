@@ -221,6 +221,89 @@ button:disabled {
   font-weight: 400;
   line-height: 1.5;
 }
+.custom-select {
+  position: relative;
+  min-width: 0;
+}
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  appearance: none;
+}
+.custom-select-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.custom-select-trigger > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.custom-select-placeholder {
+  color: var(--muted);
+}
+.custom-select-caret {
+  flex: 0 0 auto;
+  transition: transform 160ms ease;
+}
+.custom-select-caret.is-open {
+  transform: rotate(180deg);
+}
+.custom-select-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  max-height: 17rem;
+  overflow: auto;
+  padding: 4px;
+  border: 1px solid #6b7080;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--color-ink);
+  overscroll-behavior: contain;
+}
+.custom-select-option {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.custom-select-option.is-active {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.custom-select-option[aria-selected="true"]:not(.is-active) {
+  background: var(--color-sun);
+  font-weight: 700;
+}
+.custom-select-option[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+.custom-select-validation {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.custom-select-error {
+  display: block;
+  margin-top: 5px;
+  color: #9c3322;
+  font-size: 13px;
+  line-height: 1.45;
+}
 .description-input {
   min-height: 220px;
   resize: vertical;
@@ -1263,7 +1346,7 @@ button:disabled {
   white-space: pre-wrap;
   font-size: 14px;
 }
-.dossier-dialog select {
+.dossier-dialog .custom-select-trigger {
   min-height: 44px;
   padding: 8px 10px;
   border: 1px solid #6b7080;

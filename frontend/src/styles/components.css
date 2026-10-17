@@ -243,7 +243,7 @@
   }
 
   .application-item-dialog::backdrop {
-    background: rgb(37 42 70 / 62%);
+    @apply [background:rgb(37_42_70_/_62%)];
   }
 
   .application-review-section {

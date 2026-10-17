@@ -9,204 +9,204 @@
   --admin-rule: #dad9d0;
 }
 .admin-app h2 {
-  font-size: 23px;
-  font-weight: 750;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
+  @apply [font-size:23px];
+  @apply [font-weight:750];
+  @apply [line-height:1.3];
+  @apply [letter-spacing:-0.02em];
 }
 .admin-app h3 {
-  font-size: 21px;
-  font-weight: 750;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  overflow-wrap: anywhere;
+  @apply [font-size:21px];
+  @apply [font-weight:750];
+  @apply [line-height:1.3];
+  @apply [letter-spacing:-0.02em];
+  @apply [overflow-wrap:anywhere];
 }
 .admin-app .admin-card {
-  background: #fffdf8;
-  border: 1px solid #dad9d0;
-  border-radius: 12px 28px 12px 12px;
+  @apply [background:#fffdf8];
+  @apply [border:1px_solid_#dad9d0];
+  @apply [border-radius:12px_28px_12px_12px];
 }
 .admin-card-header {
-  border-radius: 11px 26px 0 0;
-  font-size: 13px;
+  @apply [border-radius:11px_26px_0_0];
+  @apply [font-size:13px];
 }
 .admin-card-body {
-  gap: 14px;
+  @apply [gap:14px];
 }
 .admin-card-body .admin-description {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  color: #626479;
+  @apply [display:-webkit-box];
+  @apply [-webkit-line-clamp:3];
+  @apply [-webkit-box-orient:vertical];
+  @apply [overflow:hidden];
+  @apply [color:#626479];
 }
 .admin-card .admin-button {
-  font-size: 12px;
-  padding: 8px 12px;
-  min-height: 38px;
+  @apply [font-size:12px];
+  @apply [padding:8px_12px];
+  @apply [min-height:38px];
 }
 .admin-card-link {
-  font-size: 13px;
-  border-top: 1px solid #dad9d0;
+  @apply [font-size:13px];
+  @apply [border-top:1px_solid_#dad9d0];
 }
 .admin-app .admin-button {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1px solid #6b7080;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 13px;
-  font-weight: 650;
-  text-decoration: none;
+  @apply [display:inline-flex];
+  @apply [min-height:44px];
+  @apply [align-items:center];
+  @apply [justify-content:center];
+  @apply [gap:8px];
+  @apply [border:1px_solid_#6b7080];
+  @apply [border-radius:8px];
+  @apply [padding:10px_16px];
+  @apply [font-size:13px];
+  @apply [font-weight:650];
+  @apply [text-decoration:none];
 }
 .admin-app .admin-button.primary {
-  background: #252a46;
-  color: #fff9ee;
-  border-color: #252a46;
+  @apply [background:#252a46];
+  @apply [color:#fff9ee];
+  @apply [border-color:#252a46];
 }
 .admin-app .admin-button.accent {
-  background: #f0e970;
-  color: #252a46;
-  border-color: transparent;
+  @apply [background:#f0e970];
+  @apply [color:#252a46];
+  @apply [border-color:transparent];
 }
 .admin-app .admin-button.secondary {
-  background: transparent;
-  color: #252a46;
+  @apply [background:transparent];
+  @apply [color:#252a46];
 }
 .admin-app .admin-button:hover {
-  filter: brightness(0.96);
+  @apply [filter:brightness(0.96)];
 }
 .admin-app button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+  @apply [cursor:not-allowed];
+  @apply [opacity:0.55];
 }
 .admin-field label {
-  font-size: 13px;
-  font-weight: 650;
+  @apply [font-size:13px];
+  @apply [font-weight:650];
 }
 .admin-field :is(input, textarea, select),
 .admin-field .custom-select-trigger {
-  width: 100%;
-  min-width: 0;
-  min-height: 46px;
-  border: 1px solid #6b7080;
-  border-radius: 8px;
-  padding: 11px 13px;
-  color: #252a46;
-  background: #fffdf8;
-  font: inherit;
-  font-size: 14px;
+  @apply [width:100%];
+  @apply [min-width:0];
+  @apply [min-height:46px];
+  @apply [border:1px_solid_#6b7080];
+  @apply [border-radius:8px];
+  @apply [padding:11px_13px];
+  @apply [color:#252a46];
+  @apply [background:#fffdf8];
+  @apply [font:inherit];
+  @apply [font-size:14px];
 }
 .admin-field .custom-select-menu {
-  font-size: 14px;
+  @apply [font-size:14px];
 }
 .admin-field textarea {
-  resize: vertical;
+  @apply [resize:vertical];
 }
 .admin-field .admin-help {
-  color: #626479;
-  font-size: 12px;
+  @apply [color:#626479];
+  @apply [font-size:12px];
 }
 .admin-filters {
-  border-radius: 12px;
-  padding: 22px;
+  @apply [border-radius:12px];
+  @apply [padding:22px];
 }
 .admin-filters .admin-button.secondary {
-  color: #fff9ee;
-  border-color: #8e93a4;
+  @apply [color:#fff9ee];
+  @apply [border-color:#8e93a4];
 }
 .admin-filters .admin-button.accent {
-  color: #252a46;
+  @apply [color:#252a46];
 }
 .admin-badge,
 .admin-status {
-  display: inline-flex;
-  padding: 5px 9px;
-  font-size: 12px;
-  border: 0;
-  border-radius: 5px;
-  background: #eeeede;
+  @apply [display:inline-flex];
+  @apply [padding:5px_9px];
+  @apply [font-size:12px];
+  @apply [border:0];
+  @apply [border-radius:5px];
+  @apply [background:#eeeede];
 }
 .admin-status.status-published {
-  background: #e1eee0;
+  @apply [background:#e1eee0];
 }
 .admin-status.status-closed {
-  background: #f5edc7;
+  @apply [background:#f5edc7];
 }
 .admin-card-footer {
-  border-top: 1px solid #dad9d0;
-  padding-top: 16px;
-  display: grid;
-  gap: 14px;
+  @apply [border-top:1px_solid_#dad9d0];
+  @apply [padding-top:16px];
+  @apply [display:grid];
+  @apply [gap:14px];
 }
 .admin-notice {
-  border-radius: 8px;
-  font-size: 14px;
+  @apply [border-radius:8px];
+  @apply [font-size:14px];
 }
 .admin-notice.is-error,
 .admin-delete {
-  background: #fbe9df;
+  @apply [background:#fbe9df];
 }
 .admin-notice.is-success {
-  background: #e3eee1;
+  @apply [background:#e3eee1];
 }
 .admin-delete {
-  padding: 18px;
-  border: 1px solid #d9bba9;
-  border-radius: 8px;
-  font-size: 14px;
+  @apply [padding:18px];
+  @apply [border:1px_solid_#d9bba9];
+  @apply [border-radius:8px];
+  @apply [font-size:14px];
 }
 .admin-panel {
-  border-color: #dad9d0;
-  border-radius: 12px;
-  background: #fffdf8;
+  @apply [border-color:#dad9d0];
+  @apply [border-radius:12px];
+  @apply [background:#fffdf8];
 }
 .admin-state {
-  border: 1px solid #dad9d0;
-  border-radius: 10px;
-  background: #fffdf8;
+  @apply [border:1px_solid_#dad9d0];
+  @apply [border-radius:10px];
+  @apply [background:#fffdf8];
 }
 .admin-company-name {
-  font-weight: 650;
-  overflow-wrap: anywhere;
+  @apply [font-weight:650];
+  @apply [overflow-wrap:anywhere];
 }
 .admin-company-sector {
-  font-size: 12px;
+  @apply [font-size:12px];
 }
 .admin-grid {
-  gap: 18px;
+  @apply [gap:18px];
 }
 .admin-app .icon {
-  display: inline-block;
-  flex-shrink: 0;
+  @apply [display:inline-block];
+  @apply [flex-shrink:0];
 }
 .admin-app .company-mark {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid #959ab2;
-  border-radius: 5px;
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 700;
+  @apply [display:grid];
+  @apply [place-items:center];
+  @apply [width:36px];
+  @apply [height:36px];
+  @apply [border:1px_solid_#959ab2];
+  @apply [border-radius:5px];
+  @apply [flex-shrink:0];
+  @apply [font-size:13px];
+  @apply [font-weight:700];
 }
 @media (min-width: 1001px) {
   .admin-app .admin-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    @apply [grid-template-columns:repeat(2,_minmax(0,_1fr))];
   }
 }
 @media (max-width: 580px) {
   .admin-app .admin-grid {
-    grid-template-columns: minmax(0, 1fr);
+    @apply [grid-template-columns:minmax(0,_1fr)];
   }
   .admin-filters {
-    padding: 18px;
+    @apply [padding:18px];
   }
   .admin-card-body {
-    padding: 20px;
+    @apply [padding:20px];
   }
 }

@@ -1,155 +1,251 @@
 # Welcome to My Savane
 
-**Welcome to My Savane** est un job board réalisé en équipe dans le cadre du projet Epitech T-WEB-501. Les candidats peuvent consulter des offres, créer leur profil et envoyer des candidatures. L’administration gère les offres, les entreprises, les catégories et les comptes.
+<p align="center">
+  <img src="frontend/public/logo-welcome-to-my-savane.svg" alt="Logo Welcome to My Savane" width="270">
+</p>
 
-> Projet pédagogique en cours de développement. Les données de démonstration sont fictives ; ne l’utilisez pas pour stocker des données personnelles réelles.
+<p align="center">
+  <strong>Un nouveau job. Un nouvel horizon.</strong><br>
+  Un job board en français pour découvrir des offres et préparer sa candidature.
+</p>
 
-## Fonctionnalités disponibles
+<p align="center">
+  <img alt="React 19.3.0" src="https://img.shields.io/badge/React-19.3.0-61DAFB?logo=react&logoColor=20232a">
+  <img alt="Vite 8.3.3" src="https://img.shields.io/badge/Vite-8.3.3-646CFF?logo=vite&logoColor=white">
+  <img alt="Express 5.2.1" src="https://img.shields.io/badge/Express-5.2.1-222222?logo=express&logoColor=white">
+  <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white">
+  <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white">
+</p>
 
-- Consultation des offres publiées, recherche et filtres.
-- Création de compte, connexion et déconnexion avec session.
-- Profil candidat : coordonnées, projets et expériences.
-- Candidatures : message de motivation, choix des projets et expériences à présenter, puis récapitulatif avant l’envoi.
-- Historique des candidatures et suivi de leur statut.
-- Espace d’administration pour les offres, les entreprises, les catégories, les candidatures et les comptes.
-- Espace recruteur pour gérer les offres et candidatures de son entreprise ; les comptes recruteur sont attribués par un Admin.
-- Documentation interactive de l’API avec Swagger.
-- CV : bibliothèque de plusieurs CV PDF dans le Profil. Pour chaque candidature, le candidat choisit le CV envoyé ; le candidat et l’administration peuvent ensuite le consulter avec leur session.
+> **Projet pédagogique Epitech T-WEB-501**, réalisé en équipe et encore en développement. Les entreprises, les offres et les comptes fournis pour la démonstration sont fictifs. N’y enregistrez pas de données personnelles réelles.
 
-## Prérequis
+## Le projet
 
-- Git
-- Docker Desktop avec Docker Compose v2
+Welcome to My Savane rassemble des offres d’emploi et les outils pour préparer une candidature. Un candidat peut rechercher une opportunité, réunir ses projets et expériences dans son profil, choisir les éléments qu’il souhaite présenter et suivre ses candidatures.
 
-Le lancement recommandé utilise Docker : Node.js et PostgreSQL sont déjà fournis dans les images des conteneurs. Pour lancer les commandes de développement hors de Docker, installez aussi Node.js 22 et npm.
+## L’application en images
 
-## Installation depuis GitHub
+Voici six aperçus de l’application sur ordinateur et sur mobile. Cliquez sur une image pour ouvrir la capture complète.
 
-Clonez le dépôt puis entrez dans son dossier :
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/assets/readme/01-accueil-desktop.png"><img src="docs/assets/readme/previews/01-accueil-desktop.webp" alt="Page d’accueil sur ordinateur : la recherche d’offres et l’illustration de la savane." width="100%"></a>
+      <p><strong>Accueil</strong><br>La page de départ et son moteur de recherche.</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/assets/readme/02-offres-filtrees-desktop.png"><img src="docs/assets/readme/previews/02-offres-desktop.webp" alt="Page des offres sur ordinateur avec les filtres de contrat, de domaine et d’entreprise." width="100%"></a>
+      <p><strong>Explorer les offres</strong><br>Parcourir les annonces et affiner la recherche.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/assets/readme/03-detail-offre-desktop.png"><img src="docs/assets/readme/previews/03-detail-offre-desktop.webp" alt="Détail d’une offre CraftWorks avec le poste, le contrat, le lieu et la rémunération." width="100%"></a>
+      <p><strong>Détail d’une offre</strong><br>Consulter le poste, l’entreprise et les conditions.</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/assets/readme/04-candidature-recap-desktop.png"><img src="docs/assets/readme/previews/04-candidature-desktop.webp" alt="Préparation d’une candidature : choisir les projets et expériences à présenter." width="100%"></a>
+      <p><strong>Préparer une candidature</strong><br>Choisir les projets et expériences à joindre au dossier.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/assets/readme/05-administration-desktop.png"><img src="docs/assets/readme/previews/05-administration-desktop.webp" alt="Tableau de bord d’administration et accès à la gestion des offres, entreprises, catégories et candidatures." width="100%"></a>
+      <p><strong>Administration</strong><br>Gérer les offres, entreprises, catégories et candidatures.</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/assets/readme/06-accueil-mobile.png"><img src="docs/assets/readme/previews/06-accueil-mobile.webp" alt="Page d’accueil adaptée à un écran de téléphone, avec un menu compact et une recherche empilée." width="42%"></a>
+      <p><strong>Version mobile</strong><br>La page d’accueil s’adapte aussi aux téléphones.</p>
+    </td>
+  </tr>
+</table>
+
+L’illustration ci-dessous est également utilisée sur la page d’accueil. **C’est une illustration, pas une capture d’écran.**
+
+<p align="center">
+  <img src="frontend/public/illustrations/home-savanna-journey.webp" alt="Un lion, un phacochère et un suricate réunis sous un acacia : illustration de la page d’accueil de Welcome to My Savane." width="760">
+</p>
+
+## Ce que l’application permet de faire
+
+### Côté candidat
+
+- Parcourir les offres, les rechercher par métier ou ville, appliquer des filtres et les enregistrer en favoris.
+- Ouvrir une offre pour consulter sa description, son entreprise, son contrat et sa rémunération lorsqu’elle est renseignée.
+- Créer un compte et compléter son profil avec des projets, des expériences et plusieurs CV PDF.
+- Préparer une candidature en choisissant le CV, les projets et les expériences à joindre, puis relire le récapitulatif avant l’envoi.
+- Retrouver ses candidatures et consulter leur statut.
+- Choisir si son profil peut être visible dans l’annuaire recruteur.
+
+### Côté recruteur et administration
+
+- L’espace recruteur permet de gérer les offres et candidatures d’une entreprise, de consulter les profils rendus visibles et de gérer les comptes de son équipe.
+- L’espace d’administration permet de gérer les offres, les entreprises, les catégories, les comptes et les candidatures. Un administrateur attribue les accès recruteur.
+
+La documentation de l’API est disponible sur [Swagger](http://localhost:3000/api-docs) une fois le projet lancé.
+
+## Installation pas à pas
+
+La méthode recommandée utilise Docker Desktop. Elle lance le site, l’API et la base de données sans avoir à installer Node.js ou PostgreSQL séparément.
+
+### 1. Installer Docker Desktop
+
+Téléchargez et installez [Docker Desktop](https://docs.docker.com/desktop/), adapté à votre ordinateur. Ouvrez-le et attendez que Docker indique qu’il est démarré. Docker Desktop fournit Docker Compose, l’outil qui démarre ensemble les différents services du projet.
+
+### 2. Récupérer le projet
+
+Vous pouvez télécharger le dépôt depuis [GitHub](https://github.com/EpitechMscProPromo2029/T-WEB-501-PAR-5-1-job_board-6) avec **Code → Download ZIP**, puis extraire l’archive.
+
+Après extraction, ouvrez un terminal dans le dossier du projet : sur Windows, faites un clic droit dans le dossier extrait puis choisissez **Ouvrir dans le Terminal** ; sur macOS, ouvrez Terminal, tapez `cd ` (avec un espace), faites glisser le dossier extrait dans la fenêtre puis appuyez sur Entrée.
+
+Ou, si Git est déjà installé, ouvrez un terminal et exécutez :
 
 ```bash
 git clone https://github.com/EpitechMscProPromo2029/T-WEB-501-PAR-5-1-job_board-6.git
 cd T-WEB-501-PAR-5-1-job_board-6
 ```
 
-Créez le fichier local de configuration :
+Dans les étapes suivantes, les commandes doivent être exécutées **à la racine du dossier du projet**, celui qui contient `docker-compose.yml`.
+
+### 3. Créer la configuration locale
+
+Copiez le modèle de configuration dans un nouveau fichier `.env`.
+
+**macOS ou Linux :**
 
 ```bash
 cp .env.example .env
 ```
 
-Remplacez `SESSION_SECRET` dans `.env` par une valeur privée générée avec :
+**Windows PowerShell :**
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Ouvrez ensuite `.env` dans un éditeur de texte et remplacez la valeur de `SESSION_SECRET` par une chaîne privée aléatoire.
+
+Pour en générer une :
+
+**macOS ou Linux :**
 
 ```bash
 openssl rand -hex 32
 ```
 
-Gardez cette valeur dans votre `.env` local : **ne la publiez pas et ne la committez pas**. Le fichier `.env` est ignoré par Git.
+**Windows PowerShell 7 :**
 
-Démarrez PostgreSQL, le backend et le frontend :
+```powershell
+[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)).ToLower()
+```
+
+Copiez le résultat après `SESSION_SECRET=` dans `.env`. Ce fichier contient des paramètres locaux : ne partagez pas son contenu et ne l’ajoutez pas à Git. Les autres valeurs du fichier peuvent rester telles quelles pour un lancement local.
+
+### 4. Démarrer l’application
+
+Depuis la racine du projet, lancez :
 
 ```bash
 docker compose up --build -d
+```
+
+Au premier lancement, Docker télécharge et construit les composants nécessaires ; cela peut prendre quelques minutes. Pour vérifier qu’ils ont démarré :
+
+```bash
 docker compose ps
 ```
 
-Ouvrez ensuite :
+Ouvrez ensuite ces adresses dans votre navigateur :
 
-- Site : <http://localhost:5173>
-- API : <http://localhost:3000>
-- Documentation Swagger : <http://localhost:3000/api-docs>
+- **Site :** <http://localhost:5173>
+- **API :** <http://localhost:3000>
+- **Documentation API :** <http://localhost:3000/api-docs>
 
-Les ports peuvent être changés dans `.env` avec `FRONT_PORT`, `BACK_PORT` et `POSTGRES_PORT`.
+Au premier démarrage d’une base vide, des entreprises, offres, comptes et candidatures de démonstration sont ajoutés automatiquement.
 
-Pour suivre les journaux :
+### 5. Se connecter avec un compte de démonstration
+
+| Profil | Adresse e-mail | Mot de passe |
+| --- | --- | --- |
+| Candidat | `alice.martin@example.com` | `JobBoardDemo2026!` |
+| Administrateur | `admin@jobboard.example.com` | `JobBoardDemo2026!` |
+
+Ces comptes sont créés par le seed lors de l’initialisation d’une base vide. Ils servent uniquement à la démonstration locale. Le seed ne fournit pas de compte recruteur : un administrateur doit attribuer cet accès depuis l’application.
+
+## Arrêter ou relancer le projet
+
+Pour afficher les journaux des services :
 
 ```bash
 docker compose logs -f
 ```
 
-Pour arrêter les services sans supprimer les données PostgreSQL :
+Pour arrêter le site, l’API et PostgreSQL sans effacer les données locales :
 
 ```bash
 docker compose down
 ```
 
-### Base de données et données de démonstration
+Pour relancer les services plus tard, utilisez de nouveau `docker compose up -d` depuis la racine du projet.
 
-Au premier démarrage, lorsque le volume PostgreSQL est vide, Docker exécute automatiquement `db/job_board_schema.sql`, puis `db/seed_mvp.sql`. Le seed contient des offres, des entreprises, des catégories, des comptes, des projets, des expériences et des candidatures fictifs.
+> **Attention — réinitialisation de la base :** `docker compose down -v` supprime les données locales de la base et les CV stockés dans les volumes Docker. Ne lancez cette commande que si vous souhaitez vraiment repartir de zéro.
 
-Les scripts d’initialisation ne sont **pas rejoués** si le volume PostgreSQL existe déjà. Pour supprimer la base locale et la recréer depuis zéro :
-
-```bash
-docker compose down -v
-docker compose up --build -d
-```
-
-La commande `down -v` supprime définitivement les données conservées dans le volume local. Ne l’utilisez que si vous souhaitez vraiment réinitialiser votre base.
-
-Comptes de démonstration créés par le seed :
-
-| Rôle | E-mail | Mot de passe |
-| --- | --- | --- |
-| Candidat | `alice.martin@example.com` | `JobBoardDemo2026!` |
-| Administrateur | `admin@jobboard.example.com` | `JobBoardDemo2026!` |
-
-Ces comptes sont présents après une initialisation neuve de la base. Ils servent uniquement au développement local et ne doivent pas être réutilisés en production.
+Les ports par défaut sont `5173` pour le site, `3000` pour l’API et `5433` pour PostgreSQL. Ils peuvent être modifiés dans `.env`.
 
 ## Technologies et versions
 
-Le projet utilise Node.js 22 et PostgreSQL 17 dans Docker. Les versions exactes des dépendances JavaScript sont verrouillées dans les fichiers `package-lock.json`.
+Les versions des bibliothèques JavaScript proviennent des fichiers `package-lock.json`. Les images Docker fixent Node.js à la branche 22 et PostgreSQL à la branche 17 ; ces tags ne fixent pas un numéro de correctif précis.
 
-| Élément | Version utilisée |
-| --- | --- |
-| React | 19.3.0 |
-| React DOM | 19.3.0 |
-| React Router DOM | 7.18.4 |
-| Vite | 8.3.3 |
-| Tailwind CSS | 4.3.3 |
-| Express | 5.2.1 |
-| express-session | 1.19.0 |
-| node-postgres (`pg`) | 8.23.1 |
-| bcrypt | 6.0.0 |
+| Partie | Technologie | Version déclarée ou verrouillée |
+| --- | --- | --- |
+| Interface | React | 19.3.0 |
+| Interface | React DOM | 19.3.0 |
+| Navigation | React Router DOM | 7.18.4 |
+| Outils frontend | Vite | 8.3.3 |
+| Styles | Tailwind CSS | 4.3.3 |
+| Serveur API | Node.js | 22 (`node:22-alpine` dans Docker) |
+| Serveur API | Express | 5.2.1 |
+| Sessions | express-session | 1.19.0 |
+| Base de données | PostgreSQL | 17 (`postgres:17` dans Docker) |
+| Connexion PostgreSQL | `pg` (node-postgres) | 8.23.1 |
+| Hash des mots de passe | bcrypt | 6.0.0 |
+| Dépôt de fichiers | Multer | 2.4.0 |
+| Documentation API | Swagger UI Express | 5.0.1 |
+| Orchestration locale | Docker Compose | V2 (fourni avec Docker Desktop ; non verrouillé par le projet) |
 
-## Commandes de développement
+## Développement
 
-Les commandes suivantes s’exécutent depuis le dossier correspondant :
-
-```bash
-# Frontend
-cd frontend
-npm ci
-npm run dev
-npm run build
-npm run lint
-```
+Docker Compose est le moyen le plus simple de faire tourner l’ensemble du projet. Pour travailler sur le frontend séparément, installez Node.js 22, puis ouvrez un terminal dans `frontend/` :
 
 ```bash
-# Backend, dans un autre terminal
-cd backend
 npm ci
 npm run dev
 ```
 
-Pour un lancement manuel, le backend doit pouvoir joindre PostgreSQL et doit recevoir les variables de `.env`. Docker Compose configure ces connexions automatiquement ; pour une première prise en main, utilisez plutôt la procédure Docker ci-dessus.
+Commandes frontend disponibles :
 
-## Structure du dépôt
+```bash
+npm run build   # construit le frontend pour la production
+npm run lint    # vérifie le code avec ESLint
+npm test        # lance les tests unitaires configurés
+```
+
+Le frontend seul ne démarre pas la base de données ni l’API. Pour essayer les parcours reliés aux données, démarrez les services avec Docker Compose depuis la racine du projet.
+
+## Organisation du dépôt
 
 ```text
-backend/   API Express, routes, contrôleurs, sessions et documentation Swagger
-db/        Schéma PostgreSQL et données de démonstration
-docs/      Roadmaps, choix techniques et guides du projet
-frontend/  Interface React et styles Tailwind CSS
+backend/   API Express, routes, contrôleurs et documentation Swagger
+db/        Schéma PostgreSQL, seed de démonstration et migrations
+docs/      Guides et documentation du projet
+frontend/  Interface React, composants, pages et styles
 ```
 
-## API
+Documentation complémentaire : [Guide CV](docs/GUIDE-CV.md) · [Documentation de l’espace administration](frontend/ADMIN.md) · [Laboratoire de design](docs/design-lab/README.md).
 
-Les routes de l’API sont documentées dans Swagger à l’adresse <http://localhost:3000/api-docs> lorsque Docker Compose est lancé.
+## Sécurité et données de démonstration
 
-Une base déjà initialisée doit recevoir les migrations dans l’ordre : `001_cv_documents.sql`, `002_current_cv.sql`, `003_frozen_application_dossier.sql`, `004_company_recruiters.sql`, `005_candidate_visibility.sql`, puis `006_candidate_favorites.sql` (dans `db/migrations/`). La migration 004 ajoute le rôle recruteur et le rattachement des comptes à une entreprise ; la migration 005 ajoute le choix du candidat concernant sa visibilité auprès des recruteurs ; la migration 006 ajoute les favoris des candidats. Les nouveaux comptes recruteur sont attribués par un Admin depuis la page Utilisateurs. Le [guide CV](docs/GUIDE-CV.md) explique le stockage, les routes et le CV joint à une candidature.
-
-Pour les requêtes protégées, le backend identifie le compte à partir de la session. Le navigateur conserve un cookie de session ; le mot de passe est stocké sous forme de hash bcrypt.
-
-## État du projet
-
-Le parcours candidat permet de choisir les projets, les expériences et un CV à joindre à une candidature, puis de vérifier un récapitulatif avant l’envoi. Les CV restent dans le Profil pour être réutilisés sur d’autres offres.
+- Les données du seed sont fictives et utilisent des adresses `example.com`.
+- Les CV envoyés localement sont stockés dans un volume Docker dédié et ne sont pas des données de démonstration.
+- Les mots de passe sont stockés sous forme de hash bcrypt ; les routes protégées s’appuient sur une session.
+- N’utilisez pas les comptes ou la configuration de démonstration en production.

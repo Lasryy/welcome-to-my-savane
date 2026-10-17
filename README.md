@@ -60,12 +60,6 @@ Voici six aperçus de l’application sur ordinateur et sur mobile. Cliquez sur 
   </tr>
 </table>
 
-L’illustration ci-dessous est également utilisée sur la page d’accueil. **C’est une illustration, pas une capture d’écran.**
-
-<p align="center">
-  <img src="frontend/public/illustrations/home-savanna-journey.webp" alt="Un lion, un phacochère et un suricate réunis sous un acacia : illustration de la page d’accueil de Welcome to My Savane." width="760">
-</p>
-
 ## Ce que l’application permet de faire
 
 ### Côté candidat
@@ -168,9 +162,10 @@ Au premier démarrage d’une base vide, des entreprises, offres, comptes et can
 | Profil | Adresse e-mail | Mot de passe |
 | --- | --- | --- |
 | Candidat | `alice.martin@example.com` | `JobBoardDemo2026!` |
+| Recruteur (NovaTech) | `recruteur@jobboard.example.com` | `JobBoardDemo2026!` |
 | Administrateur | `admin@jobboard.example.com` | `JobBoardDemo2026!` |
 
-Ces comptes sont créés par le seed lors de l’initialisation d’une base vide. Ils servent uniquement à la démonstration locale. Le seed ne fournit pas de compte recruteur : un administrateur doit attribuer cet accès depuis l’application.
+Ces comptes sont créés au premier démarrage d’une base vide. Ils servent uniquement à la démonstration en local.
 
 ## Arrêter ou relancer le projet
 
@@ -241,7 +236,7 @@ docs/      Guides et documentation du projet
 frontend/  Interface React, composants, pages et styles
 ```
 
-Documentation complémentaire : [Guide CV](docs/GUIDE-CV.md) · [Documentation de l’espace administration](frontend/ADMIN.md) · [Laboratoire de design](docs/design-lab/README.md).
+Documentation technique complémentaire : [Guide CV](docs/GUIDE-CV.md).
 
 ## Sécurité et données de démonstration
 

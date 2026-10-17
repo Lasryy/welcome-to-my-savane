@@ -1,4 +1,4 @@
-// Seules ces valeurs connues peuvent devenir un ORDER BY SQL.
+// Only these known values can be used in an SQL ORDER BY clause.
 const ANNUAL_SALARY = "COALESCE(ads.salary_min, ads.salary_max)::bigint * CASE WHEN ads.salary_period = 'month' THEN 12 ELSE 1 END";
 const SORTS = {
   recent: "ads.created_at DESC, ads.id DESC",
@@ -50,7 +50,7 @@ function buildFilters(search) {
     values.push(value);
     conditions.push(condition.replace("?", `$${values.length}`));
   }
-  // Les caractères spéciaux de LIKE sont recherchés comme du texte ordinaire.
+  // Search LIKE special characters as regular text.
   const pattern = (text) => `%${text.replace(/[\\%_]/g, "\\$&")}%`;
   if (search.q) {
     add("CONCAT_WS(' ', ads.title, ads.short_description, ads.description, companies.name, ads.location) ILIKE ?", pattern(search.q));

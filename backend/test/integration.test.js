@@ -869,7 +869,7 @@ test("Lasry and Denis integration", {
     assert.equal(empty.data.page, 2);
     assert.deepEqual(empty.data.ads, []);
     const missing = await request(`/api/ads?${filters}&q=does-not-exist&page=1`);
-    // Les paramètres répétés sont refusés, au lieu de choisir arbitrairement une valeur.
+    // Reject repeated parameters instead of choosing one arbitrarily.
     assert.equal(missing.status, 400);
     const noResults = await request(`/api/ads?company_id=${companyId}&q=does-not-exist&page=1`);
     assert.equal(noResults.data.total, 0);

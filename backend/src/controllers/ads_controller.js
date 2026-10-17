@@ -52,7 +52,7 @@ async function getAds(req, res) {
   if (error) return res.status(400).json({ message: error });
 
   const { where, values } = buildFilters(search);
-  // Le tableau historique reste disponible ; page ou page_size active la pagination.
+  // Keep the legacy array response; page or page_size enables pagination.
   const paginated = req.query.page !== undefined || req.query.page_size !== undefined;
   try {
     let total;

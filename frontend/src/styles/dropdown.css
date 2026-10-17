@@ -5,7 +5,7 @@
   @apply bg-sun;
 }
 
-/* Keep selected options above the shared admin and design-lab font resets. */
+/* Keep selected options above the shared admin styles. */
 .custom-select-option.is-selected {
   @apply font-bold;
 }

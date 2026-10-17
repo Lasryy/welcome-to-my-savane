@@ -1,5 +1,5 @@
 services:
-  # BD
+  # DATABASE
 
   postgres:
     image: postgres:17

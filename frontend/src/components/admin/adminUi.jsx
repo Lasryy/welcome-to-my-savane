@@ -1,5 +1,5 @@
 import Modal from "../ui/Modal";
-import Icon from "../../design-lab/Icon";
+import Icon from "../icons/Icon";
 
 export function AdminField({ label, name, help, helpClassName = "", children }) {
   return (

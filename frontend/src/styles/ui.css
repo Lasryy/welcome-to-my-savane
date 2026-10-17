@@ -597,6 +597,8 @@ button:disabled {
   @apply [padding-block:40px_64px];
 }
 .auth-story {
+  @apply [display:flex];
+  @apply [flex-direction:column];
   @apply [position:relative];
   @apply [align-self:stretch];
   @apply [background:var(--color-mint)];
@@ -608,7 +610,7 @@ button:disabled {
 .auth-story h2 {
   @apply [position:relative];
   @apply [z-index:1];
-  @apply [max-width:62%];
+  @apply [max-width:100%];
   @apply [font-size:62px];
   @apply [line-height:1.03];
   @apply [letter-spacing:-0.04em];
@@ -620,7 +622,7 @@ button:disabled {
 .auth-story p {
   @apply [position:relative];
   @apply [z-index:1];
-  @apply [max-width:58%];
+  @apply [max-width:100%];
   @apply [margin-top:26px];
   @apply [font-size:16px];
   @apply [line-height:1.75];
@@ -631,20 +633,24 @@ button:disabled {
   @apply [bottom:28px];
 }
 .auth-story-art {
-  @apply [position:absolute];
-  @apply [right:22px];
-  @apply [bottom:18px];
+  /* Keep the illustration below the text instead of over it. */
+  @apply [position:relative];
+  @apply [right:auto];
+  @apply [bottom:auto];
+  @apply [align-self:flex-end];
+  @apply [margin-top:auto];
+  @apply [max-width:100%];
   @apply [object-fit:contain];
   @apply [object-position:bottom_right];
   @apply [pointer-events:none];
 }
 .auth-story-art--login {
-  @apply [width:min(90%,_680px)];
-  @apply [height:70%];
+  @apply [width:min(82%,_520px)];
+  @apply [height:auto];
 }
 .auth-story-art--register {
-  @apply [width:min(68%,_500px)];
-  @apply [height:54%];
+  @apply [width:min(64%,_420px)];
+  @apply [height:auto];
 }
 .auth-panel {
   @apply [width:100%];
@@ -1157,18 +1163,19 @@ button:disabled {
     @apply [padding:28px];
   }
   .auth-story-art {
-    @apply [right:14px];
-    @apply [bottom:12px];
+    @apply [right:auto];
+    @apply [bottom:auto];
   }
   .auth-story-art--login {
     @apply [width:min(78%,_440px)];
-    @apply [height:62%];
+    @apply [height:auto];
   }
   .auth-story-art--register {
     @apply [width:min(62%,_370px)];
-    @apply [height:46%];
+    @apply [height:auto];
   }
   .auth-story h2 {
+    @apply [max-width:100%];
     @apply [font-size:44px];
   }
   .auth-entry {
@@ -1229,26 +1236,27 @@ button:disabled {
     @apply [border-radius:12px_48px_12px_12px];
   }
   .auth-story h2 {
-    @apply [max-width:56%];
+    @apply [max-width:100%];
     @apply [font-size:34px];
   }
   .auth-story p {
-    @apply [max-width:52%];
+    @apply [max-width:58ch];
     @apply [margin-top:12px];
     @apply [font-size:13px];
     @apply [line-height:1.5];
   }
   .auth-story-art {
-    @apply [right:8px];
-    @apply [bottom:6px];
+    @apply [right:auto];
+    @apply [bottom:auto];
+    @apply [margin-top:16px];
   }
   .auth-story-art--login {
     @apply [width:min(74%,_250px)];
-    @apply [height:64%];
+    @apply [height:auto];
   }
   .auth-story-art--register {
     @apply [width:min(50%,_174px)];
-    @apply [height:48%];
+    @apply [height:auto];
   }
   .auth-story p {
     @apply [max-width:22ch];

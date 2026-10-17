@@ -1,11 +1,55 @@
+/* Load the Tailwind classes used in this stylesheet. */
+@reference "./tailwind.css";
+
+/* Keep the 404 page within the viewport without scrolling. */
+body:has(.not-found-scene) {
+  @apply overflow-hidden;
+}
+.app-page:has(.not-found-scene) {
+  @apply h-[100svh] min-h-0 overflow-hidden;
+}
+.app-page:has(.not-found-scene) > main {
+  @apply min-h-0;
+}
+.app-page:has(.not-found-scene) > .site-footer {
+  @apply hidden;
+}
+.not-found-scene {
+  @apply relative flow-root h-full;
+}
+/* Keep the hyenas in front without blocking clicks. */
+.not-found-scene__foreground {
+  @apply fixed inset-0 overflow-hidden pointer-events-none select-none;
+  @apply [z-index:2];
+}
+.not-found-scene__hyena {
+  @apply absolute block w-auto max-w-none;
+  /* Extend the image below the screen to show only the upper body. */
+  height: calc(var(--hyena-visible) * 1.18);
+  bottom: calc(var(--hyena-visible) * -0.18);
+}
+/* Scale their size with the viewport height, within set limits. */
+.not-found-scene__hyena--left {
+  --hyena-visible: clamp(170px, calc(100svh - 590px), 340px);
+  @apply [left:clamp(-30px,_1vw,_32px)];
+}
+.not-found-scene__hyena--center {
+  --hyena-visible: clamp(160px, 30svh, 300px);
+  @apply left-1/2 -translate-x-1/2;
+}
+.not-found-scene__hyena--right {
+  --hyena-visible: clamp(190px, 38svh, 370px);
+  @apply [right:clamp(-50px,_-2vw,_-20px)];
+}
 .not-found-page {
   @apply [display:grid];
-  @apply [min-height:min(650px,_calc(100svh_-_130px))];
+  @apply min-h-0 [height:min(650px,_calc(100%_-_48px))];
   @apply [grid-template-columns:minmax(300px,_0.82fr)_minmax(0,_1.18fr)];
-  @apply [align-items:center];
+  @apply [align-items:start];
   @apply [gap:clamp(20px,_4vw,_64px)];
-  @apply [margin-block:42px];
+  @apply [margin-block:24px];
   @apply [padding:clamp(28px,_5vw,_72px)];
+  @apply [padding-block:36px];
   @apply [overflow:hidden];
   @apply [background:var(--color-mint)];
   @apply [border-radius:28px_84px_28px_28px];
@@ -65,7 +109,7 @@
   @apply [align-items:end];
   @apply [justify-items:center];
   @apply [min-width:0];
-  @apply [align-self:stretch];
+  @apply [align-self:start] [padding-top:20px];
 }
 .not-found-page__illustration img {
   @apply [display:block];
@@ -76,16 +120,42 @@
   @apply [filter:drop-shadow(0_18px_16px_rgb(37_42_70_/_10%))];
 }
 @media (max-width: 760px) {
+  /* On mobile, use the viewport height to size the hyenas. */
+  .not-found-scene__hyena--left {
+    --hyena-visible: clamp(110px, calc(100svh - 650px), 210px);
+    @apply left-[-40px];
+  }
+  .not-found-scene__hyena--center {
+    --hyena-visible: clamp(95px, calc(100svh - 690px), 180px);
+  }
+  .not-found-scene__hyena--right {
+    --hyena-visible: clamp(120px, calc(100svh - 630px), 230px);
+    @apply right-[-50px];
+  }
   .not-found-page {
+    @apply h-auto [max-height:calc(100%_-_32px)];
     @apply [min-height:0];
     @apply [grid-template-columns:1fr];
     @apply [gap:0];
-    @apply [margin-block:24px];
-    @apply [padding:30px_24px_18px];
+    @apply [margin-block:16px];
+    @apply [padding:22px_24px_12px];
     @apply [border-top-right-radius:48px];
   }
   .not-found-page__number { @apply [font-size:clamp(76px,_20vw,_112px)]; }
   .not-found-page__eyebrow { @apply [margin-top:18px]; }
-  .not-found-page__illustration { @apply [margin:10px_-16px_-10px]; }
-  .not-found-page__illustration img { @apply [width:min(100%,_560px)]; @apply [max-height:360px]; }
+  .not-found-page__illustration { @apply [margin:10px_-16px_-10px] pt-0; }
+  .not-found-page__illustration img {
+    @apply [width:min(100%,_560px)];
+    max-height: min(360px, max(90px, calc(100svh - 515px)));
+  }
+}
+
+@media (max-width: 760px) and (max-height: 740px) {
+  /* On short screens, reduce the text and spacing. */
+  .not-found-page__number { @apply text-[60px]; }
+  .not-found-page__eyebrow { @apply mt-3 mb-2; }
+  .not-found-page h1 { @apply text-[30px]; }
+  .not-found-page__content > p:last-of-type { @apply mt-3 text-[12px] leading-[1.45]; }
+  .not-found-page__actions { @apply mt-4; }
+  .not-found-page__actions .button { @apply min-h-10 py-2; }
 }

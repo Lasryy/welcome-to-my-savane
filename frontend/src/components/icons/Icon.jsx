@@ -1,4 +1,4 @@
-const paths = {
+const iconPaths = {
   arrow: "M4 12h16m-6-6 6 6-6 6",
   search: "M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z",
   pin: "M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0ZM15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
@@ -25,7 +25,7 @@ export default function Icon({ name, className = "" }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d={paths[name] || paths.arrow} />
+      <path d={iconPaths[name] || iconPaths.arrow} />
     </svg>
   );
 }

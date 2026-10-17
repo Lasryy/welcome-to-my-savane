@@ -1,39 +1,39 @@
 -- ============================================================
--- JOB BOARD : PEUPLEMENT DÉTAILLÉ POUR LE DÉVELOPPEMENT
--- PostgreSQL 17 ; aucune extension ni dépendance supplémentaire.
--- Données entièrement fictives ; domaines réservés example.com.
+-- JOB BOARD: DETAILED DEVELOPMENT DATA
+-- PostgreSQL 17; no extensions or extra dependencies.
+-- All data is fictitious and uses the reserved example.com domain.
 -- ============================================================
--- ATTENTION : ce script remplace les données des dix tables et les métadonnées CV.
--- Les fichiers CV sur disque ne sont pas effacés par ce script SQL.
--- À utiliser uniquement sur une base de développement/démonstration.
--- Exécution conseillée : psql -v ON_ERROR_STOP=1 -f db/seed_mvp.sql
--- Une transaction englobe la réinitialisation et les contrôles :
--- toute erreur annule le peuplement, y compris le TRUNCATE.
--- Réexécutable : mêmes volumes et mêmes associations à chaque passage.
--- Les dates sont relatives à CURRENT_TIMESTAMP pour garder des offres récentes.
+-- WARNING: this script replaces data in all ten tables and CV metadata.
+-- It does not delete CV files stored on disk.
+-- Use only with a development or demo database.
+-- Recommended command: psql -v ON_ERROR_STOP=1 -f db/seed_mvp.sql
+-- One transaction covers the reset and checks. Any error rolls back all changes,
+-- including the TRUNCATE.
+-- Safe to rerun: each run creates the same data and relationships.
+-- Dates use CURRENT_TIMESTAMP so job listings stay recent.
 --
--- Volumes attendus :
---   123 comptes : 120 candidats USER + 3 administrateurs ADMIN
---   30 entreprises, 20 catégories, 240 offres (60 métiers x 4 variantes)
---   360 projets, 360 expériences, 720 candidatures
---   1 440 liens vers des projets, 1 440 liens vers des expériences
--- Descriptions longues : contexte sectoriel, six missions propres au métier,
--- livrables, apprentissages et attentes adaptées au niveau d’expérience.
+-- Expected row counts:
+--   124 accounts: 120 candidates, 1 recruiter, and 3 admins
+--   30 companies, 20 categories, 240 ads (60 roles x 4 variants)
+--   360 projects, 360 work histories, 720 applications
+--   1,440 project links and 1,440 work history links
+-- Long descriptions include industry context, six role-specific tasks,
+-- deliverables, learning goals, and expectations for the experience level.
 --
--- Fourchettes salary_min / salary_max : montants BRUTS en EUR.
--- salary_period : month pour stages/alternances ; year pour les autres.
--- Deux bornes NULL signifient rémunération non renseignée.
--- Les montants sont fictifs et exprimés pour le temps de travail indiqué.
--- Contrats : permanent, fixed_term, internship, apprenticeship.
--- Temps de travail : full_time, part_time.
--- Offres : published (195), closed (45) ; aucun statut draft dans le schéma.
--- Candidatures : sent, in_progress, technical_test, accepted, rejected.
+-- salary_min and salary_max are fictional gross amounts in EUR.
+-- salary_period is month for internships and apprenticeships, year for others.
+-- Two NULL values mean the salary is not provided.
+-- Amounts match the listed work schedule.
+-- Contract types: permanent, fixed_term, internship, apprenticeship.
+-- Work schedules: full_time, part_time.
+-- Ads: published (195) or closed (45); the schema has no draft status.
+-- Application statuses: sent, in_progress, technical_test, accepted, rejected.
 --
--- Connexion de démonstration (hash bcrypt, coût 10) :
+-- Demo logins (bcrypt hash, cost 10):
 --   alice.martin@example.com / JobBoardDemo2026!
 --   admin@jobboard.example.com / JobBoardDemo2026!
--- Tous les comptes partagent ce mot de passe de démonstration.
--- Le seed prépare les comptes ; il n'ajoute pas de routes d'authentification.
+-- All demo accounts use the same password.
+-- This seed creates accounts; it does not add authentication routes.
 
 BEGIN;
 
@@ -44,7 +44,7 @@ TRUNCATE TABLE
     applications, ads, categories, companies, people
 RESTART IDENTITY;
 
--- 1. ENTREPRISES : villes, présentation et sites fictifs.
+-- 1. COMPANIES: fictional locations, descriptions, and websites.
 INSERT INTO companies (name, description, website, location, logo_url, created_at)
 SELECT name, description, 'https://' || domain || '.example.com', location,
        'https://api.dicebear.com/10.x/shapes/svg?seed=company-' || name
@@ -83,7 +83,7 @@ FROM (VALUES
     ('OpenCulture', 'openculture', 'Avignon', 'Structure culturelle de 46 personnes qui développe des outils de billetterie et de médiation. Nous travaillons avec des lieux culturels et des équipes pédagogiques.')
 ) AS company(name, domain, location, description);
 
--- 2. CATÉGORIES : métiers numériques et secteurs non techniques.
+-- 2. CATEGORIES: tech roles and non-technical industries.
 INSERT INTO categories (name) VALUES
     ('Développement web'),
     ('Data et intelligence artificielle'),
@@ -106,8 +106,8 @@ INSERT INTO categories (name) VALUES
     ('Formation et pédagogie'),
     ('Jeux vidéo et création numérique');
 
--- Tables temporaires de préparation : elles disparaissent au COMMIT.
--- Les relations sont résolues par jointure, sans supposer les IDs SERIAL.
+-- Temporary staging tables are removed at COMMIT.
+-- Resolve relationships with joins; do not assume SERIAL IDs.
 CREATE TEMP TABLE seed_jobs (
     job_no INTEGER PRIMARY KEY,
     category_name TEXT NOT NULL,
@@ -180,7 +180,7 @@ INSERT INTO seed_jobs VALUES
     (59, 'Jeux vidéo et création numérique', 'Artiste 3D', 35000, 'Créer les modèles, préparer les textures et intégrer les assets dans les scènes', 'Portfolio 3D, compréhension des contraintes temps réel et sens artistique', 'Blender, Substance Painter, Unity, Git'),
     (60, 'Jeux vidéo et création numérique', 'Game designer', 38000, 'Prototyper les mécaniques, équilibrer les niveaux et analyser les sessions de test', 'Capacité à formaliser les règles et à intégrer les retours des joueurs', 'Unity, documentation de design, prototypage, analytics');
 
--- 3. CANDIDATS : 120 identités distinctes et une spécialité par profil.
+-- 3. CANDIDATES: 120 distinct people, each with one profile specialty.
 CREATE TEMP TABLE seed_candidates (
     candidate_no INTEGER PRIMARY KEY,
     first_name TEXT NOT NULL,
@@ -331,10 +331,18 @@ INSERT INTO people (first_name, last_name, email, phone, password_hash, role, cr
      '$2b$10$OozsG2pijPcjPx5I1a/feO1tzKKWhupzIMjhTpHcVQkohbnehpzra',
      'ADMIN', CURRENT_TIMESTAMP - INTERVAL '2 years');
 
--- 4. OFFRES : quatre variantes par métier, avec missions et profil détaillés.
--- Les employeurs sont choisis selon leur secteur d’activité.
--- Le schéma ne comporte pas de champ
--- télétravail : cette information figure dans le lieu et la description.
+-- NovaTech demo recruiter; the password is listed in the README.
+INSERT INTO people (first_name, last_name, email, phone, password_hash, role, company_id, created_at)
+SELECT 'Alex', 'Recruteur', 'recruteur@jobboard.example.com', NULL,
+       '$2b$10$OozsG2pijPcjPx5I1a/feO1tzKKWhupzIMjhTpHcVQkohbnehpzra',
+       'COMPANY', id, CURRENT_TIMESTAMP - INTERVAL '2 years'
+FROM companies
+WHERE name = 'NovaTech';
+
+-- 4. ADS: four versions of each role, with detailed tasks and qualifications.
+-- Choose employers based on their industry.
+-- The schema has no remote-work field, so this detail appears in the location
+-- and description instead.
 CREATE TEMP TABLE seed_company_map ON COMMIT DROP AS
 SELECT id, name, description, location, row_number() OVER (ORDER BY id)::integer AS company_no
 FROM companies;
@@ -366,8 +374,8 @@ INSERT INTO seed_category_companies VALUES
     ('Formation et pédagogie', ARRAY['EduSphere', 'TalentPulse', 'OpenCulture', 'ConnectCare']),
     ('Jeux vidéo et création numérique', ARRAY['GameHarbor', 'GameHarbor', 'EduSphere', 'OpenCulture']);
 
--- Contenus éditoriaux : vingt contextes sectoriels et soixante fiches métier.
--- Ils alimentent uniquement la description longue des offres.
+-- Editorial content: 20 industry contexts and 60 role descriptions.
+-- This content is used only in the long ad descriptions.
 CREATE TEMP TABLE seed_category_details (
     category_name TEXT PRIMARY KEY,
     sector_context TEXT NOT NULL,
@@ -1038,8 +1046,8 @@ Le parcours comprend un échange de découverte de 30 minutes, un entretien mét
 FROM seed_ad_map
 ORDER BY job_no, variant_no;
 
--- 5. PROJETS : trois réalisations par candidat, adaptées à sa spécialité.
--- Certains profils ont une démo sans dépôt public, d’autres un dépôt seul.
+-- 5. PROJECTS: three projects per candidate, matched to their specialty.
+-- Some profiles have a demo but no public repository; others have only a repository.
 CREATE TEMP TABLE seed_project_map ON COMMIT DROP AS
 SELECT p.id AS person_id, c.candidate_no, n.project_no,
        CASE n.project_no WHEN 1 THEN 'Projet métier : ' || j.title
@@ -1079,9 +1087,9 @@ SELECT person_id, title, description, project_url, repository_url, created_at
 FROM seed_project_map
 ORDER BY candidate_no, project_no;
 
--- 6. EXPÉRIENCES : stage, première expérience puis poste récent.
--- Les périodes ne se chevauchent pas. Une partie des candidats occupe
--- encore son dernier poste (end_date NULL), les autres l’ont terminé.
+-- 6. WORK HISTORY: internship, first role, then a recent position.
+-- Date ranges do not overlap. Some candidates still hold their latest role
+-- (end_date is NULL); others have left it.
 CREATE TEMP TABLE seed_experience_map ON COMMIT DROP AS
 SELECT p.id AS person_id, c.candidate_no, n.experience_no, company.name AS company_name,
        CASE n.experience_no WHEN 1 THEN 'Stage — ' || j.title
@@ -1116,9 +1124,9 @@ SELECT person_id, company_name, job_title, description, start_date, end_date, cr
 FROM seed_experience_map
 ORDER BY candidate_no, experience_no;
 
--- 7. CANDIDATURES : six offres de la spécialité du candidat.
--- Sélection déterministe ; pas de doublon personne/offre.
--- Les offres fermées conservent des candidatures avec un statut final.
+-- 7. APPLICATIONS: six ads related to each candidate's specialty.
+-- Selection is repeatable, with no duplicate candidate/ad pairs.
+-- Closed ads keep their applications and final statuses.
 CREATE TEMP TABLE seed_application_map ON COMMIT DROP AS
 SELECT p.id AS person_id, c.candidate_no, chosen.ad_id, chosen.title,
        chosen.company_name, chosen.created_at AS ad_created_at,
@@ -1160,7 +1168,7 @@ Bien cordialement,
 %s %s',
               m.company_name, m.title, j.category_name, j.profile, j.missions, c.first_name, c.last_name),
        m.status,
-       -- La candidature est toujours postérieure à l’offre et antérieure à maintenant.
+       -- The application date is after the ad date and before the current time.
        m.ad_created_at + CASE WHEN m.status = 'sent' THEN
                                  CURRENT_TIMESTAMP - m.ad_created_at - INTERVAL '1 day'
                              ELSE (2 + ((m.candidate_no + m.choice_no) % 10)) * INTERVAL '1 day' END
@@ -1169,9 +1177,9 @@ JOIN seed_candidates c ON c.candidate_no = m.candidate_no
 JOIN seed_jobs j ON j.job_no = c.job_no
 ORDER BY m.candidate_no, m.choice_no;
 
--- 8. PIÈCES JOINTES : un à trois projets/expériences propres au candidat.
--- person_id est obligatoire : les clés étrangères composites garantissent
--- que la candidature et la pièce jointe appartiennent à la même personne.
+-- 8. ATTACHMENTS: one to three of the candidate's own projects or work entries.
+-- person_id is required. Composite foreign keys ensure the application and
+-- each attachment belong to the same person.
 INSERT INTO application_projects (application_id, project_id, person_id)
 SELECT a.id, p.id, a.person_id
 FROM seed_application_map m
@@ -1196,14 +1204,14 @@ CROSS JOIN LATERAL (
     LIMIT (1 + (m.choice_no + 1) % 3)
 ) e;
 
--- 9. CONTRÔLES : toute incohérence provoque le rollback de la transaction.
+-- 9. CHECKS: any mismatch rolls back the transaction.
 DO $checks$
 DECLARE
     item RECORD;
     actual_count BIGINT;
 BEGIN
     FOR item IN SELECT * FROM (VALUES
-        ('people', 123), ('companies', 30), ('categories', 20), ('ads', 240),
+        ('people', 124), ('companies', 30), ('categories', 20), ('ads', 240),
         ('projects', 360), ('experiences', 360), ('applications', 720),
         ('application_projects', 1440), ('application_experiences', 1440)
     ) AS expected(table_name, row_count)
@@ -1277,7 +1285,7 @@ $checks$;
 
 COMMIT;
 
--- Récapitulatif affiché par psql après le chargement.
+-- Summary printed by psql after loading the data.
 SELECT 'people' AS table_name, count(*) AS total FROM people
 UNION ALL SELECT 'companies', count(*) FROM companies
 UNION ALL SELECT 'categories', count(*) FROM categories
@@ -1291,7 +1299,7 @@ UNION ALL SELECT 'application_experiences', count(*) FROM application_experience
 SELECT status, count(*) AS total FROM ads GROUP BY status ORDER BY status;
 SELECT status, count(*) AS total FROM applications GROUP BY status ORDER BY status;
 
--- Exemples pour explorer les données :
+-- Example queries for exploring the data:
 -- SELECT a.title, c.name AS company, cat.name AS category, a.location,
 --        a.salary_min, a.salary_max, a.salary_period
 -- FROM ads a JOIN companies c ON c.id = a.company_id

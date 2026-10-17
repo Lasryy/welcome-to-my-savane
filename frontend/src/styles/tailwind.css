@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "../design-lab/fonts/fonts.css";
 
 @theme {
   --color-ink: #252a46;

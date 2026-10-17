@@ -1,6 +1,6 @@
 
 -- ============================================
--- MVP - PLATEFORME DE RECRUTEMENT
+-- MVP - RECRUITMENT PLATFORM
 -- PostgreSQL
 -- ============================================
 
@@ -331,38 +331,38 @@ ON applications(cv_document_id) WHERE cv_document_id IS NOT NULL;
 -- INDEXES
 -- ============================================
 
--- Annonces par entreprise
+-- Ads by company
 CREATE INDEX idx_ads_company
 ON ads(company_id);
 
--- Annonces par categorie
+-- Ads by category
 CREATE INDEX idx_ads_category
 ON ads(category_id);
 
--- Annonces publiees, triees par date
+-- Published ads, sorted by date
 CREATE INDEX idx_ads_status_created
 ON ads(status, created_at DESC);
 
--- Historique des candidatures d'un utilisateur
+-- Application history for a candidate
 CREATE INDEX idx_applications_person_created
 ON applications(person_id, created_at DESC);
 
--- Candidatures pour une annonce
+-- Applications for an ad
 CREATE INDEX idx_applications_ad
 ON applications(ad_id);
 
--- Projets d'un utilisateur
+-- Projects owned by a candidate
 CREATE INDEX idx_projects_person
 ON projects(person_id);
 
--- Experiences d'un utilisateur
+-- Work experience owned by a candidate
 CREATE INDEX idx_experiences_person
 ON experiences(person_id);
 
--- Recherche inverse des projets associes
+-- Reverse lookup for attached projects
 CREATE INDEX idx_application_projects_project
 ON application_projects(project_id);
 
--- Recherche inverse des experiences associees
+-- Reverse lookup for attached work experience
 CREATE INDEX idx_application_experiences_experience
 ON application_experiences(experience_id);

@@ -3,7 +3,7 @@ const pool = require("../db/pool");
 
 const router = express.Router();
 
-// Ces routes ne montent aucun contrôleur d'écriture admin.
+// These routes do not expose admin write controllers.
 router.get("/companies", async (req, res) => {
   try {
     const result = await pool.query(

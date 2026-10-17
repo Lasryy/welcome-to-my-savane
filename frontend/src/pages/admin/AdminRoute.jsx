@@ -58,7 +58,7 @@ export default function AdminRoute() {
         variant="forbidden"
         className="request-state--admin-access"
         title="Accès réservé à l’administration"
-        description="Ce compte ne dispose pas des droits nécessaires pour consulter cette page."
+        description="Notre royaume s’arrête à cette frontière, tu ne dois jamais y aller."
         illustration="/illustrations/admin-mandrill-guardian.webp"
         illustrationAlt="Un mandrill garde le passage près d’un acacia où est dessiné un lionceau."
       >

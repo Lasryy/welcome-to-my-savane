@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import Icon from "../../design-lab/Icon";
+import Icon from "../icons/Icon";
 
 function AdminCard({ title, description, link, header, meta, children, index = 0, overflowVisible = false }) {
   const overflowClass = overflowVisible ? "overflow-visible" : "overflow-hidden";

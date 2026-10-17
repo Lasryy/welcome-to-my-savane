@@ -179,4 +179,105 @@
  *       '403': { description: COMPANY role required. }
  *       '404': { description: Candidate profile is missing or hidden. }
  *       '500': { description: Internal database error. }
+ * /api/company/users:
+ *   get:
+ *     tags: [Company]
+ *     summary: List recruiter accounts for the authenticated company
+ *     description: Results are scoped to the company from the session and include no password data. Supports text search and pagination.
+ *     security: [{ sessionCookie: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         description: Optional search in first name, last name, and email, up to 200 characters.
+ *         schema: { type: string, maxLength: 200 }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1, default: 1 }
+ *       - in: query
+ *         name: page_size
+ *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+ *     responses:
+ *       '200': { description: Paginated recruiter accounts with their company name and no password data. }
+ *       '400': { description: Invalid search or pagination parameters. }
+ *       '401': { description: Login required. }
+ *       '403': { description: COMPANY role required. }
+ *       '500': { description: Internal database error. }
+ *   post:
+ *     tags: [Company]
+ *     summary: Create a recruiter account for the authenticated company
+ *     description: The company and COMPANY role are assigned from the session. Passwords are hashed and never returned.
+ *     security: [{ sessionCookie: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             required: [first_name, last_name, email, password]
+ *             properties:
+ *               first_name: { type: string, minLength: 1, maxLength: 100 }
+ *               last_name: { type: string, minLength: 1, maxLength: 100 }
+ *               email: { type: string, format: email, maxLength: 255 }
+ *               phone: { type: string, nullable: true, maxLength: 30 }
+ *               password: { type: string, format: password, minLength: 8, maxLength: 72, description: Maximum 72 UTF-8 bytes. }
+ *           example: { first_name: Camille, last_name: Petit, email: camille@example.com, phone: null, password: 'mot-de-passe-solide' }
+ *     responses:
+ *       '201': { description: Created recruiter account with ID, name, email, phone, role, company and creation date. }
+ *       '400': { description: Invalid account fields or password. }
+ *       '401': { description: Login required. }
+ *       '403': { description: COMPANY role required. }
+ *       '409': { description: Email address is already in use. }
+ *       '500': { description: Internal database error. }
+ * /api/company/users/{id}:
+ *   patch:
+ *     tags: [Company]
+ *     summary: Update a recruiter account belonging to the authenticated company
+ *     description: Only first name, last name, email, and phone can be changed. Company, role, and password cannot be changed through this route.
+ *     security: [{ sessionCookie: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: false
+ *             minProperties: 1
+ *             properties:
+ *               first_name: { type: string, minLength: 1, maxLength: 100 }
+ *               last_name: { type: string, minLength: 1, maxLength: 100 }
+ *               email: { type: string, format: email, maxLength: 255 }
+ *               phone: { type: string, nullable: true, maxLength: 30 }
+ *           example: { phone: null }
+ *     responses:
+ *       '200': { description: Updated recruiter account without password data. }
+ *       '400': { description: Invalid account ID or fields. }
+ *       '401': { description: Login required. }
+ *       '403': { description: COMPANY role required. }
+ *       '404': { description: Recruiter account not found for this company. }
+ *       '409': { description: Email address is already in use. }
+ *       '500': { description: Internal database error. }
+ *   delete:
+ *     tags: [Company]
+ *     summary: Delete a recruiter account belonging to the authenticated company
+ *     description: A recruiter cannot delete their own account through this route.
+ *     security: [{ sessionCookie: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer, minimum: 1 }
+ *     responses:
+ *       '204': { description: Recruiter account deleted, no response body. }
+ *       '400': { description: Invalid account ID. }
+ *       '401': { description: Login required. }
+ *       '403': { description: COMPANY role required. }
+ *       '404': { description: Recruiter account not found for this company. }
+ *       '409': { description: Own account deletion is forbidden. }
+ *       '500': { description: Internal database error. }
  */

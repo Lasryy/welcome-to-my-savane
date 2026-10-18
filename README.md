@@ -10,18 +10,18 @@
 </p>
 
 <p align="center">
-  <img alt="React 19.3.0" src="https://img.shields.io/badge/React-19.3.0-61DAFB?logo=react&logoColor=20232a">
-  <img alt="Vite 8.3.3" src="https://img.shields.io/badge/Vite-8.3.3-646CFF?logo=vite&logoColor=white">
-  <img alt="Express 5.2.1" src="https://img.shields.io/badge/Express-5.2.1-222222?logo=express&logoColor=white">
-  <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white">
+  <img alt="React" src="https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=20232a">
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white">
+  <img alt="Node.js et Express" src="https://img.shields.io/badge/Node.js%20%2B%20Express-222222?logo=express&logoColor=white">
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white">
   <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white">
 </p>
 
-> **Projet pédagogique Epitech T-WEB-501**, réalisé en équipe et encore en développement. Les entreprises, les offres et les comptes fournis pour la démonstration sont fictifs. N’y enregistrez pas de données personnelles réelles.
+> Projet pédagogique Epitech T-WEB-501. Les comptes et annonces préchargés sont fictifs ; utilisez uniquement des données de démonstration.
 
 ## Le projet
 
-Welcome to My Savane rassemble des offres d’emploi et les outils pour préparer une candidature. Un candidat peut rechercher une opportunité, réunir ses projets et expériences dans son profil, choisir les éléments qu’il souhaite présenter et suivre ses candidatures.
+Welcome to My Savane est une plateforme de recrutement en français qui accompagne candidats et recruteurs, de la recherche d’offres au suivi des candidatures.
 
 ## L’application en images
 
@@ -82,32 +82,25 @@ La documentation de l’API est disponible sur [Swagger](http://localhost:3000/a
 
 [Consulter la présentation de Welcome to My Savane (PDF)](docs/Welcome-to-My-Savane-Soutenance.pdf).
 
-## Installation pas à pas
+## Démarrage local
 
-La méthode recommandée utilise Docker Desktop. Elle lance le site, l’API et la base de données sans avoir à installer Node.js ou PostgreSQL séparément.
+Prérequis :
 
-### 1. Installer Docker Desktop
+- **Windows ou macOS :** [Docker Desktop](https://docs.docker.com/desktop/) installé et démarré.
+- **Linux :** Docker Engine et le [plugin Docker Compose](https://docs.docker.com/compose/install/linux/).
 
-Téléchargez et installez [Docker Desktop](https://docs.docker.com/desktop/), adapté à votre ordinateur. Ouvrez-le et attendez que Docker indique qu’il est démarré. Docker Desktop fournit Docker Compose, l’outil qui démarre ensemble les différents services du projet.
+Docker démarre le frontend, l’API et PostgreSQL. Il n’est pas nécessaire d’installer Node.js ou PostgreSQL sur l’ordinateur pour utiliser l’application.
 
-### 2. Récupérer le projet
-
-Vous pouvez télécharger le dépôt depuis [GitHub](https://github.com/EpitechMscProPromo2029/T-WEB-501-PAR-5-1-job_board-6) avec **Code → Download ZIP**, puis extraire l’archive.
-
-Après extraction, ouvrez un terminal dans le dossier du projet : sur Windows, faites un clic droit dans le dossier extrait puis choisissez **Ouvrir dans le Terminal** ; sur macOS, ouvrez Terminal, tapez `cd ` (avec un espace), faites glisser le dossier extrait dans la fenêtre puis appuyez sur Entrée.
-
-Ou, si Git est déjà installé, ouvrez un terminal et exécutez :
+Clonez le dépôt et placez-vous à sa racine. Ces commandes fonctionnent dans PowerShell, Git Bash et les terminaux macOS/Linux :
 
 ```bash
 git clone https://github.com/EpitechMscProPromo2029/T-WEB-501-PAR-5-1-job_board-6.git
 cd T-WEB-501-PAR-5-1-job_board-6
 ```
 
-Dans les étapes suivantes, les commandes doivent être exécutées **à la racine du dossier du projet**, celui qui contient `docker-compose.yml`.
+Sans Git, téléchargez le dépôt avec **Code → Download ZIP** sur [GitHub](https://github.com/EpitechMscProPromo2029/T-WEB-501-PAR-5-1-job_board-6), extrayez-le, puis ouvrez un terminal dans le dossier qui contient `docker-compose.yml`.
 
-### 3. Créer la configuration locale
-
-Copiez le modèle de configuration dans un nouveau fichier `.env`.
+Créez le fichier de configuration local :
 
 **macOS ou Linux :**
 
@@ -121,47 +114,40 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-Ouvrez ensuite `.env` dans un éditeur de texte et remplacez la valeur de `SESSION_SECRET` par une chaîne privée aléatoire.
+Dans `.env`, remplacez `SESSION_SECRET` par une valeur aléatoire privée. Générez-en une :
 
-Pour en générer une :
+**macOS ou Linux :** `openssl rand -hex 32`
 
-**macOS ou Linux :**
-
-```bash
-openssl rand -hex 32
-```
-
-**Windows PowerShell 7 :**
+**Windows PowerShell :**
 
 ```powershell
-[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)).ToLower()
+$bytes = New-Object byte[] 32
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+[BitConverter]::ToString($bytes).Replace("-", "").ToLower()
 ```
 
-Copiez le résultat après `SESSION_SECRET=` dans `.env`. Ce fichier contient des paramètres locaux : ne partagez pas son contenu et ne l’ajoutez pas à Git. Les autres valeurs du fichier peuvent rester telles quelles pour un lancement local.
+Copiez la valeur affichée dans `.env`. Gardez ce fichier local et ne le partagez pas.
 
-### 4. Démarrer l’application
-
-Depuis la racine du projet, lancez :
+Démarrez les services depuis la racine du projet :
 
 ```bash
 docker compose up --build -d
 ```
 
-Au premier lancement, Docker télécharge et construit les composants nécessaires ; cela peut prendre quelques minutes. Pour vérifier qu’ils ont démarré :
+Le premier démarrage peut prendre quelques minutes. Vérifiez l’état des services avec `docker compose ps`.
 
-```bash
-docker compose ps
-```
-
-Ouvrez ensuite ces adresses dans votre navigateur :
+Ouvrez ensuite l’application :
 
 - **Site :** <http://localhost:5173>
 - **API :** <http://localhost:3000>
 - **Documentation API :** <http://localhost:3000/api-docs>
 
-Au premier démarrage d’une base vide, des entreprises, offres, comptes et candidatures de démonstration sont ajoutés automatiquement.
+À la première initialisation d’une base vide, des données de démonstration sont ajoutées.
 
-### 5. Se connecter avec un compte de démonstration
+Si un port est déjà utilisé, arrêtez l’application qui l’occupe ou modifiez les ports dans `.env`, puis relancez Compose.
+
+### Comptes de démonstration
 
 | Profil | Adresse e-mail | Mot de passe |
 | --- | --- | --- |
@@ -169,59 +155,56 @@ Au premier démarrage d’une base vide, des entreprises, offres, comptes et can
 | Recruteur (NovaTech) | `recruteur@jobboard.example.com` | `JobBoardDemo2026!` |
 | Administrateur | `admin@jobboard.example.com` | `JobBoardDemo2026!` |
 
-Ces comptes sont créés au premier démarrage d’une base vide. Ils servent uniquement à la démonstration en local.
+Ces comptes sont destinés à la démonstration locale uniquement.
 
 ## Arrêter ou relancer le projet
 
-Pour afficher les journaux des services :
+Afficher les journaux :
 
 ```bash
 docker compose logs -f
 ```
 
-Pour arrêter le site, l’API et PostgreSQL sans effacer les données locales :
+Arrêter les services sans effacer les données :
 
 ```bash
 docker compose down
 ```
 
-Pour relancer les services plus tard, utilisez de nouveau `docker compose up -d` depuis la racine du projet.
+Relancer les services : `docker compose up -d`.
 
 > **Attention — réinitialisation de la base :** `docker compose down -v` supprime les données locales de la base et les CV stockés dans les volumes Docker. Ne lancez cette commande que si vous souhaitez vraiment repartir de zéro.
 
-Les ports par défaut sont `5173` pour le site, `3000` pour l’API et `5433` pour PostgreSQL. Ils peuvent être modifiés dans `.env`.
+Les ports locaux par défaut sont `5173` (site), `3000` (API) et `5433` (PostgreSQL). Modifiez-les dans `.env` si nécessaire.
 
-## Technologies et versions
+## Stack et versions
 
-Les versions des bibliothèques JavaScript proviennent des fichiers `package-lock.json`. Les images Docker fixent Node.js à la branche 22 et PostgreSQL à la branche 17 ; ces tags ne fixent pas un numéro de correctif précis.
-
-| Partie | Technologie | Version déclarée ou verrouillée |
+| Partie | Technologie | Version verrouillée ou tag Docker |
 | --- | --- | --- |
-| Interface | React | 19.3.0 |
-| Interface | React DOM | 19.3.0 |
+| Interface | React, React DOM | 19.3.0 |
 | Navigation | React Router DOM | 7.18.4 |
 | Outils frontend | Vite | 8.3.3 |
 | Styles | Tailwind CSS | 4.3.3 |
-| Serveur API | Node.js | 22 (`node:22-alpine` dans Docker) |
-| Serveur API | Express | 5.2.1 |
+| Runtime backend | Node.js | 22 (`node:22-alpine`, correctif non verrouillé) |
+| API | Express | 5.2.1 |
 | Sessions | express-session | 1.19.0 |
-| Base de données | PostgreSQL | 17 (`postgres:17` dans Docker) |
-| Connexion PostgreSQL | `pg` (node-postgres) | 8.23.1 |
-| Hash des mots de passe | bcrypt | 6.0.0 |
-| Dépôt de fichiers | Multer | 2.4.0 |
-| Documentation API | Swagger UI Express | 5.0.1 |
-| Orchestration locale | Docker Compose | V2 (fourni avec Docker Desktop ; non verrouillé par le projet) |
+| Base de données | PostgreSQL | 17 (`postgres:17`, correctif non verrouillé) |
+| Connexion à PostgreSQL | `pg` | 8.23.1 |
+| Protection des mots de passe | bcrypt | 6.0.0 |
+| Environnement local | Docker Compose | V2 (fourni par Docker ; version non verrouillée par le dépôt) |
+
+Les versions JavaScript sont celles verrouillées dans les `package-lock.json`. Les images Docker du dépôt fixent Node.js et PostgreSQL à leur version majeure, mais suivent les mises à jour de correctif de ces branches.
 
 ## Développement
 
-Docker Compose est le moyen le plus simple de faire tourner l’ensemble du projet. Pour travailler sur le frontend séparément, installez Node.js 22, puis ouvrez un terminal dans `frontend/` :
+Pour lancer uniquement le frontend, installez Node.js 22 puis exécutez dans `frontend/` :
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Commandes frontend disponibles :
+Commandes disponibles dans `frontend/` :
 
 ```bash
 npm run build   # construit le frontend pour la production
@@ -229,7 +212,7 @@ npm run lint    # vérifie le code avec ESLint
 npm test        # lance les tests unitaires configurés
 ```
 
-Le frontend seul ne démarre pas la base de données ni l’API. Pour essayer les parcours reliés aux données, démarrez les services avec Docker Compose depuis la racine du projet.
+Le frontend seul ne démarre ni l’API ni la base de données. Utilisez Docker Compose pour tester les parcours complets.
 
 ## Organisation du dépôt
 
@@ -239,10 +222,3 @@ db/        Schéma PostgreSQL, seed de démonstration et migrations
 docs/      Guides et documentation du projet
 frontend/  Interface React, composants, pages et styles
 ```
-
-## Sécurité et données de démonstration
-
-- Les données du seed sont fictives et utilisent des adresses `example.com`.
-- Les CV envoyés localement sont stockés dans un volume Docker dédié et ne sont pas des données de démonstration.
-- Les mots de passe sont stockés sous forme de hash bcrypt ; les routes protégées s’appuient sur une session.
-- N’utilisez pas les comptes ou la configuration de démonstration en production.

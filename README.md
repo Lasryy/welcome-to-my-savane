@@ -78,6 +78,10 @@ Voici six aperçus de l’application sur ordinateur et sur mobile. Cliquez sur 
 
 La documentation de l’API est disponible sur [Swagger](http://localhost:3000/api-docs) une fois le projet lancé.
 
+## Présentation de soutenance
+
+[Consulter la présentation de Welcome to My Savane (PDF)](docs/Welcome-to-My-Savane-Soutenance.pdf).
+
 ## Installation pas à pas
 
 La méthode recommandée utilise Docker Desktop. Elle lance le site, l’API et la base de données sans avoir à installer Node.js ou PostgreSQL séparément.
@@ -235,8 +239,6 @@ db/        Schéma PostgreSQL, seed de démonstration et migrations
 docs/      Guides et documentation du projet
 frontend/  Interface React, composants, pages et styles
 ```
-
-Documentation technique complémentaire : [Guide CV](docs/GUIDE-CV.md).
 
 ## Sécurité et données de démonstration
 

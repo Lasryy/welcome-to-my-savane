@@ -17,7 +17,20 @@
   <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white">
 </p>
 
-> Projet pédagogique Epitech T-WEB-501. Les comptes et annonces préchargés sont fictifs ; utilisez uniquement des données de démonstration.
+> Projet pédagogique Epitech T-WEB-501. Les comptes et annonces préchargés sont fictifs. Utilisez uniquement des données de démonstration.
+
+## Origine et contributions
+
+Cette copie personnelle présente un **projet terminé, réalisé en binôme** dans le cadre d’EPITECH. Elle conserve l’historique du [dépôt d’équipe](https://github.com/EpitechMscProPromo2029/T-WEB-501-PAR-5-1-job_board-6) et les contributions de ses deux auteurs.
+
+- **[Lasry BESKIWIN](https://github.com/Lasryy)** : authentification et sessions, profils, parcours de candidature et sélection des éléments du dossier, copie figée en transaction SQL, suivi des candidatures et comptes admin, API d’annuaire candidat avec visibilité choisie, accueil et expérience de recherche.
+- **[Denis Vuong](https://github.com/DenisVuong)** : catalogue et filtres d’offres, administration du catalogue, dépôt et versionnage des CV, espace entreprise et gestion des comptes recruteurs.
+
+L’intégration, les corrections et la livraison sont un travail de binôme. Cette présentation n’attribue pas l’ensemble de l’application à un seul auteur.
+
+### Un nom volontairement parodique
+
+**Welcome To My Savane** est un clin d’œil parodique à « Welcome to the Jungle ». Le mot français **« savane »** remplace volontairement l’anglais **« savanna »** pour accentuer ce décalage.
 
 ## Le projet
 
@@ -94,11 +107,11 @@ Docker démarre le frontend, l’API et PostgreSQL. Il n’est pas nécessaire d
 Clonez le dépôt et placez-vous à sa racine. Ces commandes fonctionnent dans PowerShell, Git Bash et les terminaux macOS/Linux :
 
 ```bash
-git clone https://github.com/EpitechMscProPromo2029/T-WEB-501-PAR-5-1-job_board-6.git
-cd T-WEB-501-PAR-5-1-job_board-6
+git clone https://github.com/Lasryy/welcome-to-my-savane.git
+cd welcome-to-my-savane
 ```
 
-Sans Git, téléchargez le dépôt avec **Code → Download ZIP** sur [GitHub](https://github.com/EpitechMscProPromo2029/T-WEB-501-PAR-5-1-job_board-6), extrayez-le, puis ouvrez un terminal dans le dossier qui contient `docker-compose.yml`.
+Sans Git, téléchargez le dépôt avec **Code → Download ZIP** sur [GitHub](https://github.com/Lasryy/welcome-to-my-savane), extrayez-le, puis ouvrez un terminal dans le dossier qui contient `docker-compose.yml`.
 
 Créez le fichier de configuration local :
 
